@@ -1,0 +1,2698 @@
+{
+  "summary": {
+    "metadata": {
+      "total_entries": 109,
+      "evaluation_date": "2025-11-20T01:28:38.901815",
+      "embedding_model": "text-embedding-3-large",
+      "llm_model": "gpt-4o",
+      "reranker_model": "gpt-4o-mini",
+      "pricing": {
+        "input_price_per_1m": 2.5,
+        "output_price_per_1m": 10.0
+      }
+    },
+    "quality_metrics": {
+      "kontextrelevanz": {
+        "mean": 0.48302752293577983,
+        "median": 0.5,
+        "min": 0.0,
+        "max": 1.0,
+        "p95": 1.0,
+        "std": 0.3998969880948416
+      },
+      "kontextgenügsamkeit": {
+        "mean": 0.7197247706422019,
+        "median": 0.9,
+        "min": 0.0,
+        "max": 1.0,
+        "p95": 1.0,
+        "std": 0.3754021515644955
+      },
+      "antwort_halluzination": {
+        "rate": {
+          "mean": 0.013761467889908258,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.2,
+          "p95": 0.1,
+          "std": 0.0371879358879076
+        },
+        "score": {
+          "mean": 0.9862385321100917,
+          "median": 1.0,
+          "min": 0.8,
+          "max": 1.0,
+          "p95": 1.0,
+          "std": 0.03718793588790759
+        }
+      }
+    },
+    "system_metrics": {
+      "reduction_rate": {
+        "mean": 0.36123853211009177,
+        "median": 0.375,
+        "min": 0.0,
+        "max": 0.625,
+        "p95": 0.375,
+        "std": 0.09673406645355173
+      },
+      "query_rewrite_rate": 0.12844036697247707,
+      "query_rewrite_count": 14,
+      "self_check_success_rate": 0.42201834862385323,
+      "self_check_success_count": 46,
+      "average_retrieval_retries": 0.1743119266055046
+    },
+    "latency_metrics": {
+      "latency_seconds": {
+        "mean": 2.567228651376147,
+        "median": 0.0,
+        "min": 0.0,
+        "max": 12.069531,
+        "p95": 10.133932,
+        "std": 3.364751411014576
+      },
+      "entries_with_latency": 109
+    },
+    "cost_metrics": {
+      "cost_per_query_usd": {
+        "mean": 0.004208577981651376,
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.015585000000000002,
+        "p95": 0.01391,
+        "std": 0.005194283888267767
+      },
+      "total_cost_usd": 0.458735,
+      "total_tokens": {
+        "total": 171287,
+        "prompt": 167218,
+        "completion": 4069,
+        "average_per_query": 1571.440366972477
+      }
+    }
+  },
+  "detailed_results": [
+    {
+      "query": "Umschriebene Frage: Welche besonderen Eigenschaften hat Gold?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.0,
+      "retrieved_count": 1,
+      "reranked_count": 1,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Für welche Zielgruppe ist die Baloise All-in Versicherung geeignet?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.0,
+      "retrieved_count": 1,
+      "reranked_count": 1,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "warum eine wöhngebäudeversicherung unerlässlich ist?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.0,
+      "retrieved_count": 1,
+      "reranked_count": 1,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "was gehört zu den Mobillilarversicherungen, die versichert sind?",
+      "kontextrelevanz": {
+        "score": 0.5
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.0,
+      "retrieved_count": 1,
+      "reranked_count": 1,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Umgewandelte Frage: Wie hoch ist die Deckungssumme des Tarifs Baloise All-in?",
+      "kontextrelevanz": {
+        "score": 0.2
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.2
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.0,
+      "retrieved_count": 1,
+      "reranked_count": 1,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Umgewandelte Frage: Wie hoch ist die Deckungssumme des Tarifs Baloise All-in?",
+      "kontextrelevanz": {
+        "score": 0.2
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.2
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.0,
+      "retrieved_count": 1,
+      "reranked_count": 1,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Wie hoch wäre die Sofortleistung bei Schwerverletzung?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "wie hoch sind die personen schäden abgesichert?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Wie hoch sind die Personenschäden abgesichert?",
+      "kontextrelevanz": {
+        "score": 0.5
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.1,
+        "score": 0.9
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Was ist die Deckungssumme für Kaskoschäden?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.2
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Umgewandelte Frage: Wie hoch ist die Selbstbeteiligung bei Kfz-Schäden?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.1
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine Deckung für Tierkollisionen?",
+      "kontextrelevanz": {
+        "score": 0.85
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Was ist im All-in-Tarif enthalten?",
+      "kontextrelevanz": {
+        "score": 0.4
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.1,
+        "score": 0.9
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Wie lange gilt die Neupreisdeckung im Versicherungstarif?",
+      "kontextrelevanz": {
+        "score": 0.5
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Welche Leistungen umfasst die Elementardeckung?",
+      "kontextrelevanz": {
+        "score": 0.3
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.8
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine Deckung für Marderbisse?",
+      "kontextrelevanz": {
+        "score": 0.25
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Wie hoch sind die Prämien für die Kfz-Versicherung?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.1
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Welche Rabatte gibt es?",
+      "kontextrelevanz": {
+        "score": 0.25
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.2
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine Deckung für Überspannungsschäden?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Was ist bei Hagelschäden abgedeckt?",
+      "kontextrelevanz": {
+        "score": 0.85
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.9
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine Deckung für Sturmschäden?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Was ist bei Vandalismus am Fahrzeug abgedeckt?",
+      "kontextrelevanz": {
+        "score": 0.5
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.7
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine Deckung für Reifenschäden in der Kfz-Versicherung?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.1
+      },
+      "antwort_halluzination": {
+        "rate": 0.1,
+        "score": 0.9
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Was ist im Highlights Ambiente Top Tarif enthalten?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Wie hoch ist die Deckungssumme für Hausratgegenstände im Highlights Ambiente Top Tarif?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.2
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Welche Selbstbeteiligung gilt bei Sachschäden?",
+      "kontextrelevanz": {
+        "score": 0.5
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine Deckung für Elementarschäden?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Was ist bei Diebstahl abgedeckt?",
+      "kontextrelevanz": {
+        "score": 0.75
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.9
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Welche Leistungen umfasst die Glasversicherung?",
+      "kontextrelevanz": {
+        "score": 0.85
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.9
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine Versicherung gegen Vandalismus am Fahrzeug?",
+      "kontextrelevanz": {
+        "score": 0.5
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.8
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Was ist bei Wasserschäden abgedeckt?",
+      "kontextrelevanz": {
+        "score": 0.25
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.9
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Welche Versicherungssumme wird empfohlen?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.1
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine Deckung für Überspannungsschäden?",
+      "kontextrelevanz": {
+        "score": 0.85
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Was ist bei Frostschäden abgedeckt?",
+      "kontextrelevanz": {
+        "score": 0.75
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine Deckung für Brandschäden?",
+      "kontextrelevanz": {
+        "score": 0.6
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Was ist bei Einbruchdiebstahl abgedeckt?",
+      "kontextrelevanz": {
+        "score": 0.5
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.9
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine Deckung für Blitzschlag?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Was ist bei Leitungswasserschäden abgedeckt?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Wie kann ich einen Schaden melden?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Welche Dokumente sind erforderlich, um einen Schaden zu melden?",
+      "kontextrelevanz": {
+        "score": 0.85
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Wie lange dauert die Bearbeitung eines Schadens?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.6
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine 24/7 Schadenshotline?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Welche Zahlungsarten sind für die Versicherungsbeiträge möglich?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Kann ich meine Versicherung online abschließen?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine App für die Versicherung?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.1
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Wie kann ich meine Versicherung kündigen?",
+      "kontextrelevanz": {
+        "score": 0.85
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Welche Kündigungsfristen gelten?",
+      "kontextrelevanz": {
+        "score": 0.85
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.625,
+      "retrieved_count": 8,
+      "reranked_count": 3,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine Möglichkeit, den Vertrag zu widerrufen?",
+      "kontextrelevanz": {
+        "score": 0.6
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.7
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Was sind die Leistungen der erweiterten Eigenschadendeckung?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine Deckung für Mietwagen?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Was beinhaltet der Versicherungsschutz bei Fahrerflucht?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.2
+      },
+      "antwort_halluzination": {
+        "rate": 0.1,
+        "score": 0.9
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine Deckung für Schlüsselverlust?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Was ist bei E-Autos anders?",
+      "kontextrelevanz": {
+        "score": 0.3
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.9
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es Versicherungstarife, die für Fahranfänger maßgeschneidert sind?",
+      "kontextrelevanz": {
+        "score": 0.1
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.625,
+      "retrieved_count": 8,
+      "reranked_count": 3,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Welche Tarife oder Leistungen werden für Vielfahrer angeboten?",
+      "kontextrelevanz": {
+        "score": 0.3
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.7
+      },
+      "antwort_halluzination": {
+        "rate": 0.1,
+        "score": 0.9
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine Deckung für Auslandsfahrten?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.1
+      },
+      "antwort_halluzination": {
+        "rate": 0.1,
+        "score": 0.9
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Was sollte man bei der Versicherung von Leasingfahrzeugen berücksichtigen?",
+      "kontextrelevanz": {
+        "score": 0.6
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.9
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Gibt es eine Deckung für Oldtimer?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": false,
+      "retrieval_retries": 0,
+      "latency_seconds": 0.0,
+      "token_usage": {},
+      "cost_usd": 0.0
+    },
+    {
+      "query": "Wie hoch sind die Personenschäden abgesichert?",
+      "kontextrelevanz": {
+        "score": 0.5
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 3.95984,
+      "token_usage": {
+        "prompt_tokens": 1257,
+        "completion_tokens": 24,
+        "total_tokens": 1281
+      },
+      "cost_usd": 0.0033825000000000005
+    },
+    {
+      "query": "Was ist die Deckungssumme für Kaskoschäden?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.2
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 3.504324,
+      "token_usage": {
+        "prompt_tokens": 1458,
+        "completion_tokens": 30,
+        "total_tokens": 1488
+      },
+      "cost_usd": 0.003945000000000001
+    },
+    {
+      "query": "Umgewandelte Frage: Wie hoch ist die Selbstbeteiligung bei Kfz-Schäden festgelegt?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.1
+      },
+      "antwort_halluzination": {
+        "rate": 0.1,
+        "score": 0.9
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": true,
+      "self_check_passed": true,
+      "retrieval_retries": 1,
+      "latency_seconds": 7.447618,
+      "token_usage": {
+        "prompt_tokens": 1464,
+        "completion_tokens": 33,
+        "total_tokens": 1497
+      },
+      "cost_usd": 0.0039900000000000005
+    },
+    {
+      "query": "Wie hoch sind die Personenschäden abgesichert?",
+      "kontextrelevanz": {
+        "score": 0.5
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.1,
+        "score": 0.9
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 2.645121,
+      "token_usage": {
+        "prompt_tokens": 1257,
+        "completion_tokens": 24,
+        "total_tokens": 1281
+      },
+      "cost_usd": 0.0033825000000000005
+    },
+    {
+      "query": "Was ist die Deckungssumme für Kaskoschäden?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.2
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 2.900173,
+      "token_usage": {
+        "prompt_tokens": 1458,
+        "completion_tokens": 32,
+        "total_tokens": 1490
+      },
+      "cost_usd": 0.003965
+    },
+    {
+      "query": "Umgewandelte Frage: Wie hoch ist die Selbstbeteiligung bei Kfz-Schäden?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.1
+      },
+      "antwort_halluzination": {
+        "rate": 0.1,
+        "score": 0.9
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": true,
+      "self_check_passed": true,
+      "retrieval_retries": 1,
+      "latency_seconds": 5.105626,
+      "token_usage": {
+        "prompt_tokens": 1465,
+        "completion_tokens": 35,
+        "total_tokens": 1500
+      },
+      "cost_usd": 0.0040125
+    },
+    {
+      "query": "Gibt es eine Deckung für Tierkollisionen?",
+      "kontextrelevanz": {
+        "score": 0.85
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 2.642615,
+      "token_usage": {
+        "prompt_tokens": 1270,
+        "completion_tokens": 37,
+        "total_tokens": 1307
+      },
+      "cost_usd": 0.0035450000000000004
+    },
+    {
+      "query": "Was ist im All-in-Tarif enthalten?",
+      "kontextrelevanz": {
+        "score": 0.4
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.9
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 4.745175,
+      "token_usage": {
+        "prompt_tokens": 1376,
+        "completion_tokens": 194,
+        "total_tokens": 1570
+      },
+      "cost_usd": 0.00538
+    },
+    {
+      "query": "Neupreisdeckung - Wie lange ist sie gültig?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.8
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": true,
+      "self_check_passed": true,
+      "retrieval_retries": 1,
+      "latency_seconds": 6.124293,
+      "token_usage": {
+        "prompt_tokens": 1733,
+        "completion_tokens": 30,
+        "total_tokens": 1763
+      },
+      "cost_usd": 0.0046324999999999995
+    },
+    {
+      "query": "Welche Leistungen umfasst die Elementardeckung?",
+      "kontextrelevanz": {
+        "score": 0.2
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.7
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 2.378948,
+      "token_usage": {
+        "prompt_tokens": 1691,
+        "completion_tokens": 25,
+        "total_tokens": 1716
+      },
+      "cost_usd": 0.004477500000000001
+    },
+    {
+      "query": "Gibt es eine Deckung für Marderbisse?",
+      "kontextrelevanz": {
+        "score": 0.25
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 2.477824,
+      "token_usage": {
+        "prompt_tokens": 1389,
+        "completion_tokens": 52,
+        "total_tokens": 1441
+      },
+      "cost_usd": 0.0039924999999999995
+    },
+    {
+      "query": "Wie hoch sind die Prämien für eine Kfz-Versicherung?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.1
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": true,
+      "self_check_passed": false,
+      "retrieval_retries": 2,
+      "latency_seconds": 5.83222,
+      "token_usage": {
+        "prompt_tokens": 1906,
+        "completion_tokens": 35,
+        "total_tokens": 1941
+      },
+      "cost_usd": 0.005115
+    },
+    {
+      "query": "Welche Rabatte gibt es?",
+      "kontextrelevanz": {
+        "score": 0.25
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.2
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 3.235242,
+      "token_usage": {
+        "prompt_tokens": 1938,
+        "completion_tokens": 36,
+        "total_tokens": 1974
+      },
+      "cost_usd": 0.005205
+    },
+    {
+      "query": "Gibt es eine Deckung für Überspannungsschäden?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 4.097287,
+      "token_usage": {
+        "prompt_tokens": 1766,
+        "completion_tokens": 49,
+        "total_tokens": 1815
+      },
+      "cost_usd": 0.004905
+    },
+    {
+      "query": "Was ist bei Hagelschäden abgedeckt?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.8
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 3.735633,
+      "token_usage": {
+        "prompt_tokens": 2043,
+        "completion_tokens": 82,
+        "total_tokens": 2125
+      },
+      "cost_usd": 0.0059275000000000005
+    },
+    {
+      "query": "Gibt es eine Deckung für Sturmschäden?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 5.461878,
+      "token_usage": {
+        "prompt_tokens": 2171,
+        "completion_tokens": 75,
+        "total_tokens": 2246
+      },
+      "cost_usd": 0.0061775
+    },
+    {
+      "query": "Was ist bei Vandalismus am Fahrzeug abgedeckt?",
+      "kontextrelevanz": {
+        "score": 0.5
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.6
+      },
+      "antwort_halluzination": {
+        "rate": 0.1,
+        "score": 0.9
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 3.182788,
+      "token_usage": {
+        "prompt_tokens": 2262,
+        "completion_tokens": 66,
+        "total_tokens": 2328
+      },
+      "cost_usd": 0.006315
+    },
+    {
+      "query": "Gibt es eine Deckung für Reifenschäden in der Kfz-Versicherung?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.1
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": true,
+      "self_check_passed": false,
+      "retrieval_retries": 2,
+      "latency_seconds": 5.607573,
+      "token_usage": {
+        "prompt_tokens": 2332,
+        "completion_tokens": 38,
+        "total_tokens": 2370
+      },
+      "cost_usd": 0.00621
+    },
+    {
+      "query": "Was ist im Highlights Ambiente Top Tarif enthalten?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 7.64657,
+      "token_usage": {
+        "prompt_tokens": 2224,
+        "completion_tokens": 265,
+        "total_tokens": 2489
+      },
+      "cost_usd": 0.00821
+    },
+    {
+      "query": "Wie hoch ist die Deckungssumme für Hausrat?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.1
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 2.698771,
+      "token_usage": {
+        "prompt_tokens": 2671,
+        "completion_tokens": 33,
+        "total_tokens": 2704
+      },
+      "cost_usd": 0.0070075
+    },
+    {
+      "query": "Welche Selbstbeteiligung gilt bei Sachschäden?",
+      "kontextrelevanz": {
+        "score": 0.5
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 3.192834,
+      "token_usage": {
+        "prompt_tokens": 2686,
+        "completion_tokens": 91,
+        "total_tokens": 2777
+      },
+      "cost_usd": 0.007625000000000001
+    },
+    {
+      "query": "Gibt es eine Deckung für Elementarschäden?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 3.517244,
+      "token_usage": {
+        "prompt_tokens": 2709,
+        "completion_tokens": 33,
+        "total_tokens": 2742
+      },
+      "cost_usd": 0.0071024999999999994
+    },
+    {
+      "query": "Was ist bei Diebstahl abgedeckt?",
+      "kontextrelevanz": {
+        "score": 0.6
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.85
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 5.337093,
+      "token_usage": {
+        "prompt_tokens": 2754,
+        "completion_tokens": 170,
+        "total_tokens": 2924
+      },
+      "cost_usd": 0.008584999999999999
+    },
+    {
+      "query": "Welche Leistungen umfasst die Glasversicherung?",
+      "kontextrelevanz": {
+        "score": 0.85
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.9
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 5.870079,
+      "token_usage": {
+        "prompt_tokens": 3131,
+        "completion_tokens": 252,
+        "total_tokens": 3383
+      },
+      "cost_usd": 0.0103475
+    },
+    {
+      "query": "Gibt es eine Versicherung gegen Vandalismus am Fahrzeug?",
+      "kontextrelevanz": {
+        "score": 0.5
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.8
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": true,
+      "self_check_passed": true,
+      "retrieval_retries": 1,
+      "latency_seconds": 5.104596,
+      "token_usage": {
+        "prompt_tokens": 3242,
+        "completion_tokens": 68,
+        "total_tokens": 3310
+      },
+      "cost_usd": 0.008785000000000001
+    },
+    {
+      "query": "Was ist bei Wasserschäden abgedeckt?",
+      "kontextrelevanz": {
+        "score": 0.25
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.9
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 4.562361,
+      "token_usage": {
+        "prompt_tokens": 3396,
+        "completion_tokens": 136,
+        "total_tokens": 3532
+      },
+      "cost_usd": 0.009850000000000001
+    },
+    {
+      "query": "Welche Versicherungssumme wird empfohlen?",
+      "kontextrelevanz": {
+        "score": 0.1
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.2
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 2.721723,
+      "token_usage": {
+        "prompt_tokens": 3246,
+        "completion_tokens": 29,
+        "total_tokens": 3275
+      },
+      "cost_usd": 0.008405000000000001
+    },
+    {
+      "query": "Gibt es eine Deckung für Überspannungsschäden?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 2.615967,
+      "token_usage": {
+        "prompt_tokens": 3352,
+        "completion_tokens": 49,
+        "total_tokens": 3401
+      },
+      "cost_usd": 0.00887
+    },
+    {
+      "query": "Was ist bei Frostschäden abgedeckt?",
+      "kontextrelevanz": {
+        "score": 0.75
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 4.32335,
+      "token_usage": {
+        "prompt_tokens": 3595,
+        "completion_tokens": 141,
+        "total_tokens": 3736
+      },
+      "cost_usd": 0.0103975
+    },
+    {
+      "query": "Gibt es eine Deckung für Brandschäden?",
+      "kontextrelevanz": {
+        "score": 0.6
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 3.16143,
+      "token_usage": {
+        "prompt_tokens": 3438,
+        "completion_tokens": 81,
+        "total_tokens": 3519
+      },
+      "cost_usd": 0.009405
+    },
+    {
+      "query": "Was ist bei Einbruchdiebstahl abgedeckt?",
+      "kontextrelevanz": {
+        "score": 0.5
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 4.458645,
+      "token_usage": {
+        "prompt_tokens": 3835,
+        "completion_tokens": 116,
+        "total_tokens": 3951
+      },
+      "cost_usd": 0.010747499999999998
+    },
+    {
+      "query": "Gibt es eine Deckung für Blitzschlag?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 3.689203,
+      "token_usage": {
+        "prompt_tokens": 3975,
+        "completion_tokens": 92,
+        "total_tokens": 4067
+      },
+      "cost_usd": 0.0108575
+    },
+    {
+      "query": "Was ist bei Leitungswasserschäden abgedeckt?",
+      "kontextrelevanz": {
+        "score": 0.9
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 3.566913,
+      "token_usage": {
+        "prompt_tokens": 4178,
+        "completion_tokens": 135,
+        "total_tokens": 4313
+      },
+      "cost_usd": 0.011795000000000002
+    },
+    {
+      "query": "Wie kann ich einen Schaden melden?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 3.393379,
+      "token_usage": {
+        "prompt_tokens": 4183,
+        "completion_tokens": 118,
+        "total_tokens": 4301
+      },
+      "cost_usd": 0.0116375
+    },
+    {
+      "query": "Welche Dokumente sind erforderlich, um einen Schaden zu melden?",
+      "kontextrelevanz": {
+        "score": 0.85
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.9
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": true,
+      "self_check_passed": true,
+      "retrieval_retries": 1,
+      "latency_seconds": 6.694892,
+      "token_usage": {
+        "prompt_tokens": 4308,
+        "completion_tokens": 70,
+        "total_tokens": 4378
+      },
+      "cost_usd": 0.01147
+    },
+    {
+      "query": "Wie lange dauert die Bearbeitung eines Schadens?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.7
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 3.680389,
+      "token_usage": {
+        "prompt_tokens": 4487,
+        "completion_tokens": 80,
+        "total_tokens": 4567
+      },
+      "cost_usd": 0.012017499999999999
+    },
+    {
+      "query": "Gibt es eine 24/7 Schadenshotline?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 2.884693,
+      "token_usage": {
+        "prompt_tokens": 4461,
+        "completion_tokens": 68,
+        "total_tokens": 4529
+      },
+      "cost_usd": 0.0118325
+    },
+    {
+      "query": "In welcher Form kann ich meine Beiträge begleichen?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": true,
+      "self_check_passed": true,
+      "retrieval_retries": 1,
+      "latency_seconds": 6.00624,
+      "token_usage": {
+        "prompt_tokens": 4636,
+        "completion_tokens": 51,
+        "total_tokens": 4687
+      },
+      "cost_usd": 0.012100000000000001
+    },
+    {
+      "query": "Kann ich meine Versicherung online abschließen?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.8
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 2.292734,
+      "token_usage": {
+        "prompt_tokens": 4561,
+        "completion_tokens": 35,
+        "total_tokens": 4596
+      },
+      "cost_usd": 0.011752499999999999
+    },
+    {
+      "query": "Gibt es eine App für die Versicherung?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.1
+      },
+      "antwort_halluzination": {
+        "rate": 0.1,
+        "score": 0.9
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": true,
+      "self_check_passed": false,
+      "retrieval_retries": 2,
+      "latency_seconds": 8.415955,
+      "token_usage": {
+        "prompt_tokens": 4523,
+        "completion_tokens": 29,
+        "total_tokens": 4552
+      },
+      "cost_usd": 0.0115975
+    },
+    {
+      "query": "Wie kann ich meine Versicherung kündigen?",
+      "kontextrelevanz": {
+        "score": 0.85
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 10.133932,
+      "token_usage": {
+        "prompt_tokens": 4694,
+        "completion_tokens": 119,
+        "total_tokens": 4813
+      },
+      "cost_usd": 0.012925
+    },
+    {
+      "query": "Welche Kündigungsfristen gelten?",
+      "kontextrelevanz": {
+        "score": 0.85
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.625,
+      "retrieved_count": 8,
+      "reranked_count": 3,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 7.313412,
+      "token_usage": {
+        "prompt_tokens": 4269,
+        "completion_tokens": 119,
+        "total_tokens": 4388
+      },
+      "cost_usd": 0.011862500000000002
+    },
+    {
+      "query": "Gibt es eine Möglichkeit, den Vertrag zu widerrufen?",
+      "kontextrelevanz": {
+        "score": 0.6
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.7
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": true,
+      "self_check_passed": true,
+      "retrieval_retries": 1,
+      "latency_seconds": 10.059525,
+      "token_usage": {
+        "prompt_tokens": 4824,
+        "completion_tokens": 141,
+        "total_tokens": 4965
+      },
+      "cost_usd": 0.013470000000000001
+    },
+    {
+      "query": "Wie sind die Leistungen der erweiterten Eigenschadendeckung definiert?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": true,
+      "self_check_passed": true,
+      "retrieval_retries": 1,
+      "latency_seconds": 11.607946,
+      "token_usage": {
+        "prompt_tokens": 5212,
+        "completion_tokens": 32,
+        "total_tokens": 5244
+      },
+      "cost_usd": 0.01335
+    },
+    {
+      "query": "Gibt es eine Deckung für Mietwagen?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 5.977343,
+      "token_usage": {
+        "prompt_tokens": 5115,
+        "completion_tokens": 92,
+        "total_tokens": 5207
+      },
+      "cost_usd": 0.013707500000000001
+    },
+    {
+      "query": "Was umfasst die Deckung bei Fahrerflucht in der Versicherung?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.1
+      },
+      "antwort_halluzination": {
+        "rate": 0.1,
+        "score": 0.9
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": true,
+      "self_check_passed": true,
+      "retrieval_retries": 1,
+      "latency_seconds": 9.25049,
+      "token_usage": {
+        "prompt_tokens": 5432,
+        "completion_tokens": 33,
+        "total_tokens": 5465
+      },
+      "cost_usd": 0.01391
+    },
+    {
+      "query": "Gibt es eine Deckung für Schlüsselverlust?",
+      "kontextrelevanz": {
+        "score": 1.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 11.700018,
+      "token_usage": {
+        "prompt_tokens": 5175,
+        "completion_tokens": 144,
+        "total_tokens": 5319
+      },
+      "cost_usd": 0.0143775
+    },
+    {
+      "query": "Was ist bei E-Autos anders?",
+      "kontextrelevanz": {
+        "score": 0.1
+      },
+      "kontextgenügsamkeit": {
+        "score": 1.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 10.513426,
+      "token_usage": {
+        "prompt_tokens": 5510,
+        "completion_tokens": 181,
+        "total_tokens": 5691
+      },
+      "cost_usd": 0.015585000000000002
+    },
+    {
+      "query": "Gibt es spezielle Tarife mit vorteilhaften Konditionen für junge Fahrer verfügbar?",
+      "kontextrelevanz": {
+        "score": 0.1
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.1
+      },
+      "antwort_halluzination": {
+        "rate": 0.2,
+        "score": 0.8
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": true,
+      "self_check_passed": false,
+      "retrieval_retries": 2,
+      "latency_seconds": 9.468773,
+      "token_usage": {
+        "prompt_tokens": 5840,
+        "completion_tokens": 37,
+        "total_tokens": 5877
+      },
+      "cost_usd": 0.014969999999999999
+    },
+    {
+      "query": "Was sind die speziellen Tarife oder Leistungen für Vielfahrer in der Kfz-Versicherung?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.0
+      },
+      "antwort_halluzination": {
+        "rate": 0.0,
+        "score": 1.0
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": true,
+      "self_check_passed": false,
+      "retrieval_retries": 2,
+      "latency_seconds": 10.814288,
+      "token_usage": {
+        "prompt_tokens": 5636,
+        "completion_tokens": 40,
+        "total_tokens": 5676
+      },
+      "cost_usd": 0.014490000000000001
+    },
+    {
+      "query": "Gibt es eine Deckung für Auslandsfahrten?",
+      "kontextrelevanz": {
+        "score": 0.0
+      },
+      "kontextgenügsamkeit": {
+        "score": 0.1
+      },
+      "antwort_halluzination": {
+        "rate": 0.1,
+        "score": 0.9
+      },
+      "reduction_rate": 0.375,
+      "retrieved_count": 8,
+      "reranked_count": 5,
+      "query_rewritten": false,
+      "self_check_passed": true,
+      "retrieval_retries": 0,
+      "latency_seconds": 12.069531,
+      "token_usage": {
+        "prompt_tokens": 5684,
+        "completion_tokens": 92,
+        "total_tokens": 5776
+      },
+      "cost_usd": 0.015130000000000001
+    }
+  ]
+}

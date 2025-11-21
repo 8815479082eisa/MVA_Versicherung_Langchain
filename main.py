@@ -4,7 +4,7 @@ import json
 import hashlib
 import glob
 from datetime import datetime
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
 
 from dotenv import load_dotenv
 
@@ -428,7 +428,8 @@ def generate_answer(
     query: str,
     context_docs: List[Document],
     chat_history: Optional[List[dict]] = None,
-) -> str:
+) -> Tuple[str, dict]:
+    """Generate answer and return both answer and token usage."""
     print("Generating answer with LLM...")
     if chat_history is None:
         chat_history = []
@@ -455,8 +456,20 @@ def generate_answer(
     response = chain.invoke({"query": query, "context": context})
 
     generated_answer = response.content
+    
+    # Extract token usage from response
+    token_usage = {}
+    if hasattr(response, 'response_metadata') and response.response_metadata:
+        usage = response.response_metadata.get('token_usage', {})
+        if usage:
+            token_usage = {
+                "prompt_tokens": usage.get("prompt_tokens", 0),
+                "completion_tokens": usage.get("completion_tokens", 0),
+                "total_tokens": usage.get("total_tokens", 0),
+            }
+    
     print("Answer generation complete.")
-    return generated_answer
+    return generated_answer, token_usage
 
 
 # -------------------------------------------------------------------
@@ -634,6 +647,12 @@ def audit_log(
     compressed_context: List[Document],
     answer: str,
     chat_history: Optional[List[dict]] = None,
+    start_timestamp: Optional[str] = None,
+    end_timestamp: Optional[str] = None,
+    token_usage: Optional[dict] = None,
+    query_rewritten: bool = False,
+    self_check_passed: bool = False,
+    retrieval_retries: int = 0,
 ):
     """Logs the RAG process details to an audit file."""
     if chat_history is None:
@@ -642,6 +661,8 @@ def audit_log(
     print(f"Logging audit details to {AUDIT_LOG_FILE}...")
     log_entry = {
         "timestamp": datetime.now().isoformat(),
+        "start_timestamp": start_timestamp or datetime.now().isoformat(),
+        "end_timestamp": end_timestamp or datetime.now().isoformat(),
         "query": query,
         "retrieved_documents": [
             {"page_content": doc.page_content, "metadata": doc.metadata}
@@ -653,7 +674,15 @@ def audit_log(
         ],
         "generated_answer": answer,
         "chat_history": chat_history,
+        "query_rewritten": query_rewritten,
+        "self_check_passed": self_check_passed,
+        "retrieval_retries": retrieval_retries,
     }
+    
+    # Add token usage if available
+    if token_usage:
+        log_entry["token_usage"] = token_usage
+    
     with open(AUDIT_LOG_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
     print("Audit logging complete.")
@@ -724,6 +753,9 @@ if __name__ == "__main__":
 
         if retrieval_needed == "RETRIEVE":
             print(f"Processing query: '{user_query}' with retrieval...")
+            
+            # Start timestamp
+            start_timestamp = datetime.now().isoformat()
 
             current_query = user_query
             retrieved_docs: List[Document] = []
@@ -732,6 +764,9 @@ if __name__ == "__main__":
             retries = 0
             MAX_SELF_CHECK_RETRIES = 2
             reranked_docs: List[Document] = []
+            query_rewritten = False
+            self_check_passed = False
+            total_token_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
 
             while retries < MAX_SELF_CHECK_RETRIES:
                 print(
@@ -763,6 +798,7 @@ if __name__ == "__main__":
 
                     if checked_query != current_query or not checked_docs:
                         current_query = checked_query
+                        query_rewritten = True
                         retries += 1
                         print(
                             "Self-check failed or query rewritten. "
@@ -771,6 +807,7 @@ if __name__ == "__main__":
                         continue
                     else:
                         reranked_docs = checked_docs
+                        self_check_passed = True
                         break
                 else:
                     print(
@@ -779,6 +816,7 @@ if __name__ == "__main__":
                     current_query = rewrite_query(
                         query_rewrite_llm, current_query, chat_history
                     )
+                    query_rewritten = True
                     retries += 1
                     continue
 
@@ -792,7 +830,15 @@ if __name__ == "__main__":
                     "Anfrage finden. Bitte versuchen Sie eine andere Formulierung oder "
                     "eine allgemeinere Frage."
                 )
-                audit_log(user_query, retrieved_docs, [], answer, chat_history)
+                end_timestamp = datetime.now().isoformat()
+                audit_log(
+                    user_query, retrieved_docs, [], answer, chat_history,
+                    start_timestamp=start_timestamp,
+                    end_timestamp=end_timestamp,
+                    query_rewritten=query_rewritten,
+                    self_check_passed=False,
+                    retrieval_retries=retries
+                )
                 chat_history.append({"query": user_query, "answer": answer})
             else:
                 # TEMPORARILY DISABLE COMPRESSION FOR DEBUGGING
@@ -807,12 +853,18 @@ if __name__ == "__main__":
                 #     current_query,
                 # )
 
-                answer = generate_answer(
+                answer, token_usage = generate_answer(
                     llm,
                     current_query,
                     final_compressed_docs,
                     chat_history,
                 )
+                
+                # Accumulate token usage
+                if token_usage:
+                    total_token_usage["prompt_tokens"] += token_usage.get("prompt_tokens", 0)
+                    total_token_usage["completion_tokens"] += token_usage.get("completion_tokens", 0)
+                    total_token_usage["total_tokens"] += token_usage.get("total_tokens", 0)
 
                 if perform_safety_checks(
                     current_query,
@@ -821,12 +873,19 @@ if __name__ == "__main__":
                     chat_history,
                 ):
                     print(f"\nAssistant: {answer}")
+                    end_timestamp = datetime.now().isoformat()
                     audit_log(
                         current_query,
                         retrieved_docs,
                         final_compressed_docs,
                         answer,
                         chat_history,
+                        start_timestamp=start_timestamp,
+                        end_timestamp=end_timestamp,
+                        token_usage=total_token_usage if total_token_usage["total_tokens"] > 0 else None,
+                        query_rewritten=query_rewritten,
+                        self_check_passed=self_check_passed,
+                        retrieval_retries=retries
                     )
                     chat_history.append(
                         {"query": user_query, "answer": answer}
@@ -837,10 +896,19 @@ if __name__ == "__main__":
                     )
         else:
             print(f"Processing query: '{user_query}' ohne Retrieval...")
+            start_timestamp = datetime.now().isoformat()
             answer = (
                 "Ich kann diese Frage direkt beantworten oder benötige "
                 "keine Dokumentensuche dafür."
             )
             print(f"\nAssistant: {answer}")
-            audit_log(user_query, [], [], answer, chat_history)
+            end_timestamp = datetime.now().isoformat()
+            audit_log(
+                user_query, [], [], answer, chat_history,
+                start_timestamp=start_timestamp,
+                end_timestamp=end_timestamp,
+                query_rewritten=False,
+                self_check_passed=False,
+                retrieval_retries=0
+            )
             chat_history.append({"query": user_query, "answer": answer})
