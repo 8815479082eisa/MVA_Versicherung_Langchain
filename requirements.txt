@@ -8,3 +8,6 @@ python-dotenv
 sentence-transformers
 llmlingua
 reportlab
+fastapi
+uvicorn[standard]
+pydantic

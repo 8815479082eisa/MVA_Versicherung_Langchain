@@ -25,7 +25,9 @@ Das System folgt einer dreischichtigen Architektur:
 
 ## 🛠️ Technologie-Stack
 
+### Backend
 - **Python 3.11**
+- **FastAPI**: REST-API-Framework
 - **LangChain**: Framework für RAG-Pipeline
 - **ChromaDB**: Persistenter Vektorspeicher
 - **OpenAI API**:
@@ -34,11 +36,21 @@ Das System folgt einer dreischichtigen Architektur:
   - `gpt-4o-mini` für Re-Ranking und Context-Compression
   - `gpt-3.5-turbo` für Router, Self-Check und Query-Rewrite
 
+### Frontend
+- **React 18** mit TypeScript
+- **Vite**: Build-Tool
+- **Tailwind CSS**: Styling
+
 ## 📋 Voraussetzungen
 
+### Backend
 - Python 3.11 oder höher
 - OpenAI API Key
 - Installierte Abhängigkeiten (siehe `requirements.txt`)
+
+### Frontend
+- Node.js 18 oder höher
+- npm oder yarn
 
 ## 🚀 Installation
 
@@ -53,18 +65,42 @@ cd LangChain
 pip install -r requirements.txt
 ```
 
-3. Zusätzliche Abhängigkeiten (falls benötigt):
-```bash
-pip install pypdf rank-bm25
-```
-
-4. Umgebungsvariablen konfigurieren:
+3. Umgebungsvariablen konfigurieren:
 Erstellen Sie eine `.env` Datei im Hauptverzeichnis:
 ```
 OPENAI_API_KEY=your_api_key_here
 ```
 
+4. Frontend-Abhängigkeiten installieren:
+```bash
+cd frontend
+npm install
+```
+
 ## 💻 Verwendung
+
+### Option 1: Web-UI (Empfohlen)
+
+1. **Backend starten:**
+   ```bash
+   # Im Hauptverzeichnis
+   python backend_api.py
+   ```
+   Das Backend läuft dann auf `http://localhost:8000`
+
+2. **Frontend starten:**
+   ```bash
+   # In einem neuen Terminal, im frontend-Verzeichnis
+   cd frontend
+   npm run dev
+   ```
+   Das Frontend läuft dann auf `http://localhost:3000` und öffnet sich automatisch im Browser.
+
+3. **Verwendung:**
+   - Versicherungsdokumente in den `./docs` Ordner legen (PDF-Format)
+   - Im Browser Fragen stellen - die Antworten werden vom echten RAG-System generiert
+
+### Option 2: CLI (Kommandozeile)
 
 1. Versicherungsdokumente in den `./docs` Ordner legen (PDF-Format)
 
@@ -84,11 +120,24 @@ Das System lädt automatisch alle PDFs aus `./docs` (außer `example.pdf`), indi
 5. Beenden:
 Geben Sie `exit` ein, um das System zu beenden.
 
+### API-Endpoints
+
+Das FastAPI-Backend stellt folgende Endpoints zur Verfügung:
+
+- `GET /` - Health-Check
+- `GET /health` - Health-Check
+- `POST /api/ask` - Frage stellen und Antwort erhalten
+  - Request Body: `{ "question": "Ihre Frage hier" }`
+  - Response: `{ "answer": "...", "sources": [...], "latencyMs": 1250 }`
+- `POST /api/feedback` - Feedback zu einer Antwort senden
+  - Request Body: `{ "answer_id": "...", "useful": true/false }`
+
 ## 📁 Projektstruktur
 
 ```
 LangChain/
 ├── main.py                 # Hauptanwendung (CLI)
+├── backend_api.py          # FastAPI-Backend für Web-UI
 ├── requirements.txt        # Python-Abhängigkeiten
 ├── README.md              # Diese Datei
 ├── .env                   # Umgebungsvariablen (nicht versioniert)
@@ -96,11 +145,20 @@ LangChain/
 ├── chroma_db/             # ChromaDB Vektorspeicher
 ├── audit.log              # Audit-Logs (JSONL-Format)
 ├── .pdf_hashes.json      # PDF Hash-Tracking für Index-Updates
-└── src/                   # Quellcode-Module
-    ├── components/        # RAG-Komponenten
-    ├── core/              # Safety & Audit, Session Memory
-    ├── document_handling/ # Dokumentenverarbeitung
-    └── retrieval_pipeline/ # Retrieval-Logik
+├── src/                   # Quellcode-Module
+│   ├── api/               # API-Layer
+│   │   └── rag_service.py # Zentrale RAG-Service-Funktion
+│   ├── components/        # RAG-Komponenten
+│   ├── core/              # Safety & Audit, Session Memory
+│   ├── document_handling/ # Dokumentenverarbeitung
+│   └── retrieval_pipeline/ # Retrieval-Logik
+└── frontend/              # React-Frontend
+    ├── src/
+    │   ├── api.ts         # Frontend-API (Backend-Verbindung)
+    │   ├── App.tsx        # Hauptkomponente
+    │   └── components/    # UI-Komponenten
+    ├── package.json
+    └── vite.config.ts
 ```
 
 ## ⚙️ Konfiguration
@@ -167,9 +225,34 @@ Dieses Projekt ist Teil einer wissenschaftlichen Arbeit. Für Fragen oder Anregu
 - Session-Daten werden im Arbeitsspeicher gehalten
 - Für Produktions-Deployment sind zusätzliche Sicherheitsmaßnahmen erforderlich (PII-Erkennung, Verschlüsselung, etc.)
 
+## 🧪 Testing
+
+### Backend testen
+
+1. Backend starten:
+```bash
+python backend_api.py
+```
+
+2. API testen (in einem neuen Terminal):
+```bash
+# Health-Check
+curl http://localhost:8000/health
+
+# Frage stellen
+curl -X POST http://localhost:8000/api/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question": "Wie hoch ist die Deckungssumme für Personenschäden?"}'
+```
+
+### Frontend testen
+
+1. Backend und Frontend starten (siehe Verwendung)
+2. Browser öffnen: `http://localhost:3000`
+3. Testfragen stellen
+
 ## 🚧 Geplante Erweiterungen
 
-- FastAPI REST-API für Produktions-Deployment
 - Docker/Kubernetes Containerisierung
 - PostgreSQL für Metadaten und Session-Management
 - Open Policy Agent (OPA) für RBAC/ABAC
