@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MVA RAG – Chat UI</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 980px; margin: 20px auto; padding: 0 12px; }
+    .card { border: 1px solid #ddd; border-radius: 10px; padding: 14px; }
+    textarea { width: 100%; height: 110px; padding: 10px; font-size: 14px; }
+    button { padding: 10px 14px; cursor: pointer; }
+    pre { white-space: pre-wrap; background:#f6f6f6; padding:12px; border-radius:10px; overflow:auto; }
+    .row { display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap: wrap; }
+    .hint { color:#666; font-size: 13px; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <h2>MVA Agentic RAG – Frontend</h2>
+
+  <div class="card">
+    <textarea id="q" placeholder="Stelle deine Frage..."></textarea>
+    <div class="row">
+      <button onclick="send()">Send</button>
+      <button onclick="clearAll()">Clear</button>
+      <span class="hint" id="status"></span>
+    </div>
+  </div>
+
+  <h3>Antwort</h3>
+  <pre id="out"></pre>
+
+<script>
+function setStatus(t){ document.getElementById("status").textContent = t || ""; }
+
+async function send() {
+  const query = document.getElementById("q").value.trim();
+  if(!query) return;
+
+  const out = document.getElementById("out");
+  out.textContent = "";
+  setStatus("Loading...");
+
+  try {
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ query })
+    });
+
+    const data = await res.json();
+    if(!res.ok) {
+      setStatus("Error");
+      out.textContent = JSON.stringify(data, null, 2);
+      return;
+    }
+
+    setStatus("OK");
+    // نمایش پاسخ خوانا
+    out.textContent = data.answer ? data.answer : JSON.stringify(data, null, 2);
+  } catch (e) {
+    setStatus("Error");
+    out.textContent = "Request failed: " + e;
+  }
+}
+
+function clearAll() {
+  document.getElementById("q").value = "";
+  document.getElementById("out").textContent = "";
+  setStatus("");
+}
+</script>
+</body>
+</html>

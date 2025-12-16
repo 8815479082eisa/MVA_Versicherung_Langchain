@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>MVA RAG Chat</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 20px auto; }
+    textarea { width: 100%; height: 90px; }
+    pre { white-space: pre-wrap; background:#f6f6f6; padding:12px; border-radius:8px; }
+    .row { display:flex; gap:10px; }
+    button { padding:10px 14px; }
+  </style>
+</head>
+<body>
+  <h2>MVA Agentic RAG – Chat UI</h2>
+
+  <textarea id="q" placeholder="Type your question..."></textarea>
+  <div class="row">
+    <button onclick="send()">Send</button>
+    <button onclick="document.getElementById('q').value=''">Clear</button>
+  </div>
+
+  <h3>Response</h3>
+  <pre id="out"></pre>
+
+<script>
+async function send() {
+  const query = document.getElementById("q").value.trim();
+  if(!query) return;
+
+  const out = document.getElementById("out");
+  out.textContent = "Loading...";
+
+  try {
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({query})
+    });
+    const data = await res.json();
+    out.textContent = JSON.stringify(data, null, 2);
+  } catch (e) {
+    out.textContent = "Error: " + e;
+  }
+}
+</script>
+</body>
+</html>
