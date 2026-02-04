@@ -456,6 +456,22 @@ def generate_answer(
     response = chain.invoke({"query": query, "context": context})
 
     generated_answer = response.content
+
+    # Build Quellenblock from context metadata (unique source+page pairs)
+    citations = []
+    seen_citations = set()
+    for doc in context_docs:
+        source = doc.metadata.get("source") or "unbekannt"
+        page = doc.metadata.get("page") or "unbekannt"
+        source_name = os.path.basename(source) if source not in ["Unknown", None] else source
+        key = (source_name, str(page))
+        if key in seen_citations:
+            continue
+        seen_citations.add(key)
+        citations.append(f"Quelle: {source_name}, Seite {page}")
+
+    if citations:
+        generated_answer = f"{generated_answer}\n\nQuellen:\n" + "\n".join(citations)
     
     # Extract token usage from response
     token_usage = {}

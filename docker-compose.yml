@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # Backend Service
+  backend:
+    image: python:3.11-slim
+    container_name: mva-backend
+    working_dir: /app
+    volumes:
+      - .:/app
+      - ./chroma_db:/app/chroma_db
+      - ./docs:/app/docs
+    environment:
+      - BACKEND_HOST=0.0.0.0
+      - BACKEND_PORT=8000
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8000:8000"
+    command: >
+      bash -c "
+      pip install --no-cache-dir -r requirements.txt &&
+      uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+    restart: unless-stopped
+    networks:
+      - mva-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Service
+  frontend:
+    image: node:20-alpine
+    container_name: mva-frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "5173:5173"
+    command: npm run dev
+    restart: unless-stopped
+    networks:
+      - mva-network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: mva-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-mva-insurance.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - ./certs:/etc/nginx/certs:ro  # For SSL certificates
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - mva-network
+
+networks:
+  mva-network:
+    driver: bridge
+
+volumes:
+  chroma_db:
+  docs:

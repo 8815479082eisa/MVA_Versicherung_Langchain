@@ -13,21 +13,103 @@ from datetime import datetime
 from typing import List, Tuple, Optional, Dict
 from dataclasses import dataclass
 from pathlib import Path
+import time as _time_module
 
-from dotenv import load_dotenv
+# #region agent log - Debug logging for rag_service
+_DEBUG_LOG_PATH = r"c:\Users\mirae\MVA_Versicherung_Langchain_main\.cursor\debug.log"
+def _rag_debug_log(hyp_id, loc, msg, data=None):
+    try:
+        entry = {"hypothesisId": hyp_id, "location": loc, "message": msg, "data": data or {}, "timestamp": int(_time_module.time()*1000), "sessionId": "debug-session"}
+        with open(_DEBUG_LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except: pass
+_rag_debug_log("B", "rag_service.py:top", "rag_service module loading started", {})
+# #endregion
 
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain_chroma import Chroma
-from langchain_community.retrievers import BM25Retriever
-from langchain_core.documents import Document
-from langchain_core.prompts import ChatPromptTemplate
 
-import chromadb
+def _normalize_pdf_key(file_path: str) -> str:
+    """
+    Normalize file paths for stable hashing/change detection across platforms.
+
+    We intentionally key hashes by a normalized absolute path to avoid Windows
+    path separator / relative-path mismatches (which can otherwise force
+    re-indexing on every request).
+    """
+    try:
+        return str(Path(file_path).resolve()).replace("\\", "/").lower()
+    except Exception:
+        # Fallback: best-effort normalization
+        return str(file_path).replace("\\", "/").lower()
+
+# #region agent log - Hypothesis B: Check langchain imports (granular)
+try:
+    from dotenv import load_dotenv
+    _rag_debug_log("B", "rag_service.py:imports", "dotenv imported", {})
+except Exception as _e:
+    _rag_debug_log("B", "rag_service.py:imports", "dotenv FAILED", {"error": str(_e)})
+    raise
+
+_rag_debug_log("B", "rag_service.py:imports", "Starting langchain_community.document_loaders...", {})
+try:
+    from langchain_community.document_loaders import PyPDFLoader
+    _rag_debug_log("B", "rag_service.py:imports", "PyPDFLoader OK", {})
+except Exception as _e:
+    _rag_debug_log("B", "rag_service.py:imports", "PyPDFLoader FAILED", {"error": str(_e)})
+    raise
+
+_rag_debug_log("B", "rag_service.py:imports", "Starting langchain_text_splitters...", {})
+try:
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+    _rag_debug_log("B", "rag_service.py:imports", "RecursiveCharacterTextSplitter OK", {})
+except Exception as _e:
+    _rag_debug_log("B", "rag_service.py:imports", "RecursiveCharacterTextSplitter FAILED", {"error": str(_e)})
+    raise
+
+_rag_debug_log("B", "rag_service.py:imports", "Starting langchain_openai...", {})
+try:
+    from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+    _rag_debug_log("B", "rag_service.py:imports", "langchain_openai OK", {})
+except Exception as _e:
+    _rag_debug_log("B", "rag_service.py:imports", "langchain_openai FAILED", {"error": str(_e)})
+    raise
+
+_rag_debug_log("B", "rag_service.py:imports", "Starting langchain_chroma...", {})
+try:
+    from langchain_chroma import Chroma
+    _rag_debug_log("B", "rag_service.py:imports", "langchain_chroma OK", {})
+except Exception as _e:
+    _rag_debug_log("B", "rag_service.py:imports", "langchain_chroma FAILED", {"error": str(_e)})
+    raise
+
+_rag_debug_log("B", "rag_service.py:imports", "Starting BM25Retriever...", {})
+try:
+    from langchain_community.retrievers import BM25Retriever
+    _rag_debug_log("B", "rag_service.py:imports", "BM25Retriever OK", {})
+except Exception as _e:
+    _rag_debug_log("B", "rag_service.py:imports", "BM25Retriever FAILED", {"error": str(_e)})
+    raise
+
+_rag_debug_log("B", "rag_service.py:imports", "Starting langchain_core...", {})
+try:
+    from langchain_core.documents import Document
+    from langchain_core.prompts import ChatPromptTemplate
+    _rag_debug_log("B", "rag_service.py:imports", "langchain_core OK", {})
+except Exception as _e:
+    _rag_debug_log("B", "rag_service.py:imports", "langchain_core FAILED", {"error": str(_e)})
+    raise
+
+_rag_debug_log("B", "rag_service.py:imports", "Starting chromadb...", {})
+try:
+    import chromadb
+    _rag_debug_log("B", "rag_service.py:imports", "chromadb OK", {})
+except Exception as _e:
+    _rag_debug_log("B", "rag_service.py:imports", "chromadb FAILED", {"error": str(_e)})
+    raise
+# #endregion
 
 # Lade Umgebungsvariablen
 load_dotenv()
+_rag_debug_log("B", "rag_service.py:dotenv", "dotenv loaded", {"OPENAI_API_KEY_set": bool(os.environ.get("OPENAI_API_KEY"))})
 
 # Konfiguration
 PDF_DIRECTORY = "./docs"
@@ -81,7 +163,7 @@ def get_pdf_hashes(pdf_files: List[str]) -> dict:
     hashes = {}
     for pdf_file in pdf_files:
         if os.path.exists(pdf_file):
-            hashes[pdf_file] = compute_file_hash(pdf_file)
+            hashes[_normalize_pdf_key(pdf_file)] = compute_file_hash(pdf_file)
     return hashes
 
 
@@ -89,7 +171,13 @@ def load_saved_hashes() -> dict:
     """Load previously saved PDF hashes"""
     if os.path.exists(PDF_HASH_FILE):
         with open(PDF_HASH_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+            raw = json.load(f)
+            # Backwards-compatible: normalize old keys on load
+            normalized: dict = {}
+            if isinstance(raw, dict):
+                for k, v in raw.items():
+                    normalized[_normalize_pdf_key(k)] = v
+            return normalized
     return {}
 
 

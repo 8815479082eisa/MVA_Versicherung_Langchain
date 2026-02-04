@@ -7,17 +7,48 @@ an das RAG-System zu stellen und Antworten zu erhalten.
 
 import os
 import sys
+import json
 from typing import List, Optional
 from contextlib import asynccontextmanager
+import asyncio
+
+# #region agent log - Debug logging setup
+_DEBUG_LOG_PATH = r"c:\Users\mirae\MVA_Versicherung_Langchain_main\.cursor\debug.log"
+def _debug_log(hyp_id, loc, msg, data=None):
+    try:
+        import time
+        entry = {"hypothesisId": hyp_id, "location": loc, "message": msg, "data": data or {}, "timestamp": int(time.time()*1000), "sessionId": "debug-session"}
+        with open(_DEBUG_LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception as e:
+        print(f"DEBUG LOG ERROR: {e}")
+# #endregion
+
+# #region agent log - Hypothesis A: Check __file__ and sys.path
+_debug_log("A", "backend_api.py:top", "Script started", {"__file__": __file__, "cwd": os.getcwd()})
+# #endregion
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # Füge src-Verzeichnis zum Python-Pfad hinzu
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+_SRC_PATH = os.path.join(_THIS_DIR, 'src')
+sys.path.insert(0, _SRC_PATH)
 
-from api.rag_service import run_rag, Source, AnswerResult
+# #region agent log - Hypothesis A: Log computed paths
+_debug_log("A", "backend_api.py:path_setup", "Path setup complete", {"_THIS_DIR": _THIS_DIR, "_SRC_PATH": _SRC_PATH, "sys.path[0]": sys.path[0], "src_exists": os.path.isdir(_SRC_PATH)})
+# #endregion
+
+# #region agent log - Hypothesis B: Try importing rag_service
+try:
+    from api.rag_service import run_rag, Source, AnswerResult
+    _debug_log("B", "backend_api.py:import_rag", "rag_service import SUCCESS", {})
+except Exception as _import_err:
+    _debug_log("B", "backend_api.py:import_rag", "rag_service import FAILED", {"error": str(_import_err), "type": type(_import_err).__name__})
+    raise
+# #endregion
 
 
 # Pydantic-Modelle für API-Requests und Responses
@@ -74,15 +105,31 @@ class AskResponse(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifecycle-Handler für FastAPI-App"""
-    # Startup: Initialisiere Pipeline beim Start
-    print("Initializing RAG pipeline...")
-    try:
-        from api.rag_service import initialize_pipeline, pdfs_have_changed
-        initialize_pipeline(force_reindex=pdfs_have_changed())
-        print("RAG pipeline initialized successfully.")
-    except Exception as e:
-        print(f"Warning: Error initializing RAG pipeline: {e}")
-        print("Pipeline will be initialized on first request.")
+    # Startup: Optional pipeline initialization.
+    # Important: initializing can take a long time (PDF parsing + embeddings),
+    # which would block the server from answering even /health. Therefore we
+    # default to lazy init on first request.
+    init_on_startup = os.getenv("INIT_PIPELINE_ON_STARTUP", "false").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "y",
+        "on",
+    }
+
+    if init_on_startup:
+        print("Initializing RAG pipeline on startup (INIT_PIPELINE_ON_STARTUP=true)...")
+        try:
+            from api.rag_service import initialize_pipeline, pdfs_have_changed
+
+            # Run heavy init in a thread so the event loop isn't blocked.
+            await asyncio.to_thread(initialize_pipeline, force_reindex=pdfs_have_changed())
+            print("RAG pipeline initialized successfully.")
+        except Exception as e:
+            print(f"Warning: Error initializing RAG pipeline: {e}")
+            print("Pipeline will be initialized on first request.")
+    else:
+        print("Skipping pipeline initialization on startup. Pipeline will initialize on first request.")
     yield
     # Shutdown: Cleanup falls nötig
     print("Shutting down RAG backend...")
@@ -213,12 +260,23 @@ async def send_feedback(answer_id: str, useful: bool):
 if __name__ == "__main__":
     import uvicorn
     
-    # Starte Server
-    uvicorn.run(
-        "backend_api:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
-    )
+    # #region agent log - Hypothesis C/D/E: Log before uvicorn start
+    _debug_log("C", "backend_api.py:main", "About to start uvicorn", {"reload": True, "host": "0.0.0.0", "port": 8000})
+    _debug_log("E", "backend_api.py:main", "Working directory check", {"cwd": os.getcwd(), "docs_exists": os.path.isdir("./docs"), "chroma_exists": os.path.isdir("./chroma_db")})
+    # #endregion
+    
+    # #region agent log - Hypothesis C: Try without reload first
+    try:
+        # Starte Server (reload=False to avoid Windows issues)
+        uvicorn.run(
+            "backend_api:app",
+            host="0.0.0.0",
+            port=8000,
+            reload=False,  # Changed from True - reload can cause issues on Windows
+            log_level="info"
+        )
+    except Exception as _uvicorn_err:
+        _debug_log("D", "backend_api.py:main", "uvicorn.run FAILED", {"error": str(_uvicorn_err), "type": type(_uvicorn_err).__name__})
+        raise
+    # #endregion
 
