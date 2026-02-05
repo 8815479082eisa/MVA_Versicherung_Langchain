@@ -1,0 +1,41 @@
+[Unit]
+Description=MVA Insurance Agentic RAG Backend
+Documentation=https://github.com/8815479082eisa/MVA_Versicherung_Langchain
+After=network.target
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/home/username/MVA_Versicherung_Langchain
+
+# Python Environment
+Environment="PATH=/home/username/MVA_Versicherung_Langchain/.venv/bin"
+Environment="PYTHONUNBUFFERED=1"
+
+# Load Environment Variables from .env file
+EnvironmentFile=/home/username/MVA_Versicherung_Langchain/.env
+
+# Execution
+ExecStart=/home/username/MVA_Versicherung_Langchain/.venv/bin/uvicorn src.main:app \
+    --host 0.0.0.0 \
+    --port 8000 \
+    --workers 4 \
+    --loop uvloop
+
+# Auto-restart
+Restart=always
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Limits
+LimitNOFILE=65535
+LimitNPROC=65535
+
+[Install]
+WantedBy=multi-user.target

@@ -3,8 +3,12 @@ langchain-community
 langchain-openai
 langchain-chroma
 langchain-text-splitters
+rank-bm25
 chromadb
 python-dotenv
 sentence-transformers
 llmlingua
 reportlab
+fastapi
+uvicorn[standard]
+pydantic
