@@ -1,6 +1,3 @@
 [submodule "MVA_Versicherung_Langchain"]
 	path = MVA_Versicherung_Langchain
 	url = https://github.com/8815479082eisa/MVA_Versicherung_Langchain.git
-[submodule "MVA_Versicherung_Langchain-1"]
-	path = MVA_Versicherung_Langchain-1
-	url = https://github.com/8815479082eisa/MVA_Versicherung_Langchain.git
