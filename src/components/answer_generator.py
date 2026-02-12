@@ -6,7 +6,7 @@ from langchain_core.documents import Document
 from typing import List
 
 class AnswerGenerator:
-    def __init__(self, llm=None, temperature=0.7):
+    def __init__(self, llm=None, temperature=0.3):
         self.llm = llm if llm else ChatOpenAI(model="gpt-4o-mini", temperature=temperature)
         self.prompt_template = self._create_prompt_template()
         self.output_parser = StrOutputParser()

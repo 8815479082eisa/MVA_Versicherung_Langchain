@@ -5,6 +5,9 @@ FastAPI Backend fuer das MVA Insurance Agentic RAG System
 import os
 import sys
 from pathlib import Path
+from contextlib import asynccontextmanager
+import asyncio
+from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,19 +17,101 @@ import uvicorn
 # Pfad fuer Imports hinzufuegen
 sys.path.insert(0, str(Path(__file__).parent))
 
-from api.rag_service import ask_question, initialize_pipeline
+from api import rag_service as rag_service
+
+
+def _env_flag(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def _get_cors_origins() -> list[str]:
+    """
+    Resolve allowed CORS origins.
+
+    - If CORS_ALLOW_ORIGINS="*" -> allow all.
+    - Else if set -> comma-separated list.
+    - Else -> safe dev defaults (localhost frontends).
+    """
+    raw = os.getenv("CORS_ALLOW_ORIGINS", "").strip()
+    if raw == "*":
+        return ["*"]
+    if raw:
+        return [o.strip() for o in raw.split(",") if o.strip()]
+    return [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+    ]
+
+
+def _shape_answer(text: str, short_answer: bool, structured_answer: bool) -> str:
+    answer = (text or "").strip()
+
+    # Best-effort output shaping (no extra model call)
+    if short_answer:
+        if "\n\n" in answer:
+            answer = answer.split("\n\n", 1)[0].strip()
+        answer = answer[:500].rstrip()
+
+    if structured_answer:
+        lines = [ln.strip() for ln in answer.splitlines() if ln.strip()]
+        if len(lines) <= 1 and answer:
+            # Heuristic split on sentences if it's one-liner.
+            parts = [
+                p.strip()
+                for p in answer.replace("?", "?.").replace("!", "!.").split(".")
+                if p.strip()
+            ]
+            lines = parts[:6] if parts else [answer]
+        answer = "\n".join([f"- {ln}" for ln in lines]) if lines else answer
+
+    return answer
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    """
+    Application lifecycle.
+
+    Important: pipeline initialization can be expensive (PDF parsing + embeddings),
+    so we default to lazy initialization on first request. Enable eager init via:
+    INIT_PIPELINE_ON_STARTUP=true
+    """
+    init_on_startup = _env_flag("INIT_PIPELINE_ON_STARTUP", default=False)
+
+    if init_on_startup:
+        print("Initializing RAG pipeline on startup (INIT_PIPELINE_ON_STARTUP=true)...")
+        try:
+            force_reindex = rag_service.pdfs_have_changed()
+            await asyncio.to_thread(rag_service.initialize_pipeline, force_reindex=force_reindex)
+            print("Pipeline initialized.")
+        except Exception as e:
+            print(f"Warning: error initializing pipeline: {e}")
+            print("Pipeline will initialize lazily on the first request.")
+    else:
+        print("Backend started (lazy pipeline init).")
+
+    yield
+
+    print("Backend shutting down...")
 
 # FastAPI-App erstellen
 app = FastAPI(
     title="MVA Insurance Agentic RAG API",
     description="Backend fuer das MVA Insurance RAG System",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan,
 )
 
 # CORS-Middleware - Zugriff vom Frontend erlauben
+origins = _get_cors_origins()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In Produktion sollte dies auf localhost begrenzt werden
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -45,19 +130,24 @@ class Source(BaseModel):
     """Dokumentquelle"""
     documentId: str
     documentTitle: str
-    page: int = None
-    section: str = None
-    snippet: str = None
+    page: Optional[int] = None
+    section: Optional[str] = None
+    snippet: Optional[str] = None
 
 
 class AnswerResponse(BaseModel):
     """Antwort"""
     answer: str
     sources: list[Source]
-    latencyMs: float = None
+    latencyMs: Optional[float] = None
 
 
 # Routes
+@app.get("/")
+async def root():
+    return {"status": "online", "service": "MVA Insurance Agentic RAG API", "version": "1.0.0"}
+
+
 @app.get("/health")
 async def health_check():
     """Serverstatus pruefen"""
@@ -73,12 +163,8 @@ async def ask(request: AskQuestionRequest):
         if not request.question.strip():
             raise HTTPException(status_code=400, detail="Die Frage darf nicht leer sein")
         
-        # RAG-Service aufrufen
-        result = ask_question(
-            question=request.question,
-            short_answer=request.shortAnswer,
-            structured_answer=request.structuredAnswer
-        )
+        # RAG-Service aufrufen (lazy init happens inside run_rag)
+        result = rag_service.run_rag(request.question.strip(), chat_history=[])
         
         # Ergebnis in AnswerResponse umwandeln
         sources = [
@@ -89,46 +175,35 @@ async def ask(request: AskQuestionRequest):
                 section=src.section,
                 snippet=src.snippet
             )
-            for src in result.get("sources", [])
+            for src in (result.sources or [])
         ]
         
         return AnswerResponse(
-            answer=result.get("answer", ""),
+            answer=_shape_answer(result.answer, request.shortAnswer, request.structuredAnswer),
             sources=sources,
-            latencyMs=result.get("latency_ms")
+            latencyMs=result.latency_ms
         )
         
+    except ValueError as e:
+        # Typically: pipeline not ready (e.g., no PDFs in ./docs)
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Fehler: {str(e)}")
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Wird beim Serverstart ausgefuehrt"""
-    print("📚 Backend gestartet...")
-    try:
-        initialize_pipeline()
-        print("✅ Pipeline initialisiert")
-    except Exception as e:
-        print(f"⚠️ Fehler bei der Pipeline-Initialisierung: {e}")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Wird beim Server-Shutdown ausgefuehrt"""
-    print("👋 Backend wird beendet...")
+        # Do not leak internal errors in production
+        raise HTTPException(status_code=500, detail="Fehler bei der Verarbeitung der Anfrage.")
 
 
 if __name__ == "__main__":
     # Server starten
     port = int(os.getenv("BACKEND_PORT", 8000))
     host = os.getenv("BACKEND_HOST", "0.0.0.0")
+    reload_default = False if os.name == "nt" else True
+    reload = _env_flag("UVICORN_RELOAD", default=reload_default)
     
-    print(f"🚀 Backend laeuft unter http://{host}:{port}")
+    print(f"Backend running at http://{host}:{port}")
     
     uvicorn.run(
         app,
         host=host,
         port=port,
-        reload=True  # In development fuer Auto-Reload
+        reload=reload  # In development fuer Auto-Reload
     )

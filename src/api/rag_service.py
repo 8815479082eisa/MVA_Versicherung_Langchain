@@ -112,12 +112,13 @@ load_dotenv()
 _rag_debug_log("B", "rag_service.py:dotenv", "dotenv loaded", {"OPENAI_API_KEY_set": bool(os.environ.get("OPENAI_API_KEY"))})
 
 # Konfiguration
-PDF_DIRECTORY = "./docs"
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PDF_DIRECTORY = str(_PROJECT_ROOT / "docs")
 CHUNK_SIZE = 1000
 CHUNK_OVERLAP = 200
 COLLECTION_NAME = "insurance_rag_collection"
-CHROMA_PERSIST_DIRECTORY = "./chroma_db"
-PDF_HASH_FILE = "./.pdf_hashes.json"
+CHROMA_PERSIST_DIRECTORY = str(_PROJECT_ROOT / "chroma_db")
+PDF_HASH_FILE = str(_PROJECT_ROOT / ".pdf_hashes.json")
 
 # Globale Variablen für die Pipeline-Komponenten
 _pipeline_components: Optional[Dict] = None
