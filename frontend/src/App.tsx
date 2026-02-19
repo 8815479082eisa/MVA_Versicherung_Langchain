@@ -34,12 +34,16 @@ import React, { useState } from 'react';
 import QuestionForm from './components/QuestionForm';
 import AnswerView from './components/AnswerView';
 import HistoryList, { HistoryEntry } from './components/HistoryList';
+import CallAssistant from './components/CallAssistant';
 import { askQuestion, AnswerResponse, Source } from './api';
 
 /**
  * Hauptkomponente der Anwendung
  */
 const App: React.FC = () => {
+  // State für Tab-Auswahl
+  const [activeTab, setActiveTab] = useState<'documents' | 'calls'>('documents');
+  
   // State für aktuelle Frage
   const [currentQuestion, setCurrentQuestion] = useState<string>('');
   
@@ -126,19 +130,75 @@ const App: React.FC = () => {
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Baloise Dokumenten-Assistent (MVA Demo)
+            MVA Versicherungs-Assistent
           </h1>
           <p className="text-gray-600">
-            Stellen Sie eine Frage zu Produkten, Bedingungen oder Tarifen.
+            Dokumentenabfrage und AI-Telefonanrufe für Ihre Versicherungsanfragen.
           </p>
         </div>
       </header>
 
+      {/* Tab Navigation */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="flex -mb-px space-x-8" aria-label="Tabs">
+            <button
+              onClick={() => setActiveTab('documents')}
+              className={`${
+                activeTab === 'documents'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center transition-colors`}
+            >
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              Dokumenten-Assistent
+            </button>
+            <button
+              onClick={() => setActiveTab('calls')}
+              className={`${
+                activeTab === 'calls'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center transition-colors`}
+            >
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                />
+              </svg>
+              AI Call Assistant
+            </button>
+          </nav>
+        </div>
+      </div>
+
       {/* Hauptinhalt */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Linke Spalte: Frageformular und Antwort */}
-          <div className="lg:col-span-2 space-y-6">
+        {/* Dokumenten-Assistent Tab */}
+        {activeTab === 'documents' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Linke Spalte: Frageformular und Antwort */}
+            <div className="lg:col-span-2 space-y-6">
             {/* Frageformular */}
             <QuestionForm onSubmit={handleQuestionSubmit} isLoading={isLoading} />
 
@@ -210,16 +270,24 @@ const App: React.FC = () => {
             )}
           </div>
 
-          {/* Rechte Spalte: Historie */}
-          <div className="lg:col-span-1">
-            {history.length > 0 && (
-              <HistoryList 
-                history={history} 
-                onSelectEntry={handleHistorySelect}
-              />
-            )}
+            {/* Rechte Spalte: Historie */}
+            <div className="lg:col-span-1">
+              {history.length > 0 && (
+                <HistoryList 
+                  history={history} 
+                  onSelectEntry={handleHistorySelect}
+                />
+              )}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* AI Call Assistant Tab */}
+        {activeTab === 'calls' && (
+          <div className="max-w-3xl mx-auto">
+            <CallAssistant />
+          </div>
+        )}
       </main>
 
       {/* Footer */}

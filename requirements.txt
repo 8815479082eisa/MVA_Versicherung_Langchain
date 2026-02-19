@@ -12,3 +12,4 @@ reportlab
 fastapi
 uvicorn[standard]
 pydantic
+httpx

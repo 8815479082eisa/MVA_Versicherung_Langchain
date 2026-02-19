@@ -18,6 +18,7 @@ import uvicorn
 sys.path.insert(0, str(Path(__file__).parent))
 
 from api import rag_service as rag_service
+from api.vapi_service import get_vapi_service
 
 
 def _env_flag(name: str, default: bool = False) -> bool:
@@ -142,6 +143,29 @@ class AnswerResponse(BaseModel):
     latencyMs: Optional[float] = None
 
 
+# Vapi Call Models
+class InitiateCallRequest(BaseModel):
+    """Anfrage zum Starten eines AI-Anrufs"""
+    phoneNumber: str
+    customerName: Optional[str] = None
+
+
+class CallStatusResponse(BaseModel):
+    """Status eines AI-Anrufs"""
+    callId: str
+    status: str
+    phoneNumber: str
+    createdAt: str
+    duration: Optional[float] = None
+    cost: Optional[float] = None
+    endedReason: Optional[str] = None
+
+
+class EndCallRequest(BaseModel):
+    """Anfrage zum Beenden eines Anrufs"""
+    callId: str
+
+
 # Routes
 @app.get("/")
 async def root():
@@ -190,6 +214,196 @@ async def ask(request: AskQuestionRequest):
     except Exception as e:
         # Do not leak internal errors in production
         raise HTTPException(status_code=500, detail="Fehler bei der Verarbeitung der Anfrage.")
+
+
+# ============================================================================
+# Vapi.ai Call Assistant Endpoints
+# ============================================================================
+
+@app.post("/api/call/start", response_model=CallStatusResponse)
+async def start_call(request: InitiateCallRequest):
+    """
+    Initiiert einen ausgehenden AI-Anruf über Vapi.ai
+    
+    Args:
+        request: Enthält Telefonnummer und optional Kundenname
+        
+    Returns:
+        CallStatusResponse mit Call-ID und aktuellem Status
+        
+    Raises:
+        HTTPException: Bei Validierungs- oder API-Fehlern
+    """
+    try:
+        vapi_service = get_vapi_service()
+        
+        # Anruf initiieren
+        result = await vapi_service.initiate_call(
+            phone_number=request.phoneNumber,
+            customer_name=request.customerName
+        )
+        
+        return CallStatusResponse(
+            callId=result["call_id"],
+            status=result["status"],
+            phoneNumber=result["phone_number"],
+            createdAt=result["created_at"],
+            duration=result.get("duration"),
+            cost=result.get("cost")
+        )
+        
+    except ValueError as e:
+        # Validierungsfehler (z.B. ungültige Telefonnummer oder fehlende Config)
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        # Andere Fehler (z.B. Netzwerkprobleme)
+        import logging
+        logging.error(f"Fehler beim Initiieren des Anrufs: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Fehler beim Starten des Anrufs. Bitte versuchen Sie es erneut."
+        )
+
+
+@app.get("/api/call/status/{call_id}", response_model=CallStatusResponse)
+async def get_call_status(call_id: str):
+    """
+    Ruft den aktuellen Status eines Anrufs ab
+    
+    Args:
+        call_id: Die ID des Anrufs
+        
+    Returns:
+        CallStatusResponse mit aktuellem Status und Details
+        
+    Raises:
+        HTTPException: Bei nicht gefundenem Anruf oder API-Fehlern
+    """
+    try:
+        vapi_service = get_vapi_service()
+        
+        result = await vapi_service.get_call_status(call_id)
+        
+        return CallStatusResponse(
+            callId=result["call_id"],
+            status=result["status"],
+            phoneNumber=result.get("phone_number", ""),
+            createdAt=result.get("started_at", ""),
+            duration=result.get("duration"),
+            cost=result.get("cost"),
+            endedReason=result.get("ended_reason")
+        )
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        import logging
+        logging.error(f"Fehler beim Abrufen des Call-Status: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Fehler beim Abrufen des Status. Bitte versuchen Sie es erneut."
+        )
+
+
+@app.post("/api/call/end")
+async def end_call(request: EndCallRequest):
+    """
+    Beendet einen laufenden Anruf
+    
+    Args:
+        request: Enthält die Call-ID
+        
+    Returns:
+        Dict mit finalen Call-Informationen
+        
+    Raises:
+        HTTPException: Bei nicht gefundenem Anruf oder API-Fehlern
+    """
+    try:
+        vapi_service = get_vapi_service()
+        
+        result = await vapi_service.end_call(request.callId)
+        
+        return {
+            "success": True,
+            "callId": result["call_id"],
+            "status": result["status"],
+            "duration": result.get("duration"),
+            "cost": result.get("cost")
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        import logging
+        logging.error(f"Fehler beim Beenden des Anrufs: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Fehler beim Beenden des Anrufs. Bitte versuchen Sie es erneut."
+        )
+
+
+@app.post("/api/call/vapi-webhook")
+async def vapi_webhook(request: dict):
+    """
+    Webhook-Endpoint für Vapi.ai Call Events und Function Calls
+    
+    Dieser Endpoint wird von Vapi aufgerufen für:
+    - Call Status Updates (started, ended, etc.)
+    - Function Calls (wenn der Assistant Informationen aus dem RAG System braucht)
+    
+    Args:
+        request: Webhook-Payload von Vapi
+        
+    Returns:
+        Response für Vapi (bei Function Calls)
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    event_type = request.get("type")
+    logger.info(f"Vapi Webhook erhalten: {event_type}")
+    
+    # Function Call vom Assistant - RAG System verwenden
+    if event_type == "function-call":
+        function_name = request.get("functionCall", {}).get("name")
+        parameters = request.get("functionCall", {}).get("parameters", {})
+        
+        if function_name == "search_insurance_info":
+            # RAG System aufrufen
+            question = parameters.get("question", "")
+            
+            try:
+                result = rag_service.run_rag(question.strip(), chat_history=[])
+                
+                # Antwort für Vapi formatieren
+                response_text = result.answer
+                
+                # Quellen hinzufügen wenn verfügbar
+                if result.sources:
+                    sources_text = "\n\nQuellen: "
+                    for src in result.sources[:2]:
+                        sources_text += f"{src.document_title}"
+                        if src.page:
+                            sources_text += f" (Seite {src.page})"
+                        sources_text += ", "
+                    response_text += sources_text.rstrip(", ")
+                
+                return {
+                    "result": response_text
+                }
+            except Exception as e:
+                logger.error(f"Fehler bei RAG-Abfrage im Webhook: {e}")
+                return {
+                    "result": "Entschuldigung, ich konnte diese Information momentan nicht abrufen."
+                }
+    
+    # Call Status Events loggen
+    elif event_type in ["call-started", "call-ended", "call-failed"]:
+        call_id = request.get("call", {}).get("id")
+        logger.info(f"Call {call_id}: {event_type}")
+    
+    return {"success": True}
 
 
 if __name__ == "__main__":
