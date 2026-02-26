@@ -52,8 +52,8 @@ BACKEND_SECRET=your-secret-key
 OPENAI_API_KEY=sk-xxxxxxxxxxxxx
 
 # Database & Documents
-PDF_DIRECTORY=/path/to/docs
-CHROMA_PERSIST_DIRECTORY=/path/to/chroma_db
+PDF_DIRECTORY=/path/to/data/raw/pdfs
+CHROMA_PERSIST_DIRECTORY=/path/to/data/processed/vectorstores/chroma_db
 
 # API
 API_BASE_URL=http://your_server_ip:8000
@@ -186,7 +186,7 @@ sudo journalctl -u mva-backend.service -f
 ## 🔧 نکات مهم
 
 1. **OPENAI_API_KEY**: حتماً قبل از راه‌اندازی در .env تنظیم کنید
-2. **پوشه docs**: حتماً فایل‌های PDF را در `./docs` قرار دهید
+2. **پوشه docs**: حتماً فایل‌های PDF را در `./data/raw/pdfs` قرار دهید
 3. **Database**: اولین بار اجرا شدن، Chroma DB خودکار ایجاد می‌شود
 4. **Permissions**: اگر از Nginx استفاده می‌کنید، اطمینان حاصل کنید که فایل‌ها قابل دسترسی هستند
 

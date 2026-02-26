@@ -97,12 +97,12 @@ npm install
    Das Frontend läuft dann auf `http://localhost:3000` und öffnet sich automatisch im Browser.
 
 3. **Verwendung:**
-   - Versicherungsdokumente in den `./docs` Ordner legen (PDF-Format)
+   - Versicherungsdokumente in den `./data/raw/pdfs` Ordner legen (PDF-Format)
    - Im Browser Fragen stellen - die Antworten werden vom echten RAG-System generiert
 
 ### Option 2: CLI (Kommandozeile)
 
-1. Versicherungsdokumente in den `./docs` Ordner legen (PDF-Format)
+1. Versicherungsdokumente in den `./data/raw/pdfs` Ordner legen (PDF-Format)
 
 2. System starten:
 ```bash
@@ -110,7 +110,7 @@ python main.py
 ```
 
 3. Fragen stellen:
-Das System lädt automatisch alle PDFs aus `./docs` (außer `example.pdf`), indiziert sie und startet eine interaktive CLI-Session.
+Das System lädt automatisch alle PDFs aus `./data/raw/pdfs` (außer `example.pdf`), indiziert sie und startet eine interaktive CLI-Session.
 
 4. Beispiel-Fragen:
 - "Wie hoch ist die Deckungssumme im Tarif Baloise All-in Gold?"
@@ -141,10 +141,12 @@ LangChain/
 ├── requirements.txt        # Python-Abhängigkeiten
 ├── README.md              # Diese Datei
 ├── .env                   # Umgebungsvariablen (nicht versioniert)
-├── docs/                  # Versicherungsdokumente (PDFs)
-├── chroma_db/             # ChromaDB Vektorspeicher
-├── audit.log              # Audit-Logs (JSONL-Format)
-├── .pdf_hashes.json      # PDF Hash-Tracking für Index-Updates
+├── data/
+│   ├── raw/pdfs/          # Versicherungsdokumente (PDFs)
+│   ├── processed/vectorstores/chroma_db/ # ChromaDB Vektorspeicher
+│   ├── processed/logs/audit.log          # Audit-Logs (JSONL-Format)
+│   └── processed/caches/pdf_hashes.json  # PDF Hash-Tracking für Index-Updates
+├── docs/                  # Handbücher, Architektur, Entwicklungsnotizen
 ├── src/                   # Quellcode-Module
 │   ├── api/               # API-Layer
 │   │   └── rag_service.py # Zentrale RAG-Service-Funktion
@@ -168,8 +170,8 @@ Die wichtigsten Konfigurationsparameter in `main.py`:
 - `CHUNK_SIZE = 1000`: Größe der Dokumenten-Chunks (Zeichen)
 - `CHUNK_OVERLAP = 200`: Overlap zwischen Chunks (Zeichen)
 - `COLLECTION_NAME = "insurance_rag_collection"`: ChromaDB Collection-Name
-- `CHROMA_PERSIST_DIRECTORY = "./chroma_db"`: Speicherort des Vektorspeichers
-- `AUDIT_LOG_FILE = "./audit.log"`: Pfad zu den Audit-Logs
+- `CHROMA_PERSIST_DIRECTORY = "./data/processed/vectorstores/chroma_db"`: Speicherort des Vektorspeichers
+- `AUDIT_LOG_FILE = "./data/processed/logs/audit.log"`: Pfad zu den Audit-Logs
 
 ## 🔍 Funktionsweise
 

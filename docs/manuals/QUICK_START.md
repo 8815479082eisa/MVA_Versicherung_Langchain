@@ -44,10 +44,10 @@ cp .env.example .env
 nano .env  # تنظیم OPENAI_API_KEY
 
 # 4. اجرای Docker Compose
-docker-compose up -d
+docker compose -f docker/docker-compose.yml up -d
 
 # 5. بررسی وضعیت
-docker-compose logs -f backend
+docker compose -f docker/docker-compose.yml logs -f backend
 ```
 
 **آدرس‌های دسترسی:**
@@ -75,7 +75,7 @@ sudo systemctl status mva-backend.service
 sudo journalctl -u mva-backend.service -f
 
 # 4. تنظیم Nginx
-sudo cp nginx-mva-insurance.conf /etc/nginx/sites-available/mva-insurance
+sudo cp docker/nginx/nginx-mva-insurance.conf /etc/nginx/sites-available/mva-insurance
 sudo nano /etc/nginx/sites-available/mva-insurance  # ویرایش domain
 sudo ln -s /etc/nginx/sites-available/mva-insurance /etc/nginx/sites-enabled/
 sudo nginx -t
@@ -88,12 +88,12 @@ sudo systemctl restart nginx
 
 | فایل | توضیح |
 |------|-------|
-| `SERVER_SETUP.md` | راهنمای کامل (به زبان فارسی) |
+| `docs/manuals/SERVER_SETUP.md` | راهنمای کامل (به زبان فارسی) |
 | `setup.sh` | اسکریپت خودکار برای تنظیم |
 | `mva-backend.service` | Systemd Service برای Backend |
-| `nginx-mva-insurance.conf` | تنظیمات Nginx |
-| `docker-compose.yml` | Docker Compose Configuration |
-| `Dockerfile` | Docker Image برای Backend |
+| `docker/nginx/nginx-mva-insurance.conf` | تنظیمات Nginx |
+| `docker/docker-compose.yml` | Docker Compose Configuration |
+| `docker/Dockerfile` | Docker Image برای Backend |
 
 ---
 
@@ -113,7 +113,7 @@ curl -X POST http://localhost:8000/api/ask \
 
 # 4. Log‌ها
 sudo journalctl -u mva-backend.service -f  # Backend logs
-docker-compose logs -f  # Docker logs
+docker compose -f docker/docker-compose.yml logs -f  # Docker logs
 ```
 
 ---
@@ -121,10 +121,10 @@ docker-compose logs -f  # Docker logs
 ## ⚠️ نکات مهم
 
 ✅ تنظیم `OPENAI_API_KEY` در `.env` الزامی است  
-✅ حتماً فایل‌های PDF را در پوشه `docs/` قرار دهید  
+✅ حتماً فایل‌های PDF را در پوشه `data/raw/pdfs/` قرار دهید  
 ✅ از HTTPS استفاده کنید در Production  
 ✅ تنظیمات Firewall را بررسی کنید (Port 80, 443, 8000)  
-✅ Regular backup از `chroma_db` و `docs` بگیرید  
+✅ Regular backup از `data/processed/vectorstores/chroma_db` و `data/raw/pdfs` بگیرید  
 
 ---
 

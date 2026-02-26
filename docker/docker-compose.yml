@@ -7,9 +7,9 @@ services:
     container_name: mva-backend
     working_dir: /app
     volumes:
-      - .:/app
-      - ./chroma_db:/app/chroma_db
-      - ./docs:/app/docs
+      - ../:/app
+      - ../data/processed/vectorstores/chroma_db:/app/data/processed/vectorstores/chroma_db
+      - ../data/raw/pdfs:/app/data/raw/pdfs
     environment:
       - BACKEND_HOST=0.0.0.0
       - BACKEND_PORT=8000
@@ -37,7 +37,7 @@ services:
     container_name: mva-frontend
     working_dir: /app
     volumes:
-      - ./frontend:/app
+      - ../frontend:/app
     ports:
       - "5173:5173"
     command: npm run dev
@@ -53,9 +53,9 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx-mva-insurance.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./frontend/dist:/usr/share/nginx/html:ro
-      - ./certs:/etc/nginx/certs:ro  # For SSL certificates
+      - ./nginx/nginx-mva-insurance.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../frontend/dist:/usr/share/nginx/html:ro
+      - ../certs:/etc/nginx/certs:ro  # For SSL certificates
     depends_on:
       - backend
       - frontend
@@ -69,4 +69,3 @@ networks:
 
 volumes:
   chroma_db:
-  docs:

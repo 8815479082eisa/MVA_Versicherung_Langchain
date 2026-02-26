@@ -4,6 +4,9 @@ FastAPI Backend fuer das MVA Insurance Agentic RAG System
 
 import os
 import sys
+import json
+import re
+from difflib import SequenceMatcher
 from pathlib import Path
 from contextlib import asynccontextmanager
 import asyncio
@@ -13,6 +16,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
+try:
+    from openai import RateLimitError, AuthenticationError
+except Exception:  # local-only mode without openai package
+    class RateLimitError(Exception):
+        pass
+
+    class AuthenticationError(Exception):
+        pass
 
 # Pfad fuer Imports hinzufuegen
 sys.path.insert(0, str(Path(__file__).parent))
@@ -27,6 +38,19 @@ def _env_flag(name: str, default: bool = False) -> bool:
     return raw.strip().lower() in {"1", "true", "yes", "y", "on"}
 
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[1]
+FAQ_ONLY = _env_flag("FAQ_ONLY", default=False)  #wenn true, dann wird nur die FAQ verwendet, sonst wird der RAG verwendet
+FAQ_FILE = os.getenv(
+    "FAQ_FILE",
+    str(_PROJECT_ROOT / "data" / "benchmarks" / "qa" / "insuranceqa" / "data_insuranceqa_1000.jsonl"),
+) #FAQ_FILE ist der Pfad zur FAQ-Datei
+FAQ_MIN_SIMILARITY = float(os.getenv("FAQ_MIN_SIMILARITY", "0.86")) #FAQ_MIN_SIMILARITY ist der minimale Ähnlichkeitswert für die FAQ
+FAQ_FIRST = _env_flag("FAQ_FIRST", default=False) #FAQ_FIRST ist der erste Treffer für die FAQ, wenn kein Treffer gefunden wird, wird der RAG verwendet
+
+_faq_entries: list[dict] = [] #FAQ_ENTRIES ist die Liste der FAQ-Einträge
+_faq_by_question: dict[str, str] = {} #FAQ_BY_QUESTION ist das Dictionary der FAQ-Einträge
+
+#CORS_ALLOW_ORIGINS ist die Liste der erlaubten CORS-Origins, wenn CORS_ALLOW_ORIGINS="*" -> allow all.
 def _get_cors_origins() -> list[str]:
     """
     Resolve allowed CORS origins.
@@ -47,16 +71,16 @@ def _get_cors_origins() -> list[str]:
         "http://127.0.0.1:5173",
     ]
 
-
+#Strukturierung der Antwort
 def _shape_answer(text: str, short_answer: bool, structured_answer: bool) -> str:
     answer = (text or "").strip()
 
-    # Best-effort output shaping (no extra model call)
+    #Kurze Antwort
     if short_answer:
         if "\n\n" in answer:
             answer = answer.split("\n\n", 1)[0].strip()
         answer = answer[:500].rstrip()
-
+#Strukturierte Antwort, wenn structured_answer=True
     if structured_answer:
         lines = [ln.strip() for ln in answer.splitlines() if ln.strip()]
         if len(lines) <= 1 and answer:
@@ -72,6 +96,67 @@ def _shape_answer(text: str, short_answer: bool, structured_answer: bool) -> str
     return answer
 
 
+def _normalize_question(text: str) -> str:
+    text = (text or "").strip().lower()
+    text = re.sub(r"\s+", " ", text)
+    return text
+
+
+def _load_faq_data() -> None:
+    """Load local FAQ pairs from JSONL file if available."""
+    global _faq_entries, _faq_by_question
+    _faq_entries = []
+    _faq_by_question = {}
+
+    faq_path = Path(FAQ_FILE)
+    if not faq_path.exists():
+        print(f"FAQ file not found: {faq_path}")
+        return
+
+    try:
+        with faq_path.open("r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                row = json.loads(line)
+                q = str(row.get("question", "")).strip()
+                a = str(row.get("answer", "")).strip()
+                if not q or not a:
+                    continue
+                norm_q = _normalize_question(q)
+                _faq_entries.append({"question": q, "answer": a, "norm_q": norm_q})
+                _faq_by_question[norm_q] = a
+        print(f"Loaded FAQ entries: {len(_faq_entries)} from {faq_path}")
+    except Exception as e:
+        print(f"Failed to load FAQ file {faq_path}: {e}")
+
+
+def _find_faq_answer(question: str) -> tuple[Optional[str], Optional[float]]:
+    """
+    Find a local FAQ answer.
+    Returns (answer, similarity). For exact match similarity=1.0.
+    """
+    if not _faq_entries:
+        return None, None
+
+    norm_q = _normalize_question(question)
+    if norm_q in _faq_by_question:
+        return _faq_by_question[norm_q], 1.0
+
+    best_score = -1.0
+    best_answer: Optional[str] = None
+    for item in _faq_entries:
+        score = SequenceMatcher(None, norm_q, item["norm_q"]).ratio()
+        if score > best_score:
+            best_score = score
+            best_answer = item["answer"]
+
+    if best_answer is not None and best_score >= FAQ_MIN_SIMILARITY:
+        return best_answer, best_score
+    return None, best_score
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     """
@@ -83,7 +168,15 @@ async def lifespan(_: FastAPI):
     """
     init_on_startup = _env_flag("INIT_PIPELINE_ON_STARTUP", default=False)
 
-    if init_on_startup:
+    _load_faq_data()
+    print(
+        f"FAQ settings: FAQ_ONLY={FAQ_ONLY}, FAQ_FIRST={FAQ_FIRST}, "
+        f"FAQ_MIN_SIMILARITY={FAQ_MIN_SIMILARITY}"
+    )
+
+    if FAQ_ONLY:
+        print("Backend started in FAQ_ONLY mode (no RAG/OpenAI calls).")
+    elif init_on_startup:
         print("Initializing RAG pipeline on startup (INIT_PIPELINE_ON_STARTUP=true)...")
         try:
             force_reindex = rag_service.pdfs_have_changed()
@@ -162,9 +255,36 @@ async def ask(request: AskQuestionRequest):
     try:
         if not request.question.strip():
             raise HTTPException(status_code=400, detail="Die Frage darf nicht leer sein")
-        
-        # RAG-Service aufrufen (lazy init happens inside run_rag)
-        result = rag_service.run_rag(request.question.strip(), chat_history=[])
+
+        question = request.question.strip()
+
+        # Local FAQ path (no token usage)
+        if FAQ_ONLY or FAQ_FIRST:
+            faq_answer, faq_score = _find_faq_answer(question)
+            if faq_answer is not None:
+                sources = [
+                    Source(
+                        documentId="insuranceqa_v2_local",
+                        documentTitle="insuranceQA-v2 (local JSONL)",
+                        page=None,
+                        section=f"similarity={faq_score:.3f}" if faq_score is not None else None,
+                        snippet=faq_answer[:300],
+                    )
+                ]
+                return AnswerResponse(
+                    answer=_shape_answer(faq_answer, request.shortAnswer, request.structuredAnswer),
+                    sources=sources,
+                    latencyMs=0,
+                )
+
+            if FAQ_ONLY:
+                raise HTTPException(
+                    status_code=404,
+                    detail="No local FAQ match found. Lower FAQ_MIN_SIMILARITY or update FAQ_FILE.",
+                )
+
+        # RAG-Service path (uses OpenAI)
+        result = rag_service.run_rag(question, chat_history=[])
         
         # Ergebnis in AnswerResponse umwandeln
         sources = [
@@ -185,10 +305,23 @@ async def ask(request: AskQuestionRequest):
         )
         
     except ValueError as e:
-        # Typically: pipeline not ready (e.g., no PDFs in ./docs)
+        # Typically: pipeline not ready (e.g., no PDFs in data/raw/pdfs)
         raise HTTPException(status_code=503, detail=str(e))
+    except HTTPException:
+        # Preserve intended API errors (e.g. 400/404 from FAQ-only path)
+        raise
+    except RateLimitError as e:
+        # Quota/rate issues from upstream model provider
+        detail = str(e)
+        if "insufficient_quota" in detail:
+            detail = "OpenAI quota exceeded (insufficient_quota). Update billing or use a different API key."
+        raise HTTPException(status_code=503, detail=detail)
+    except AuthenticationError:
+        raise HTTPException(status_code=401, detail="Invalid OpenAI API key.")
     except Exception as e:
-        # Do not leak internal errors in production
+        # Show raw error only in explicit debug mode.
+        if _env_flag("DEBUG_API_ERRORS", default=False):
+            raise HTTPException(status_code=500, detail=f"Internal error: {type(e).__name__}: {e}")
         raise HTTPException(status_code=500, detail="Fehler bei der Verarbeitung der Anfrage.")
 
 

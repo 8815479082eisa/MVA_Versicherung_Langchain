@@ -41,6 +41,7 @@ ENV/
 # ChromaDB
 chroma_db/
 *.sqlite3
+data/processed/
 
 # Audit Logs
 audit.log
@@ -48,6 +49,9 @@ audit.log
 
 # PDF Hash Tracking
 .pdf_hashes.json
+data/processed/caches/pdf_hashes.json
+data/processed/caches/model_config.json
+data/processed/caches/nli_cache.sqlite
 
 # OS
 .DS_Store

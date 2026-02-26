@@ -55,8 +55,12 @@ BACKEND_PORT=8000
 OPENAI_API_KEY=sk-your-api-key-here
 
 # Database
-PDF_DIRECTORY=./docs
-CHROMA_PERSIST_DIRECTORY=./chroma_db
+DATA_DIR=./data
+PDF_DIRECTORY=./data/raw/pdfs
+CHROMA_PERSIST_DIRECTORY=./data/processed/vectorstores/chroma_db
+AUDIT_LOG_FILE=./data/processed/logs/audit.log
+PDF_HASH_FILE=./data/processed/caches/pdf_hashes.json
+MODEL_CONFIG_FILE=./data/processed/caches/model_config.json
 
 # API URL
 API_BASE_URL=http://localhost:8000
@@ -69,7 +73,7 @@ fi
 
 # 6. بررسی پوشه Docs
 echo -e "\n${YELLOW}5️⃣ بررسی پوشه‌های لازم...${NC}"
-mkdir -p docs chroma_db
+mkdir -p data/raw/pdfs data/processed/vectorstores/chroma_db data/processed/logs data/processed/caches
 echo -e "${GREEN}✅ پوشه‌ها ایجاد شدند${NC}"
 
 # 7. آزمایش Backend
@@ -106,4 +110,4 @@ echo "3. یا استفاده از Systemd Service: sudo systemctl start mva-back
 echo "4. Frontend بر روی http://localhost:3000 اجرا می‌شود"
 echo ""
 echo -e "${YELLOW}برای اطلاعات بیشتر:${NC}"
-echo "📖 ببینید: SERVER_SETUP.md"
+echo "📖 ببینید: docs/manuals/SERVER_SETUP.md"

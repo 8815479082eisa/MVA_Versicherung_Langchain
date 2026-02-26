@@ -1,14 +1,23 @@
 langchain
 langchain-community
-langchain-openai
+langchain-ollama
 langchain-chroma
 langchain-text-splitters
 rank-bm25
 chromadb
 python-dotenv
 sentence-transformers
+FlagEmbedding
 llmlingua
 reportlab
 fastapi
 uvicorn[standard]
 pydantic
+datasets
+
+# Optional evaluation dependencies (ALCE/NLI)
+# Install manually when needed:
+#   pip install transformers torch mauve-text
+# transformers
+# torch
+# mauve-text

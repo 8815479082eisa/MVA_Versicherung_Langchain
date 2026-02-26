@@ -8,18 +8,19 @@ import os
 TARGET_ENTRIES = 110  # 60 alte + 50 neue
 CHECK_INTERVAL = 30  # Sekunden
 MAX_WAIT_TIME = 3600  # 1 Stunde
+AUDIT_LOG_FILE = os.getenv("AUDIT_LOG_FILE", "data/processed/logs/audit.log")
 
 def count_audit_entries():
     """Zählt die Anzahl der Einträge in audit.log"""
-    if not os.path.exists("audit.log"):
+    if not os.path.exists(AUDIT_LOG_FILE):
         return 0
-    with open("audit.log", "r", encoding="utf-8") as f:
+    with open(AUDIT_LOG_FILE, "r", encoding="utf-8") as f:
         return len([line for line in f if line.strip()])
 
 def main():
     print("="*80)
     print("Waiting for query generation to complete...")
-    print(f"Target: {TARGET_ENTRIES} entries in audit.log")
+    print(f"Target: {TARGET_ENTRIES} entries in {AUDIT_LOG_FILE}")
     print("="*80)
     
     start_time = time.time()

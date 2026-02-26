@@ -32,7 +32,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # کپی application code
 COPY src ./src
 COPY .env.example .
-COPY docs ./docs
+COPY data/raw/pdfs ./data/raw/pdfs
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
