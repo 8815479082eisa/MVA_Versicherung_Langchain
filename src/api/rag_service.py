@@ -78,6 +78,8 @@ SETTINGS: ModelSettings = load_model_settings()
 
 PDF_DIRECTORY = str(SETTINGS.storage.pdf_directory)
 AUDIT_LOG_FILE = str(SETTINGS.storage.audit_log_file)
+RESPONSE_LANGUAGE = os.getenv("RESPONSE_LANGUAGE", "English")
+ANSWER_STYLE = os.getenv("ANSWER_STYLE", "detailed")  # detailed | concise
 
 
 @dataclass
@@ -97,27 +99,29 @@ class AnswerResult:
     latency_ms: Optional[int] = None
 
 
-ROUTER_SYSTEM_PROMPT = """Du bist ein intelligenter Router. Deine Aufgabe ist es zu entscheiden,
-ob eine Nutzerfrage eine Informationsabfrage aus einer Wissensbasis benötigt (RETRIEVE)
-oder ob die Frage direkt beantwortet werden kann (NO_RETRIEVE).
-Antworte ausschließlich mit 'RETRIEVE' oder 'NO_RETRIEVE'.
+ROUTER_SYSTEM_PROMPT = """You are an intelligent router. Decide whether the user question requires retrieval (RETRIEVE)
+or can be answered directly (NO_RETRIEVE).
+Reply ONLY with RETRIEVE or NO_RETRIEVE.
 """
 
-SELF_CHECK_SYSTEM_PROMPT = """Du bist ein Assistent, der die Relevanz von bereitgestellten Kontextdokumenten für eine Benutzerfrage bewertet.
-Antworte ausschließlich mit 'RELEVANT' oder 'IRRELEVANT'.
+SELF_CHECK_SYSTEM_PROMPT = """You are an assistant evaluating whether the provided context documents are relevant to the user question.
+Respond ONLY with RELEVANT or IRRELEVANT.
 """
 
-QUERY_REWRITE_SYSTEM_PROMPT = """Du bist ein hilfreicher Assistent, der Benutzeranfragen umschreibt, um bessere Suchergebnisse zu erzielen.
-Ziel ist es, die ursprüngliche Frage beizubehalten, aber die Formulierung zu optimieren, wenn die vorherige Suche nicht erfolgreich war.
-Antworte nur mit der umgeschriebenen Frage.
+QUERY_REWRITE_SYSTEM_PROMPT = """You rewrite user queries to improve retrieval results.
+Keep the original intent while optimizing phrasing for better search matches.
+Reply only with the rewritten query.
 """
 
-SYSTEM_PROMPT = """Du bist ein fachlicher Assistent für Versicherungsbedingungen.
-Antworte nur auf Basis der bereitgestellten Passagen. Zitiere Quelle(n) mit [Dok-ID:Seite/Abschnitt].
-Wenn unsicher: "Keine gesicherte Auskunft, bitte Rückfrage".
+SYSTEM_PROMPT = f"""You are a domain-specific assistant.
+Answer strictly based on the provided context passages.
+If the answer cannot be derived from the context, say so explicitly in {RESPONSE_LANGUAGE}.
+Do not fabricate information.
+Always include source references in the format [Doc-ID:page].
+Respond ONLY in {RESPONSE_LANGUAGE}.
 
 --- Chat History ---
-{chat_history}
+{{chat_history}}
 
 """
 
@@ -151,6 +155,38 @@ def _model_config_payload() -> dict:
         "self_check_model": SETTINGS.roles.self_check,
         "query_rewrite_model": SETTINGS.roles.rewrite,
     }
+
+
+def _doc_to_json(doc: Any) -> dict:
+    if isinstance(doc, Document):
+        return {"page_content": doc.page_content, "metadata": dict(doc.metadata or {})}
+    if isinstance(doc, dict):
+        return doc
+    return {"page_content": str(doc), "metadata": {}}
+
+
+def audit_log(
+    query: str,
+    retrieved_documents: List[Any],
+    compressed_context: List[Any],
+    generated_answer: str,
+    chat_history: Optional[List[dict]] = None,
+    **extra_fields: Any,
+) -> None:
+    payload = {
+        "timestamp": datetime.now().isoformat(),
+        "query": query,
+        "retrieved_documents": [_doc_to_json(doc) for doc in (retrieved_documents or [])],
+        "compressed_context": [_doc_to_json(doc) for doc in (compressed_context or [])],
+        "generated_answer": generated_answer,
+        "chat_history": chat_history or [],
+    }
+    payload.update(extra_fields)
+
+    audit_path = Path(AUDIT_LOG_FILE)
+    audit_path.parent.mkdir(parents=True, exist_ok=True)
+    with audit_path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(payload, ensure_ascii=False) + "\n")
 
 
 def _load_model_config() -> dict:
@@ -409,12 +445,17 @@ def initialize_compressor():
 
 
 def build_generation_chain(answer_llm):
+    style = (ANSWER_STYLE or "detailed").strip().lower()
+    if style == "detailed":
+        task = "Produce a detailed, step-by-step answer. Then add a short source citation block."
+    else:
+        task = "Produce a concise answer (1-2 sentences). Then add a source citation block."
+
     prompt_template = ChatPromptTemplate.from_messages(
         [
             (
                 "system",
-                SYSTEM_PROMPT
-                + "\nCONTEXT: {context}\nTASK: Erzeuge eine präzise, kurze Antwort + Quellenblock.",
+                SYSTEM_PROMPT + "\nCONTEXT: {context}\nTASK: " + task,
             ),
             ("user", "{query}"),
         ]
@@ -468,7 +509,7 @@ def rewrite_query(query_rewrite_llm, query: str, chat_history: Optional[List[dic
             ("system", system_msg),
             (
                 "user",
-                f"Original Query: {query}\nContext: (geringe Relevanz)\nTASK: Schreibe die Frage so um, dass bessere Suchergebnisse entstehen.",
+                f"Original Query: {query}\nContext: (low relevance)\nTASK: Rewrite the query to improve retrieval results.",
             ),
         ]
     )
@@ -517,10 +558,11 @@ def compress_context(compressor_llm, documents: List[Document], instruction: str
         [
             (
                 "system",
-                "Du fasst den Kontext so zusammen, dass er für die Frage maximal relevant ist. "
-                "Kürze auf ungefähr 300 Tokens und behalte wichtige Zahlen und Ausnahmen bei.",
+                f"Summarize the context so it is maximally relevant to the question. "
+                "Limit to ~300 tokens and keep important numbers, exceptions, and definitions. "
+                f"Write the summary in {RESPONSE_LANGUAGE}.",
             ),
-            ("user", f"Frage:\n{instruction}\n\nKontext:\n{merged_text}"),
+            ("user", f"Question:\n{instruction}\n\nContext:\n{merged_text}"),
         ]
     )
     response = (prompt | compressor_llm).invoke({})
@@ -547,7 +589,7 @@ def generate_answer(
 
 def document_to_source(doc: Document) -> Source:
     source_path = doc.metadata.get("source", "unknown")
-    document_title = os.path.basename(source_path) if source_path != "unknown" else "Unbekanntes Dokument"
+    document_title = os.path.basename(source_path) if source_path != "unknown" else "Unknown document"
     document_id = Path(source_path).stem if source_path != "unknown" else "unknown"
 
     page = doc.metadata.get("page")
@@ -594,7 +636,7 @@ class RAGPipeline:
         os.makedirs(PDF_DIRECTORY, exist_ok=True)
         pdf_files = get_pdf_files(PDF_DIRECTORY)
         if not pdf_files:
-            raise ValueError(f"Keine PDF-Dateien in {PDF_DIRECTORY} gefunden. Bitte fügen Sie Versicherungsdokumente hinzu.")
+            raise ValueError(f"No PDF files found in {PDF_DIRECTORY}. Please add insurance documents.")
 
         all_splits = load_and_split_documents(pdf_files)
         embeddings = initialize_embeddings()
@@ -603,9 +645,73 @@ class RAGPipeline:
         vector_store = self.build_vectorstore(all_splits, embeddings, force_reindex=reindex_required)
         hybrid_retriever = self.build_retriever(vector_store, all_splits)
 
+        use_insuranceqa = os.getenv("USE_INSURANCEQA_DATA", "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "y",
+            "on",
+        }
+        insuranceqa_mode = os.getenv("INSURANCEQA_RETRIEVAL_MODE", "merge").strip().lower()
+
+        insuranceqa_retriever = None
+        if use_insuranceqa:
+            try:
+                from src.data.insuranceqa_ingestion import get_insuranceqa_retriever
+
+                insuranceqa_retriever = get_insuranceqa_retriever()
+            except Exception as exc:
+                print(f"Warning: Failed to initialize InsuranceQA retriever: {exc}")
+                insuranceqa_retriever = None
+
+        if insuranceqa_retriever is not None:
+            def _invoke_with_k(retriever, query: str, k: int) -> List[Document]:
+                # Many retrievers store 'k' in search_kwargs; update temporarily for this call.
+                search_kwargs = getattr(retriever, "search_kwargs", None)
+                if isinstance(search_kwargs, dict):
+                    prev_k = search_kwargs.get("k")
+                    search_kwargs["k"] = k
+                    try:
+                        return retriever.invoke(query)
+                    finally:
+                        if prev_k is None:
+                            search_kwargs.pop("k", None)
+                        else:
+                            search_kwargs["k"] = prev_k
+                return retriever.invoke(query)
+
+            base_retriever = hybrid_retriever
+
+            def merged_retriever(query: str, k: Optional[int] = None) -> List[Document]:
+                target_k = k or SETTINGS.retrieval.top_k
+                base_docs = base_retriever(query, k=target_k)
+                qa_docs = _invoke_with_k(insuranceqa_retriever, query, target_k)
+
+                combined: List[Document] = []
+                seen = set()
+                for doc in base_docs + qa_docs:
+                    key = (doc.metadata.get("source"), doc.metadata.get("page"), doc.page_content[:80])
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    combined.append(doc)
+                    if len(combined) >= target_k:
+                        break
+                return combined
+
+            if insuranceqa_mode == "switch":
+                def insuranceqa_only(query: str, k: Optional[int] = None) -> List[Document]:
+                    target_k = k or SETTINGS.retrieval.top_k
+                    return _invoke_with_k(insuranceqa_retriever, query, target_k)
+
+                hybrid_retriever = insuranceqa_only
+            else:
+                hybrid_retriever = merged_retriever
+
         self.components = {
             "vector_store": vector_store,
             "hybrid_retriever": hybrid_retriever,
+            "insuranceqa_retriever": insuranceqa_retriever,
             "reranker_model": self.build_reranker(),
             "compressor_llm": self.build_compressor(),
             "llm": initialize_llm(),
@@ -621,6 +727,7 @@ class RAGPipeline:
     def run(self, query: str, chat_history: Optional[List[dict]] = None) -> AnswerResult:
         start_time = datetime.now()
         chat_history = chat_history or []
+        original_query = query
 
         components = self.initialize(force_reindex=pdfs_have_changed())
 
@@ -630,17 +737,33 @@ class RAGPipeline:
             retrieval_needed = decide_retrieval(components["router_llm"], query, chat_history)
 
         if retrieval_needed != "RETRIEVE":
-            answer = "Ich kann diese Frage direkt beantworten oder benötige keine Dokumentensuche dafür."
+            answer = "This question does not require document retrieval, or it can be answered without searching the document base."
             sources: List[Source] = []
             latency_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+            audit_log(
+                query=original_query,
+                retrieved_documents=[],
+                compressed_context=[],
+                generated_answer=answer,
+                chat_history=chat_history,
+                retrieval_needed=retrieval_needed,
+                final_query=original_query,
+                sources=[],
+                latency_ms=latency_ms,
+                provider=self.settings.provider,
+                answer_style=ANSWER_STYLE,
+                response_language=RESPONSE_LANGUAGE,
+            )
             return AnswerResult(answer=answer, sources=sources, query=query, latency_ms=latency_ms)
 
         current_query = query
         reranked_docs: List[Document] = []
+        last_retrieved_docs: List[Document] = []
 
         retries = 0
         while retries < self.settings.retrieval.max_self_check_retries:
             retrieved_docs = components["hybrid_retriever"](current_query, k=self.settings.retrieval.top_k)
+            last_retrieved_docs = retrieved_docs
             reranked_docs = rerank_documents(
                 current_query,
                 retrieved_docs,
@@ -672,11 +795,11 @@ class RAGPipeline:
 
         if not reranked_docs:
             answer = (
-                "Entschuldigung, ich konnte keine relevanten Informationen zu Ihrer "
-                "Anfrage finden. Bitte versuchen Sie eine andere Formulierung oder "
-                "eine allgemeinere Frage."
+                "Sorry, I couldn't find relevant information in the indexed documents. "
+                "Please rephrase your question or provide additional documents."
             )
             sources = []
+            context_docs_for_log: List[Document] = []
         else:
             context_docs = reranked_docs
             if self.settings.retrieval.enable_context_compression:
@@ -684,8 +807,24 @@ class RAGPipeline:
 
             answer = generate_answer(components["llm"], current_query, context_docs, chat_history)
             sources = [document_to_source(doc) for doc in reranked_docs]
+            context_docs_for_log = context_docs
 
         latency_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+        audit_log(
+            query=original_query,
+            retrieved_documents=last_retrieved_docs,
+            compressed_context=context_docs_for_log,
+            generated_answer=answer,
+            chat_history=chat_history,
+            retrieval_needed=retrieval_needed,
+            final_query=current_query,
+            sources=[s.__dict__ for s in sources],
+            latency_ms=latency_ms,
+            retries=retries,
+            provider=self.settings.provider,
+            answer_style=ANSWER_STYLE,
+            response_language=RESPONSE_LANGUAGE,
+        )
         return AnswerResult(answer=answer, sources=sources, query=query, latency_ms=latency_ms)
 
 

@@ -1,107 +1,75 @@
-# راهنمای راه‌اندازی پروژه روی سرور
+# Server Setup Guide
 
-## 1️⃣ SSH به سرور متصل شو
+## 1. Connect to the server
 ```bash
 ssh user@your_server_ip
-cd /home/user/projects  # یا مسیر دیگری
+cd /home/user/projects
 ```
+Adjust the path above if you keep repositories elsewhere.
 
-## 2️⃣ Clone کردن Repository
+## 2. Clone the repository
 ```bash
 git clone https://github.com/8815479082eisa/MVA_Versicherung_Langchain.git
 cd MVA_Versicherung_Langchain
-git checkout new-feature-branch  # یا branch مورد نظر
+git checkout main  # or your deployment branch
 ```
 
-## 3️⃣ نصب Python و Virtual Environment
+## 3. Install Python and create the virtual environment
 ```bash
-# بررسی نسخه Python (باید 3.9 یا بالاتر)
-python3 --version
-
-# ایجاد Virtual Environment
+sudo apt update
+sudo apt install -y python3 python3-venv python3-pip
 python3 -m venv .venv
-
-# فعال‌سازی Virtual Environment
-source .venv/bin/activate  # روی Linux/Mac
-# یا روی Windows:
-.venv\Scripts\activate
+source .venv/bin/activate
+pip install --upgrade pip setuptools wheel
 ```
 
-## 4️⃣ نصب Dependencies
+## 4. Install project dependencies
 ```bash
-pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-## 5️⃣ تنظیم Environment Variables
+## 5. Prepare the environment file
 ```bash
-# کپی کردن فایل نمونه
-cp .env.example .env  # اگر وجود دارد
-# یا ایجاد .env نو
-nano .env  # یا vim .env
+cp .env.example .env  # if the example exists
+nano .env
 ```
+Populate the key values (especially `OPENAI_API_KEY`, `PDF_DIRECTORY`, `CHROMA_PERSIST_DIRECTORY`, and `AUDIT_LOG_FILE`). The script also defaults `DATA_DIR` to `./data`.
 
-### محتوای .env:
-```
-# Backend
-BACKEND_HOST=0.0.0.0
-BACKEND_PORT=8000
-BACKEND_SECRET=your-secret-key
-
-# OpenAI API
-OPENAI_API_KEY=sk-xxxxxxxxxxxxx
-
-# Database & Documents
-PDF_DIRECTORY=/path/to/data/raw/pdfs
-CHROMA_PERSIST_DIRECTORY=/path/to/data/processed/vectorstores/chroma_db
-
-# API
-API_BASE_URL=http://your_server_ip:8000
-```
-
-## 6️⃣ آزمایش Backend (روی سرور)
+## 6. Place the PDF documents
 ```bash
-# بررسی اینکه Backend کار می‌کند
+mkdir -p data/raw/pdfs
+```
+Drop the latest insurance PDFs into `data/raw/pdfs`. The backend compares hash sums; adding or replacing files triggers an index rebuild automatically. For a clean rebuild, remove `data/processed/vectorstores/chroma_db` and `data/processed/caches/pdf_hashes.json` before restarting the app.
+
+## 7. Run the setup script (optional but helpful)
+```bash
+bash setup.sh
+```
+It verifies the Python toolchain, dependencies, directories, backend health, and builds the frontend output.
+
+## 8. Start the backend for the first time
+```bash
+source .venv/bin/activate
 python -m uvicorn src.main:app --host 0.0.0.0 --port 8000
-
-# اگر کار کرد، Ctrl+C دکمه بزن
 ```
+UVicorn will detect new documents and rebuild the Chroma index. Leave this running while you validate the stack.
 
-## 7️⃣ بیلد کردن Frontend
+## 9. Build the frontend
 ```bash
 cd frontend
 npm install
 npm run build
 cd ..
 ```
+Use `npm run dev` for local development instead of a production build.
 
-## 8️⃣ تنظیم Systemd Service برای Backend
-
-### یک فایل سرویس بسازید:
+## 10. Configure the systemd service
+Copy a service file into `/etc/systemd/system`:
 ```bash
+sudo cp docs/development/mva-backend.service /etc/systemd/system/mva-backend.service
 sudo nano /etc/systemd/system/mva-backend.service
 ```
-
-### محتوای فایل:
-```ini
-[Unit]
-Description=MVA Insurance RAG Backend
-After=network.target
-
-[Service]
-Type=notify
-User=www-data          # یا username شما
-WorkingDirectory=/home/user/projects/MVA_Versicherung_Langchain
-Environment="PATH=/home/user/projects/MVA_Versicherung_Langchain/.venv/bin"
-ExecStart=/home/user/projects/MVA_Versicherung_Langchain/.venv/bin/uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
-### فعال‌سازی سرویس:
+Adjust `User`, `WorkingDirectory`, and `ExecStart` so they point to your deployment paths and virtual environment. Then:
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable mva-backend.service
@@ -109,100 +77,30 @@ sudo systemctl start mva-backend.service
 sudo systemctl status mva-backend.service
 ```
 
-## 9️⃣ تنظیم Nginx برای Frontend و Reverse Proxy
-
-### ایجاد Nginx Config:
+## 11. Configure Nginx as a reverse proxy
 ```bash
-sudo nano /etc/nginx/sites-available/mva-insurance
-```
-
-### محتوای فایل:
-```nginx
-upstream backend {
-    server 127.0.0.1:8000;
-}
-
-server {
-    listen 80;
-    server_name your_domain.com www.your_domain.com;
-
-    # Frontend - Static Files
-    location / {
-        root /home/user/projects/MVA_Versicherung_Langchain/frontend/dist;
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Backend API - Reverse Proxy
-    location /api/ {
-        proxy_pass http://backend;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Health Check
-    location /health {
-        proxy_pass http://backend;
-    }
-}
-```
-
-### فعال‌سازی Nginx Config:
-```bash
-sudo ln -s /etc/nginx/sites-available/mva-insurance /etc/nginx/sites-enabled/
-sudo nginx -t  # بررسی درستی config
+sudo cp docker/nginx/nginx-mva-insurance.conf /etc/nginx/sites-available/mva-insurance
+sudo nano /etc/nginx/sites-available/mva-insurance  # set server_name and root
+sudo ln -s /etc/nginx/sites-available/mva-insurance /etc/nginx/sites-enabled/mva-insurance
+sudo nginx -t
 sudo systemctl restart nginx
 ```
+The configuration proxies `/api/` and `/health` to the backend and serves the `frontend/dist` build for all other routes.
 
-## 🔟 SSL Certificate (اختیاری - اما توصیه می‌شود)
+## 12. Optional: obtain SSL certificates
 ```bash
-# نصب Certbot
-sudo apt install certbot python3-certbot-nginx
-
-# دریافت SSL Certificate
+sudo apt install -y certbot python3-certbot-nginx
 sudo certbot --nginx -d your_domain.com -d www.your_domain.com
 ```
 
-## ✅ بررسی نهایی
+## 13. Verification checklist
+- Backend: `curl http://localhost:8000/health`
+- Frontend: `curl http://localhost/` or `http://localhost:80/`
+- API: `curl -X POST http://localhost:8000/api/ask -H "Content-Type: application/json" -d '{"question":"What is the coverage for tariff X?"}'`
+- Logs: `sudo journalctl -u mva-backend.service -f` or `docker compose -f docker/docker-compose.yml logs -f`
 
-```bash
-# 1. بررسی Backend
-curl http://localhost:8000/health
-
-# 2. بررسی Frontend
-curl http://localhost:80/
-
-# 3. بررسی API
-curl http://localhost:8000/api/ask -X POST -H "Content-Type: application/json" -d '{"question":"سلام"}'
-
-# 4. بررسی log های سرویس
-sudo journalctl -u mva-backend.service -f
-```
-
-## 🔧 نکات مهم
-
-1. **OPENAI_API_KEY**: حتماً قبل از راه‌اندازی در .env تنظیم کنید
-2. **پوشه docs**: حتماً فایل‌های PDF را در `./data/raw/pdfs` قرار دهید
-3. **Database**: اولین بار اجرا شدن، Chroma DB خودکار ایجاد می‌شود
-4. **Permissions**: اگر از Nginx استفاده می‌کنید، اطمینان حاصل کنید که فایل‌ها قابل دسترسی هستند
-
-## 📊 Monitoring
-
-```bash
-# بررسی استفاده CPU و Memory
-top
-
-# بررسی Disk Space
-df -h
-
-# بررسی Network Ports
-sudo netstat -tulpn | grep LISTEN
-```
-
----
-
-سوالی داری؟ بپرس! 🚀
+## 14. Tips for stability
+- Always keep `OPENAI_API_KEY` up to date inside `.env` before starting the backend.
+- Store PDFs inside `data/raw/pdfs/` and trigger the backend to rebuild the index whenever they change.
+- Protect the frontend with HTTPS in production and open firewall ports 80/443/8000 only as needed.
+- Back up `data/processed/vectorstores/chroma_db` and `data/raw/pdfs/` regularly, especially before replacing documents.
