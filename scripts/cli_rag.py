@@ -14,10 +14,11 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-# Make sure `src/` is importable when running as a script
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+# Make sure project root is importable so `src.*` imports work everywhere.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
 
-from api import rag_service as rag_service  # noqa: E402
+from src.api import rag_service as rag_service  # noqa: E402
 
 
 def _print_sources(sources: list[rag_service.Source]) -> None:

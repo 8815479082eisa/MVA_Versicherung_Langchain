@@ -13,8 +13,10 @@ import glob
 import hashlib
 import json
 import os
+import re
 from dataclasses import dataclass
 from datetime import datetime
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -73,7 +75,9 @@ except Exception:
     from src.config.models import ModelSettings, load_model_settings
 
 
-load_dotenv()
+# Prefer the project .env over inherited shell variables so the active runtime
+# stays aligned with the repo configuration.
+load_dotenv(override=True)
 SETTINGS: ModelSettings = load_model_settings()
 
 PDF_DIRECTORY = str(SETTINGS.storage.pdf_directory)
@@ -128,6 +132,97 @@ Respond ONLY in {RESPONSE_LANGUAGE}.
 
 _pipeline: Optional["RAGPipeline"] = None
 
+_insuranceqa_questions_loaded = False
+_insuranceqa_norm_questions: set[str] = set()
+_insuranceqa_norm_questions_list: list[str] = []
+
+
+def _normalize_question(text: str) -> str:
+    t = (text or "").strip().lower()
+    t = re.sub(r"\s+", " ", t)
+    return t
+
+
+def _default_insuranceqa_jsonl_path() -> Path:
+    # Keep aligned with ingestion defaults.
+    return SETTINGS.storage.benchmark_root / "qa" / "insuranceqa" / "data_insuranceqa_1000.jsonl"
+
+
+def _load_insuranceqa_question_index() -> None:
+    """
+    Build an in-memory index of InsuranceQA questions so we can route queries to
+    the InsuranceQA retriever in a deterministic way (no LLM needed).
+    """
+    global _insuranceqa_questions_loaded, _insuranceqa_norm_questions, _insuranceqa_norm_questions_list
+    if _insuranceqa_questions_loaded:
+        return
+
+    path_raw = os.getenv("INSURANCEQA_ROUTING_JSONL", "").strip()
+    path = Path(path_raw) if path_raw else _default_insuranceqa_jsonl_path()
+    if not path.exists():
+        _insuranceqa_questions_loaded = True
+        return
+
+    norm_questions: list[str] = []
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                q = str(row.get("question", "")).strip()
+                if not q:
+                    continue
+                norm_q = _normalize_question(q)
+                if norm_q:
+                    norm_questions.append(norm_q)
+    except Exception:
+        # Routing is best-effort. If it fails, fall back to default behavior.
+        _insuranceqa_questions_loaded = True
+        return
+
+    _insuranceqa_norm_questions = set(norm_questions)
+    _insuranceqa_norm_questions_list = norm_questions
+    _insuranceqa_questions_loaded = True
+
+
+def _should_route_to_insuranceqa(query: str) -> bool:
+    """
+    Decide whether a query should use the InsuranceQA retriever.
+
+    Default: exact match against the local InsuranceQA JSONL questions.
+    Optional fuzzy match via INSURANCEQA_ROUTING_FUZZY=true and a similarity threshold.
+    """
+    _load_insuranceqa_question_index()
+    if not _insuranceqa_norm_questions:
+        return False
+
+    norm_q = _normalize_question(query)
+    if norm_q in _insuranceqa_norm_questions:
+        return True
+
+    fuzzy = os.getenv("INSURANCEQA_ROUTING_FUZZY", "").strip().lower() in {"1", "true", "yes", "y", "on"}
+    if not fuzzy:
+        return False
+
+    try:
+        threshold = float(os.getenv("INSURANCEQA_ROUTING_MIN_SIMILARITY", "0.96").strip())
+    except ValueError:
+        threshold = 0.96
+
+    best = 0.0
+    for candidate in _insuranceqa_norm_questions_list:
+        score = SequenceMatcher(None, norm_q, candidate).ratio()
+        if score > best:
+            best = score
+            if best >= threshold:
+                return True
+    return False
+
 
 def _require_dependency(dep, package_name: str) -> None:
     if dep is None:
@@ -155,6 +250,13 @@ def _model_config_payload() -> dict:
         "self_check_model": SETTINGS.roles.self_check,
         "query_rewrite_model": SETTINGS.roles.rewrite,
     }
+
+
+def _insuranceqa_collection_is_empty(collection_name: str) -> bool:
+    _require_dependency(chromadb, "chromadb")
+    client = chromadb.PersistentClient(path=str(SETTINGS.storage.chroma_persist_directory))
+    collection = client.get_or_create_collection(name=collection_name)
+    return collection.count() == 0
 
 
 def _doc_to_json(doc: Any) -> dict:
@@ -635,16 +737,6 @@ class RAGPipeline:
 
         os.makedirs(PDF_DIRECTORY, exist_ok=True)
         pdf_files = get_pdf_files(PDF_DIRECTORY)
-        if not pdf_files:
-            raise ValueError(f"No PDF files found in {PDF_DIRECTORY}. Please add insurance documents.")
-
-        all_splits = load_and_split_documents(pdf_files)
-        embeddings = initialize_embeddings()
-
-        reindex_required = force_reindex or embedding_model_has_changed()
-        vector_store = self.build_vectorstore(all_splits, embeddings, force_reindex=reindex_required)
-        hybrid_retriever = self.build_retriever(vector_store, all_splits)
-
         use_insuranceqa = os.getenv("USE_INSURANCEQA_DATA", "").strip().lower() in {
             "1",
             "true",
@@ -654,15 +746,57 @@ class RAGPipeline:
         }
         insuranceqa_mode = os.getenv("INSURANCEQA_RETRIEVAL_MODE", "merge").strip().lower()
 
+        # PDF layer is optional when we explicitly run in InsuranceQA-only modes.
+        vector_store: Optional[Chroma] = None
+        hybrid_retriever: Callable[[str, Optional[int]], List[Document]]
+
+        if pdf_files:
+            all_splits = load_and_split_documents(pdf_files)
+            embeddings = initialize_embeddings()
+
+            reindex_required = force_reindex or embedding_model_has_changed()
+            vector_store = self.build_vectorstore(all_splits, embeddings, force_reindex=reindex_required)
+            hybrid_retriever = self.build_retriever(vector_store, all_splits)
+        else:
+            if not (use_insuranceqa and insuranceqa_mode in {"switch", "auto"}):
+                raise ValueError(f"No PDF files found in {PDF_DIRECTORY}. Please add insurance documents.")
+
+            def _no_pdf_retriever(_query: str, k: Optional[int] = None) -> List[Document]:
+                del k
+                return []
+
+            hybrid_retriever = _no_pdf_retriever
+
         insuranceqa_retriever = None
         if use_insuranceqa:
             try:
-                from src.data.insuranceqa_ingestion import get_insuranceqa_retriever
+                from src.data.insuranceqa_ingestion import (
+                    INSURANCEQA_COLLECTION_NAME,
+                    build_insuranceqa_index,
+                    get_insuranceqa_retriever,
+                )
+
+                auto_build_insuranceqa = os.getenv("INSURANCEQA_AUTO_BUILD", "true").strip().lower() in {
+                    "1",
+                    "true",
+                    "yes",
+                    "y",
+                    "on",
+                }
+                if auto_build_insuranceqa and _insuranceqa_collection_is_empty(INSURANCEQA_COLLECTION_NAME):
+                    print("Info: InsuranceQA collection is empty. Building index from dataset...")
+                    build_insuranceqa_index(force_reindex=False)
 
                 insuranceqa_retriever = get_insuranceqa_retriever()
             except Exception as exc:
                 print(f"Warning: Failed to initialize InsuranceQA retriever: {exc}")
                 insuranceqa_retriever = None
+
+        if use_insuranceqa and insuranceqa_mode == "switch" and insuranceqa_retriever is None:
+            raise RuntimeError(
+                "INSURANCEQA_RETRIEVAL_MODE=switch is active, but InsuranceQA retriever is unavailable. "
+                "Check dataset index build and dependencies."
+            )
 
         if insuranceqa_retriever is not None:
             def _invoke_with_k(retriever, query: str, k: int) -> List[Document]:
@@ -699,12 +833,21 @@ class RAGPipeline:
                         break
                 return combined
 
-            if insuranceqa_mode == "switch":
-                def insuranceqa_only(query: str, k: Optional[int] = None) -> List[Document]:
-                    target_k = k or SETTINGS.retrieval.top_k
-                    return _invoke_with_k(insuranceqa_retriever, query, target_k)
+            def insuranceqa_only(query: str, k: Optional[int] = None) -> List[Document]:
+                target_k = k or SETTINGS.retrieval.top_k
+                return _invoke_with_k(insuranceqa_retriever, query, target_k)
 
+            def insuranceqa_auto(query: str, k: Optional[int] = None) -> List[Document]:
+                # Route InsuranceQA-style questions to the InsuranceQA retriever,
+                # otherwise use the PDF retriever (or merged behavior if desired).
+                if _should_route_to_insuranceqa(query):
+                    return insuranceqa_only(query, k=k)
+                return base_retriever(query, k=k)
+
+            if insuranceqa_mode == "switch":
                 hybrid_retriever = insuranceqa_only
+            elif insuranceqa_mode == "auto":
+                hybrid_retriever = insuranceqa_auto
             else:
                 hybrid_retriever = merged_retriever
 
