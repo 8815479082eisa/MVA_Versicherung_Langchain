@@ -54,7 +54,7 @@ const HistoryList: React.FC<HistoryListProps> = ({ history, onSelectEntry }) => 
       </h2>
       
       <div className="space-y-2">
-        {history.slice(0, 10).map((entry, index) => (
+        {history.slice(0, 10).map((entry) => (
           <button
             key={entry.answerId}
             onClick={() => onSelectEntry(entry)}

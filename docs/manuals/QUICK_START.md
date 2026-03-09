@@ -14,8 +14,8 @@ git checkout main  # or your feature branch
 ## 3. Run the setup script to install dependencies and prepare the workspace
 bash setup.sh
 
-## 4. Fill in secrets and settings
-nano .env   # set OPENAI_API_KEY, PDF_DIRECTORY, CHROMA_PERSIST_DIRECTORY, etc.
+## 4. Fill in settings
+nano .env   # set OLLAMA_BASE_URL, model roles, PDF_DIRECTORY, CHROMA_PERSIST_DIRECTORY, etc.
 
 ## 5. Start the backend (UVicorn detects PDF changes and rebuilds the index automatically)
 source .venv/bin/activate
@@ -39,7 +39,7 @@ sudo apt install docker.io docker-compose
 git clone https://github.com/8815479082eisa/MVA_Versicherung_Langchain.git
 cd MVA_Versicherung_Langchain
 cp .env.example .env
-nano .env  # update OPENAI_API_KEY, PDF_DIRECTORY, CHROMA_PERSIST_DIRECTORY
+nano .env  # update OLLAMA_BASE_URL, model roles, PDF_DIRECTORY, CHROMA_PERSIST_DIRECTORY
 
 ## 3. Launch services
 docker compose -f docker/docker-compose.yml up -d
@@ -111,7 +111,7 @@ sudo journalctl -u mva-backend.service -f
 ---
 
 ## Key reminders
-- Always set `OPENAI_API_KEY` inside `.env` before starting the backend.
+- Always set `OLLAMA_BASE_URL` and role models inside `.env` before starting the backend.
 - Add or refresh PDFs inside `data/raw/pdfs/` whenever the knowledge base changes.
 - The backend automatically rebuilds the Chroma index when it detects new/changed PDFs, but deleting `data/processed/vectorstores/chroma_db` and `data/processed/caches/pdf_hashes.json` enforces a full rebuild before restart.
 - Serve the frontend over HTTPS behind Nginx in production; adjust firewall rules for ports 80/443/8000.

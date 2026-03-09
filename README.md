@@ -30,11 +30,12 @@ Das System folgt einer dreischichtigen Architektur:
 - **FastAPI**: REST-API-Framework
 - **LangChain**: Framework für RAG-Pipeline
 - **ChromaDB**: Persistenter Vektorspeicher
-- **OpenAI API**:
-  - `text-embedding-3-large` für Embeddings
-  - `gpt-4o` für Antwortgenerierung
-  - `gpt-4o-mini` für Re-Ranking und Context-Compression
-  - `gpt-3.5-turbo` für Router, Self-Check und Query-Rewrite
+- **Ollama (lokal/GPU)**:
+  - `gpt-oss:20b` für Antwortgenerierung
+  - `functiongemma:270m` für Routing
+  - `lfm2.5-thinking:1.2b` für Self-Check
+  - `rnj-1:8b` für Query-Rewrite
+  - `ministral-3:8b` für Context-Compression
 
 ### Frontend
 - **React 18** mit TypeScript
@@ -45,7 +46,7 @@ Das System folgt einer dreischichtigen Architektur:
 
 ### Backend
 - Python 3.11 oder höher
-- OpenAI API Key
+- Lokaler Ollama-Server (GPU)
 - Installierte Abhängigkeiten (siehe `requirements.txt`)
 
 ### Frontend
@@ -68,7 +69,8 @@ pip install -r requirements.txt
 3. Umgebungsvariablen konfigurieren:
 Erstellen Sie eine `.env` Datei im Hauptverzeichnis:
 ```
-OPENAI_API_KEY=your_api_key_here
+MODEL_PROVIDER=ollama
+OLLAMA_BASE_URL=http://localhost:11434
 ```
 
 4. Frontend-Abhängigkeiten installieren:
@@ -219,7 +221,7 @@ Dieses Projekt ist Teil einer wissenschaftlichen Arbeit. Für Fragen oder Anregu
 
 - LangChain Documentation: https://python.langchain.com/
 - ChromaDB Documentation: https://www.trychroma.com/
-- OpenAI API Documentation: https://platform.openai.com/docs
+- Ollama Documentation: https://github.com/ollama/ollama
 
 ## 🔒 Datenschutz
 

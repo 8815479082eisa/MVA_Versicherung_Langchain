@@ -6,7 +6,7 @@ Calculates three key metrics for RAG system evaluation
 import json
 import os
 from typing import List, Dict, Tuple
-from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
 
 
@@ -25,7 +25,7 @@ def load_audit_logs(file_path: str = "data/processed/logs/audit.log") -> List[Di
     return logs
 
 
-def calculate_metrics_for_entry(log_entry: Dict, evaluator_llm: ChatOpenAI) -> Dict:
+def calculate_metrics_for_entry(log_entry: Dict, evaluator_llm: ChatOllama) -> Dict:
     """Calculate all three metrics for a single log entry."""
     query = log_entry.get("query", "")
     retrieved_docs = log_entry.get("retrieved_documents", [])
@@ -129,7 +129,11 @@ def main():
         print("No valid log entries found.")
         return
     
-    evaluator_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.0)
+    evaluator_llm = ChatOllama(
+        model=os.getenv("EVAL_LLM_MODEL", os.getenv("ROUTER_MODEL", "functiongemma:270m")),
+        base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+        temperature=0.0,
+    )
     results = []
     
     for i, log_entry in enumerate(valid_logs):

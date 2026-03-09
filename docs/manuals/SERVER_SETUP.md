@@ -33,7 +33,7 @@ pip install -r requirements.txt
 cp .env.example .env  # if the example exists
 nano .env
 ```
-Populate the key values (especially `OPENAI_API_KEY`, `PDF_DIRECTORY`, `CHROMA_PERSIST_DIRECTORY`, and `AUDIT_LOG_FILE`). The script also defaults `DATA_DIR` to `./data`.
+Populate the key values (especially `OLLAMA_BASE_URL`, role models, `PDF_DIRECTORY`, `CHROMA_PERSIST_DIRECTORY`, and `AUDIT_LOG_FILE`). The script also defaults `DATA_DIR` to `./data`.
 
 ## 6. Place the PDF documents
 ```bash
@@ -100,7 +100,7 @@ sudo certbot --nginx -d your_domain.com -d www.your_domain.com
 - Logs: `sudo journalctl -u mva-backend.service -f` or `docker compose -f docker/docker-compose.yml logs -f`
 
 ## 14. Tips for stability
-- Always keep `OPENAI_API_KEY` up to date inside `.env` before starting the backend.
+- Always keep `OLLAMA_BASE_URL` and role-model settings up to date inside `.env` before starting the backend.
 - Store PDFs inside `data/raw/pdfs/` and trigger the backend to rebuild the index whenever they change.
 - Protect the frontend with HTTPS in production and open firewall ports 80/443/8000 only as needed.
 - Back up `data/processed/vectorstores/chroma_db` and `data/raw/pdfs/` regularly, especially before replacing documents.

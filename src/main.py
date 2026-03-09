@@ -16,14 +16,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
-try:
-    from openai import RateLimitError, AuthenticationError
-except Exception:  # local-only mode without openai package
-    class RateLimitError(Exception):
-        pass
-
-    class AuthenticationError(Exception):
-        pass
 
 # Pfad fuer Imports hinzufuegen
 sys.path.insert(0, str(Path(__file__).parent))
@@ -175,7 +167,7 @@ async def lifespan(_: FastAPI):
     )
 
     if FAQ_ONLY:
-        print("Backend started in FAQ_ONLY mode (no RAG/OpenAI calls).")
+        print("Backend started in FAQ_ONLY mode (no RAG model calls).")
     elif init_on_startup:
         print("Initializing RAG pipeline on startup (INIT_PIPELINE_ON_STARTUP=true)...")
         try:
@@ -283,7 +275,7 @@ async def ask(request: AskQuestionRequest):
                     detail="No local FAQ match found. Lower FAQ_MIN_SIMILARITY or update FAQ_FILE.",
                 )
 
-        # RAG-Service path (uses OpenAI)
+        # RAG-Service path (uses local model provider)
         result = rag_service.run_rag(question, chat_history=[])
         
         # Ergebnis in AnswerResponse umwandeln
@@ -310,14 +302,6 @@ async def ask(request: AskQuestionRequest):
     except HTTPException:
         # Preserve intended API errors (e.g. 400/404 from FAQ-only path)
         raise
-    except RateLimitError as e:
-        # Quota/rate issues from upstream model provider
-        detail = str(e)
-        if "insufficient_quota" in detail:
-            detail = "OpenAI quota exceeded (insufficient_quota). Update billing or use a different API key."
-        raise HTTPException(status_code=503, detail=detail)
-    except AuthenticationError:
-        raise HTTPException(status_code=401, detail="Invalid OpenAI API key.")
     except Exception as e:
         # Show raw error only in explicit debug mode.
         if _env_flag("DEBUG_API_ERRORS", default=False):

@@ -51,8 +51,18 @@ if [ ! -f ".env" ]; then
 BACKEND_HOST=0.0.0.0
 BACKEND_PORT=8000
 
-# OpenAI API key
-OPENAI_API_KEY=sk-your-api-key-here
+# Model provider (local-only)
+MODEL_PROVIDER=ollama
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=ministral-3:8b
+
+# Role models
+ANSWER_MODEL=gpt-oss:20b
+ROUTER_MODEL=functiongemma:270m
+SELF_CHECK_MODEL=lfm2.5-thinking:1.2b
+QUERY_REWRITE_MODEL=rnj-1:8b
+COMPRESSOR_MODEL=ministral-3:8b
+OCR_MODEL=glm-ocr:bf16
 
 # Data paths
 DATA_DIR=./data
@@ -66,7 +76,7 @@ MODEL_CONFIG_FILE=./data/processed/caches/model_config.json
 API_BASE_URL=http://localhost:8000
 EOF
     fi
-    echo -e "${YELLOW}.env created; please edit OPENAI_API_KEY and paths${NC}"
+    echo -e "${YELLOW}.env created; please verify OLLAMA_BASE_URL and paths${NC}"
 else
     echo -e "${GREEN}.env already exists${NC}"
 fi
@@ -103,7 +113,7 @@ echo -e "\n========================================"
 echo "Setup complete!"
 echo "========================================"
 echo -e "${YELLOW}Next steps:${NC}"
-echo "1. Edit .env to set OPENAI_API_KEY and data paths."
+echo "1. Edit .env to set OLLAMA_BASE_URL, role models, and data paths."
 echo "2. Start the backend with: python -m uvicorn src.main:app --host 0.0.0.0 --port 8000."
 echo "3. Optionally run the systemd service (see docs/development/mva-backend.service)."
 echo "4. Serve the frontend through Nginx or open port 3000 for dev tooling."

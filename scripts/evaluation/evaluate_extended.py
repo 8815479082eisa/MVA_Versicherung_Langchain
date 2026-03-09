@@ -18,16 +18,16 @@ import statistics
 from datetime import datetime
 from typing import List, Dict, Tuple, Optional
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
 
 
 # Load environment variables
 load_dotenv()
 
-# OpenAI Pricing (per 1M tokens) - Default values, can be overridden via env
-OPENAI_MODEL_PRICE_IN = float(os.getenv("OPENAI_MODEL_PRICE_IN", "2.50"))  # $2.50 per 1M input tokens (gpt-4o)
-OPENAI_MODEL_PRICE_OUT = float(os.getenv("OPENAI_MODEL_PRICE_OUT", "10.00"))  # $10.00 per 1M output tokens (gpt-4o)
+# Optional local-model pricing (per 1M tokens), defaults to 0 for self-hosted Ollama.
+EVAL_MODEL_PRICE_IN = float(os.getenv("EVAL_MODEL_PRICE_IN", "0.0"))
+EVAL_MODEL_PRICE_OUT = float(os.getenv("EVAL_MODEL_PRICE_OUT", "0.0"))
 
 
 def load_audit_logs(file_path: str = "data/processed/logs/audit.log") -> List[Dict]:
@@ -66,13 +66,13 @@ def calculate_cost_per_query(token_usage: Dict) -> float:
     prompt_tokens = token_usage.get("prompt_tokens", 0)
     completion_tokens = token_usage.get("completion_tokens", 0)
     
-    cost = (prompt_tokens / 1_000_000 * OPENAI_MODEL_PRICE_IN) + \
-           (completion_tokens / 1_000_000 * OPENAI_MODEL_PRICE_OUT)
+    cost = (prompt_tokens / 1_000_000 * EVAL_MODEL_PRICE_IN) + \
+           (completion_tokens / 1_000_000 * EVAL_MODEL_PRICE_OUT)
     
     return cost
 
 
-def calculate_context_relevance(query: str, context_docs: List[Dict], evaluator_llm: ChatOpenAI) -> float:
+def calculate_context_relevance(query: str, context_docs: List[Dict], evaluator_llm: ChatOllama) -> float:
     """Calculate Kontextrelevanz metric."""
     if not context_docs:
         return 0.0
@@ -94,7 +94,7 @@ Antworte NUR mit der Zahl, z.B. 0.75"""),
         return 0.5  # Default fallback
 
 
-def calculate_context_sufficiency(query: str, context_docs: List[Dict], answer: str, evaluator_llm: ChatOpenAI) -> float:
+def calculate_context_sufficiency(query: str, context_docs: List[Dict], answer: str, evaluator_llm: ChatOllama) -> float:
     """Calculate Kontextgenügsamkeit metric."""
     if not context_docs:
         return 0.0
@@ -116,7 +116,7 @@ Antworte NUR mit der Zahl, z.B. 0.80"""),
         return 0.5  # Default fallback
 
 
-def calculate_answer_hallucination(answer: str, context_docs: List[Dict], evaluator_llm: ChatOpenAI) -> float:
+def calculate_answer_hallucination(answer: str, context_docs: List[Dict], evaluator_llm: ChatOllama) -> float:
     """Calculate Antwort-Halluzination metric."""
     if not context_docs:
         return 1.0  # All hallucinated if no context
@@ -145,7 +145,7 @@ def calculate_reduction_rate(retrieved_count: int, reranked_count: int) -> float
     return (retrieved_count - reranked_count) / retrieved_count
 
 
-def calculate_metrics_for_entry(log_entry: Dict, evaluator_llm: ChatOpenAI) -> Optional[Dict]:
+def calculate_metrics_for_entry(log_entry: Dict, evaluator_llm: ChatOllama) -> Optional[Dict]:
     """Calculate all metrics for a single log entry."""
     query = log_entry.get("query", "")
     retrieved_docs = log_entry.get("retrieved_documents", [])
@@ -253,7 +253,12 @@ def main():
         print("No valid log entries found.")
         return
     
-    evaluator_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.0)
+    eval_model = os.getenv("EVAL_LLM_MODEL", os.getenv("ROUTER_MODEL", "functiongemma:270m"))
+    evaluator_llm = ChatOllama(
+        model=eval_model,
+        base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+        temperature=0.0,
+    )
     results = []
     
     print("\nCalculating metrics for each entry...")
@@ -298,12 +303,12 @@ def main():
         "metadata": {
             "total_entries": len(results),
             "evaluation_date": datetime.now().isoformat(),
-            "embedding_model": "text-embedding-3-large",
-            "llm_model": "gpt-4o",
-            "reranker_model": "gpt-4o-mini",
+            "embedding_model": os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3"),
+            "llm_model": eval_model,
+            "reranker_model": os.getenv("RERANKER_MODEL", "BAAI/bge-reranker-base"),
             "pricing": {
-                "input_price_per_1m": OPENAI_MODEL_PRICE_IN,
-                "output_price_per_1m": OPENAI_MODEL_PRICE_OUT
+                "input_price_per_1m": EVAL_MODEL_PRICE_IN,
+                "output_price_per_1m": EVAL_MODEL_PRICE_OUT
             }
         },
         "quality_metrics": {

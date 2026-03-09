@@ -3,7 +3,7 @@ Unified RAG service used by API and CLI.
 
 Migration note:
 - `src/api/rag_service.py` is the single source of truth for the active pipeline.
-- Legacy OpenAI-heavy orchestration was retired from the active runtime path.
+- Legacy cloud-provider orchestration was retired from the active runtime path.
 - Compatibility wrappers remain available in `main.py` for evaluation scripts.
 """
 
@@ -53,11 +53,6 @@ try:
     from langchain_text_splitters import RecursiveCharacterTextSplitter
 except Exception:
     RecursiveCharacterTextSplitter = None
-
-try:
-    from langchain_openai import ChatOpenAI
-except Exception:  # optional provider
-    ChatOpenAI = None
 
 try:
     from FlagEmbedding import FlagReranker
@@ -394,16 +389,6 @@ def load_and_split_documents(pdf_files: List[str]) -> List[Document]:
 
 
 def _build_chat_model(model_name: str, temperature: float):
-    if SETTINGS.provider == "openai":
-        if ChatOpenAI is None:
-            raise RuntimeError("MODEL_PROVIDER=openai is set but langchain_openai is not installed.")
-        kwargs = {"model": model_name, "temperature": temperature}
-        if SETTINGS.generation.max_tokens is not None:
-            kwargs["max_tokens"] = SETTINGS.generation.max_tokens
-        if SETTINGS.generation.timeout_seconds is not None:
-            kwargs["timeout"] = SETTINGS.generation.timeout_seconds
-        return ChatOpenAI(**kwargs)
-
     kwargs = {
         "model": model_name,
         "base_url": SETTINGS.ollama_base_url,

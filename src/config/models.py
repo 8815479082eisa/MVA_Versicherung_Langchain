@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, Optional
 
-Provider = Literal["ollama", "openai"]
+Provider = Literal["ollama"]
 
 
 def _env_bool(name: str, default: bool = False) -> bool:
@@ -122,8 +122,8 @@ def load_model_settings() -> ModelSettings:
         os.getenv("BENCHMARK_DIR", str(data_root / "benchmarks"))
     )
 
-    provider_raw = os.getenv("MODEL_PROVIDER", "ollama").strip().lower()
-    provider: Provider = "openai" if provider_raw == "openai" else "ollama"
+    # Runtime is local-only: always use Ollama models.
+    provider: Provider = "ollama"
 
     default_ollama_model = os.getenv("OLLAMA_MODEL", "qwen2.5:7b-instruct")
     roles = RoleModels(

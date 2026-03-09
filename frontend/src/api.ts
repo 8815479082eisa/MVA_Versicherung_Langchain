@@ -51,8 +51,7 @@ export interface LegacySource {
  * Konvertiert neue Backend-Response zu Legacy-Format für Kompatibilität
  */
 function convertToLegacyFormat(
-  response: AnswerResponse,
-  question: string
+  response: AnswerResponse
 ): LegacyAnswerResponse {
   return {
     answerText: response.answer,
@@ -101,7 +100,7 @@ export async function askQuestion(
     const data: AnswerResponse = await response.json();
     
     // Konvertiere zu Legacy-Format für Kompatibilität mit bestehenden Komponenten
-    return convertToLegacyFormat(data, payload.question);
+    return convertToLegacyFormat(data);
   } catch (error) {
     // Netzwerkfehler oder andere Fehler
     if (error instanceof TypeError && error.message.includes("fetch")) {

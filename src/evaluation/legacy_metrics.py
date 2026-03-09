@@ -11,7 +11,7 @@ import os
 from typing import Dict, List, Tuple
 
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 
 
 class EvaluationMetricsCalculator:
@@ -19,7 +19,11 @@ class EvaluationMetricsCalculator:
 
     def __init__(self, audit_log_file: str = "data/processed/logs/audit.log"):
         self.audit_log_file = audit_log_file
-        self.evaluator_llm = ChatOpenAI(model="gpt-4o", temperature=0.0)
+        self.evaluator_llm = ChatOllama(
+            model=os.getenv("EVAL_LLM_MODEL", os.getenv("ROUTER_MODEL", "functiongemma:270m")),
+            base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+            temperature=0.0,
+        )
 
     def load_audit_logs(self) -> List[Dict]:
         """Load audit logs from JSONL file."""
