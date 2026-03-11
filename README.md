@@ -34,7 +34,7 @@ Das System folgt einer dreischichtigen Architektur:
   - `gpt-oss:20b` für Antwortgenerierung
   - `functiongemma:270m` für Routing
   - `lfm2.5-thinking:1.2b` für Self-Check
-  - `rnj-1:8b` für Query-Rewrite
+  - `ministral-3:8b` für Query-Rewrite
   - `ministral-3:8b` für Context-Compression
 
 ### Frontend

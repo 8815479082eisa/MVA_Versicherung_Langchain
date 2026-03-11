@@ -72,17 +72,17 @@ except Exception:
 
 # Prefer the project .env over inherited shell variables so the active runtime
 # stays aligned with the repo configuration.
-load_dotenv(override=True)
-SETTINGS: ModelSettings = load_model_settings()
+load_dotenv(override=True) #load the .env file and override the environment variables
+SETTINGS: ModelSettings = load_model_settings() #load the model settings from the .env file
 
-PDF_DIRECTORY = str(SETTINGS.storage.pdf_directory)
+PDF_DIRECTORY = str(SETTINGS.storage.pdf_directory) 
 AUDIT_LOG_FILE = str(SETTINGS.storage.audit_log_file)
 RESPONSE_LANGUAGE = os.getenv("RESPONSE_LANGUAGE", "English")
 ANSWER_STYLE = os.getenv("ANSWER_STYLE", "detailed")  # detailed | concise
 
 
-@dataclass
-class Source:
+@dataclass #This decorator is used to create a class that can be used to store the source of the answer
+class Source: #This class is used to store the source of the answer
     document_id: str
     document_title: str
     page: Optional[int] = None
@@ -90,8 +90,8 @@ class Source:
     snippet: Optional[str] = None
 
 
-@dataclass
-class AnswerResult:
+@dataclass #This decorator is used to create a class that can be used to store the answer and the sources
+class AnswerResult: #This class is used to store the answer and the sources
     answer: str
     sources: List[Source]
     query: str
@@ -125,11 +125,11 @@ Respond ONLY in {RESPONSE_LANGUAGE}.
 """
 
 
-_pipeline: Optional["RAGPipeline"] = None
+_pipeline: Optional["RAGPipeline"] = None #This is the pipeline object that is used to store the pipeline
 
-_insuranceqa_questions_loaded = False
-_insuranceqa_norm_questions: set[str] = set()
-_insuranceqa_norm_questions_list: list[str] = []
+_insuranceqa_questions_loaded = False #This is a flag that is used to check if the insuranceqa questions have been loaded
+_insuranceqa_norm_questions: set[str] = set() #This is a set that is used to store the normalized insuranceqa questions
+_insuranceqa_norm_questions_list: list[str] = [] #This is a list that is used to store the normalized insuranceqa questions
 
 
 def _normalize_question(text: str) -> str:
@@ -219,7 +219,7 @@ def _should_route_to_insuranceqa(query: str) -> bool:
     return False
 
 
-def _require_dependency(dep, package_name: str) -> None:
+def _require_dependency(dep, package_name: str) -> None: #This function is used to check if the dependency is installed
     if dep is None:
         raise RuntimeError(
             f"Missing optional dependency '{package_name}'. "
@@ -227,7 +227,7 @@ def _require_dependency(dep, package_name: str) -> None:
         )
 
 
-def _normalize_pdf_key(file_path: str) -> str:
+def _normalize_pdf_key(file_path: str) -> str: #This function is used to normalize the pdf key
     try:
         return str(Path(file_path).resolve()).replace("\\", "/").lower()
     except Exception:
@@ -286,7 +286,7 @@ def audit_log(
         f.write(json.dumps(payload, ensure_ascii=False) + "\n")
 
 
-def _load_model_config() -> dict:
+def _load_model_config() -> dict: #This function is used to load the model config
     cfg_file = SETTINGS.storage.model_config_file
     if not cfg_file.exists():
         return {}

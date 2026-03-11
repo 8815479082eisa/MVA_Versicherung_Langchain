@@ -60,7 +60,7 @@ OLLAMA_MODEL=ministral-3:8b
 ANSWER_MODEL=gpt-oss:20b
 ROUTER_MODEL=functiongemma:270m
 SELF_CHECK_MODEL=lfm2.5-thinking:1.2b
-QUERY_REWRITE_MODEL=rnj-1:8b
+QUERY_REWRITE_MODEL=ministral-3:8b
 COMPRESSOR_MODEL=ministral-3:8b
 OCR_MODEL=glm-ocr:bf16
 
