@@ -1,32 +1,49 @@
 # test-result-20260326T213943Z
 
-## Pipeline Label
-pipeline-20260326
+## Overview
+20-sample InsuranceQA test result registered after enabling reranking fallback support in the pipeline (`FlagEmbedding` -> `sentence-transformers` CrossEncoder fallback path).
 
-## Test Setup Label
-test-setup-first-20-EM-F1
+## Timestamp / Run Identification
+- test-result label: `test-result-20260326T213943Z`
+- run_id: `20260326T213943Z`
+- execution date/time: 2026-03-26 21:39:43 UTC (inferred from run_id format)
+
+## Associated Pipeline
+- Pipeline Label: `pipeline-20260326`
+- Pipeline documentation: `docs/pipelines/pipeline-20260326/README.md`
+
+## Associated Test Setup
+- Test-Setup Label: `test-setup-first-20-EM-F1`
+- Dataset: InsuranceQA (`data/benchmarks/qa/insuranceqa/data_insuranceqa_1000.jsonl`)
+- Split: `test`
+- Sample Size: `20`
+- Metrics: `Exact Match (EM)`, `Token F1`
 
 ## Execution Summary
-- Processed: 20
-- Failed: 0
-- Exact Match: 0.000000
-- Token F1: 0.351242
-- run_id: 20260326T213943Z
-- Index range: idx 0..19
+- Processed: `20`
+- Failed: `0`
+- Exact Match: `0.000000`
+- Token F1: `0.351242`
+- Index range: `idx 0..19` (from provided run evidence)
 
-## Output File
-eval_insuranceqa_results.jsonl
+## Files
+- Output JSONL: not present in this folder (canonical line-level evidence was provided from GPU runtime and documented in this README)
+- Run command: `run-command.txt`
+- Commit hash reference: `commit-hash.txt` (`5a14d52ff21a02ba806e7172da393bc717011483`)
+- Local README: `README.md`
 
-## Notes
-This result was generated after enabling the reranker fallback path (CrossEncoder) for cases where `FlagEmbedding` is unavailable.
-The run was executed in the remote runtime (`/workspace`) against `http://localhost:8000/api/ask`.
-The user provided record-level evidence (`idx` 0..19) from the GPU runtime for this run id.
-The local workspace file `data/processed/eval_outputs/insuranceqa/eval_insuranceqa_results.jsonl` currently points to a different run and must not be used as the canonical source for this result.
-Canonical source for this registered result is the GPU-side output belonging to `run_id=20260326T213943Z`.
+## Technical Context
+- Run executed against `http://localhost:8000/api/ask` in remote `/workspace` runtime.
+- Result context explicitly tied to reranker-fallback-capable pipeline generation.
+- Earlier instability symptoms (`500` / connection refused) are not observed in this specific run (`Failed=0`).
+- EM remains strict and zero; token overlap metric indicates partial semantic alignment.
 
-## Record-Level Observations (from provided JSONL lines)
-- Language/output issues previously reported (German generic fallback) are not visible in this run; responses are in English.
-- No backend transport failures in this run (`Failed: 0`), so earlier `500/connection` instability is not present for this specific execution.
-- EM is `0.0` although several answers are semantically close; this is expected for strict exact-match.
-- Token F1 `0.351242` is plausible because many answers are verbose, templated, or partially off-context.
-- Several responses show instruction/prompt leakage patterns (e.g. "TASK:", "THOUGHT:", generic step lists), which likely depresses F1.
+## Distinguishing Notes
+- This is the tagged post-reranker-fallback result (`test-result-20260326T213943Z`).
+- Compared with `test-result-20260325T002026Z`, F1 is slightly higher (`0.351242` vs `0.343531`).
+- Compared with `test-result-20260326T222652Z`, this artifact has stronger registry linkage (pipeline tag/commit registration), but no local JSONL file checked in.
+
+## Traceability
+- Registration commit: `4db5cdf` (plus later README refinement commit `53e8cfc`).
+- Associated tags: `pipeline-20260326`, `test-result-20260326T213943Z`.
+- Uses the shared setup `docs/test-setups/test-setup-first-20-EM-F1/README.md`.
