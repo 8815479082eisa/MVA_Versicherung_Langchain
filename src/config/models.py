@@ -125,7 +125,7 @@ def load_model_settings() -> ModelSettings:
     # Runtime is local-only: always use Ollama models.
     provider: Provider = "ollama"
 
-    default_ollama_model = os.getenv("OLLAMA_MODEL", "qwen2.5:7b-instruct")
+    default_ollama_model = os.getenv("OLLAMA_MODEL", "rnj-1:8b")
     roles = RoleModels(
         answer=os.getenv("ANSWER_MODEL", default_ollama_model),
         router=os.getenv("ROUTER_MODEL", default_ollama_model),

@@ -5,7 +5,7 @@ OLLAMA_HOST = "http://141.41.32.94:41314"  # your custom IP and port
 
 client = ollama.Client(host=OLLAMA_HOST)
 
-model_name = "lfm2.5-thinking:1.2b"  # or whatever model you have pulled
+model_name = "rnj-1:8b"  # keep smoke tests fast while still exercising a general-purpose model
 
 print("Sending a simple prompt...")
 response = client.generate(

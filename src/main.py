@@ -41,6 +41,8 @@ FAQ_FIRST = _env_flag("FAQ_FIRST", default=False) #FAQ_FIRST ist der erste Treff
 
 _faq_entries: list[dict] = [] #FAQ_ENTRIES ist die Liste der FAQ-Einträge
 _faq_by_question: dict[str, str] = {} #FAQ_BY_QUESTION ist das Dictionary der FAQ-Einträge
+_startup_init_task: Optional[asyncio.Task] = None
+_startup_init_error: Optional[str] = None
 
 #CORS_ALLOW_ORIGINS ist die Liste der erlaubten CORS-Origins, wenn CORS_ALLOW_ORIGINS="*" -> allow all.
 def _get_cors_origins() -> list[str]:
@@ -159,6 +161,9 @@ async def lifespan(_: FastAPI):
     INIT_PIPELINE_ON_STARTUP=true
     """
     init_on_startup = _env_flag("INIT_PIPELINE_ON_STARTUP", default=False)
+    global _startup_init_task, _startup_init_error
+    _startup_init_task = None
+    _startup_init_error = None
 
     _load_faq_data()
     print(
@@ -166,22 +171,28 @@ async def lifespan(_: FastAPI):
         f"FAQ_MIN_SIMILARITY={FAQ_MIN_SIMILARITY}"
     )
 
+    async def _warm_pipeline_in_background(force_reindex: bool) -> None:
+        global _startup_init_error
+        try:
+            await asyncio.to_thread(rag_service.initialize_pipeline, force_reindex=force_reindex)
+            print("Pipeline warmup finished.")
+        except Exception as e:
+            _startup_init_error = f"{type(e).__name__}: {e}"
+            print(f"Warning: error initializing pipeline in background: {_startup_init_error}")
+
     if FAQ_ONLY:
         print("Backend started in FAQ_ONLY mode (no RAG model calls).")
     elif init_on_startup:
-        print("Initializing RAG pipeline on startup (INIT_PIPELINE_ON_STARTUP=true)...")
-        try:
-            force_reindex = rag_service.pdfs_have_changed()
-            await asyncio.to_thread(rag_service.initialize_pipeline, force_reindex=force_reindex)
-            print("Pipeline initialized.")
-        except Exception as e:
-            print(f"Warning: error initializing pipeline: {e}")
-            print("Pipeline will initialize lazily on the first request.")
+        print("Starting RAG pipeline warmup in background (INIT_PIPELINE_ON_STARTUP=true)...")
+        force_reindex = rag_service.pdfs_have_changed()
+        _startup_init_task = asyncio.create_task(_warm_pipeline_in_background(force_reindex))
     else:
         print("Backend started (lazy pipeline init).")
 
     yield
 
+    if _startup_init_task is not None and not _startup_init_task.done():
+        _startup_init_task.cancel()
     print("Backend shutting down...")
 
 # FastAPI-App erstellen
@@ -236,7 +247,16 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Serverstatus pruefen"""
-    return {"status": "ok", "message": "Backend laeuft"}
+    pipeline_ready = rag_service.is_pipeline_ready()
+    pipeline_initializing = _startup_init_task is not None and not _startup_init_task.done()
+    return {
+        "status": "ok",
+        "message": "Backend laeuft",
+        "pipelineReady": pipeline_ready,
+        "pipelineInitializing": pipeline_initializing,
+        "pipelineInitError": _startup_init_error,
+        "insuranceqaExactMatchShortcut": rag_service.insuranceqa_exact_match_shortcut_enabled(),
+    }
 
 
 @app.post("/api/ask", response_model=AnswerResponse)
@@ -296,8 +316,8 @@ async def ask(request: AskQuestionRequest):
             latencyMs=result.latency_ms
         )
         
-    except ValueError as e:
-        # Typically: pipeline not ready (e.g., no PDFs in data/raw/pdfs)
+    except (ValueError, RuntimeError) as e:
+        # Typically: pipeline not ready/misconfigured (e.g., missing retriever or PDFs)
         raise HTTPException(status_code=503, detail=str(e))
     except HTTPException:
         # Preserve intended API errors (e.g. 400/404 from FAQ-only path)

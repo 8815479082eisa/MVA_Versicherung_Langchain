@@ -9,7 +9,7 @@ Dieses System implementiert ein agentisches RAG-System, das Versicherungsdokumen
 ## ✨ Hauptfunktionen
 
 - **Hybrid Retrieval**: Kombination aus BM25 (lexikalisch) und semantischer Vektorsuche (ChromaDB)
-- **LLM-basiertes Re-Ranking**: GPT-4o-mini zur Relevanzbewertung
+- **Cross-Encoder-Re-Ranking**: lokales BGE-Reranker-Modell zur Relevanzbewertung
 - **Self-Check & Query-Rewriting**: Automatische Relevanzprüfung und Query-Optimierung
 - **Agentisches Routing**: Intelligente Entscheidung zwischen Retrieval und direkter Antwort
 - **Strukturierte Audit-Logs**: Vollständige Nachvollziehbarkeit aller Verarbeitungsschritte
@@ -31,11 +31,11 @@ Das System folgt einer dreischichtigen Architektur:
 - **LangChain**: Framework für RAG-Pipeline
 - **ChromaDB**: Persistenter Vektorspeicher
 - **Ollama (lokal/GPU)**:
-  - `gpt-oss:20b` für Antwortgenerierung
+  - `rnj-1:8b` für Antwortgenerierung
   - `functiongemma:270m` für Routing
   - `lfm2.5-thinking:1.2b` für Self-Check
-  - `ministral-3:8b` für Query-Rewrite
-  - `ministral-3:8b` für Context-Compression
+  - `lfm2.5-thinking:1.2b` für Query-Rewrite
+  - `lfm2.5-thinking:1.2b` für Context-Compression
 
 ### Frontend
 - **React 18** mit TypeScript

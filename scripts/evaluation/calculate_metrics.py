@@ -130,7 +130,7 @@ def main():
         return
     
     evaluator_llm = ChatOllama(
-        model=os.getenv("EVAL_LLM_MODEL", os.getenv("ROUTER_MODEL", "functiongemma:270m")),
+        model=os.getenv("EVAL_LLM_MODEL", "lfm2.5-thinking:1.2b"),
         base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
         temperature=0.0,
     )

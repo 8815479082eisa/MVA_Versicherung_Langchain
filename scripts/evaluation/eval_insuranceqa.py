@@ -4,6 +4,7 @@ import random
 import re
 import time
 from collections import defaultdict
+from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
@@ -20,6 +21,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate insuranceQA-v2 against /api/ask")
     parser.add_argument("--api-url", default="http://localhost:8000/api/ask")
     parser.add_argument("--split", default="test")
+    parser.add_argument(
+        "--dataset-jsonl",
+        default="data/benchmarks/qa/insuranceqa/data_insuranceqa_1000.jsonl",
+        help="Local InsuranceQA JSONL to evaluate against; used by default when present",
+    )
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--max-samples", type=int, default=1000)
     parser.add_argument("--start", type=int, default=0, help="Start index inside sampled set")
@@ -32,6 +38,27 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--timeout", type=int, default=120)
     parser.add_argument("--retries", type=int, default=3)
     parser.add_argument("--retry-sleep", type=float, default=2.0)
+    parser.add_argument(
+        "--health-url",
+        default=None,
+        help="Health endpoint to poll before starting (default: derived from --api-url)",
+    )
+    parser.add_argument(
+        "--wait-for-api-seconds",
+        type=int,
+        default=180,
+        help="Wait up to this many seconds for the API to become reachable before sending questions",
+    )
+    parser.add_argument(
+        "--append",
+        action="store_true",
+        help="Append to an existing JSONL file instead of starting a clean single-run output",
+    )
+    parser.add_argument(
+        "--allow-dataset-shortcut",
+        action="store_true",
+        help="Allow direct dataset shortcut answers (for debugging only; not for real benchmark runs)",
+    )
     parser.add_argument(
         "--max-consecutive-failures",
         type=int,
@@ -79,7 +106,22 @@ def token_f1(pred: str, gold: str) -> float:
     return 2 * precision * recall / (precision + recall)
 
 
-def build_sample(split: str, max_samples: int, seed: int) -> list[tuple[str, list[str]]]:
+def _load_local_sample(path: Path) -> list[tuple[str, list[str]]]:
+    q2answers: dict[str, list[str]] = defaultdict(list)
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            row = json.loads(line)
+            question = str(row.get("question") or row.get("input") or "").strip()
+            answer = str(row.get("answer") or row.get("output") or "").strip()
+            if question and answer:
+                q2answers[question].append(answer)
+    return list(q2answers.items())
+
+
+def _load_hf_sample(split: str) -> list[tuple[str, list[str]]]:
     ds = load_dataset("deccan-ai/insuranceQA-v2", split=split)
 
     q2answers: dict[str, list[str]] = defaultdict(list)
@@ -88,12 +130,27 @@ def build_sample(split: str, max_samples: int, seed: int) -> list[tuple[str, lis
         answer = str(row.get("output", "")).strip()
         if question and answer:
             q2answers[question].append(answer)
+    return list(q2answers.items())
 
-    items_all = list(q2answers.items())
+
+def build_sample(
+    split: str,
+    max_samples: int,
+    seed: int,
+    dataset_jsonl: str,
+) -> tuple[list[tuple[str, list[str]]], str]:
+    dataset_path = Path(dataset_jsonl)
+    if dataset_path.exists():
+        items_all = _load_local_sample(dataset_path)
+        source_label = str(dataset_path)
+    else:
+        items_all = _load_hf_sample(split)
+        source_label = f"hf://deccan-ai/insuranceQA-v2[{split}]"
+
     random.seed(seed)
     k = min(max_samples, len(items_all))
     sampled = random.sample(items_all, k=k)
-    return sampled
+    return sampled, source_label
 
 
 def batched_slice(
@@ -130,16 +187,69 @@ def append_jsonl(path: Path, row: dict) -> None:
         f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
+def derive_health_url(api_url: str, explicit_health_url: str | None) -> str:
+    if explicit_health_url:
+        return explicit_health_url
+    if api_url.endswith("/api/ask"):
+        return api_url[: -len("/api/ask")] + "/health"
+    return api_url.rstrip("/") + "/health"
+
+
+def wait_for_api(health_url: str, wait_seconds: int, poll_interval: float = 2.0) -> None:
+    deadline = time.time() + max(0, wait_seconds)
+    last_error = "health endpoint did not respond"
+    while time.time() <= deadline:
+        try:
+            response = requests.get(health_url, timeout=5)
+            response.raise_for_status()
+            payload = response.json()
+            status = str(payload.get("status", "")).lower()
+            if status == "ok":
+                print(
+                    "API reachable:"
+                    f" health={health_url}"
+                    f" | pipelineReady={payload.get('pipelineReady')}"
+                    f" | pipelineInitializing={payload.get('pipelineInitializing')}"
+                )
+                return
+            last_error = f"unexpected health payload: {payload}"
+        except Exception as exc:
+            last_error = str(exc)
+        time.sleep(poll_interval)
+    raise RuntimeError(
+        f"API did not become reachable within {wait_seconds}s via {health_url}: {last_error}"
+    )
+
+
+def prepare_output_file(path: Path, append: bool) -> str:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists() and not append:
+        path.unlink()
+        return "overwritten"
+    return "appending" if path.exists() else "new"
+
+
 def main() -> None:
     args = parse_args()
     out_path = Path(args.out)
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    health_url = derive_health_url(args.api_url, args.health_url)
+    output_mode = prepare_output_file(out_path, append=args.append)
 
-    items = build_sample(split=args.split, max_samples=args.max_samples, seed=args.seed)
+    wait_for_api(health_url=health_url, wait_seconds=args.wait_for_api_seconds)
+
+    items, dataset_source = build_sample(
+        split=args.split,
+        max_samples=args.max_samples,
+        seed=args.seed,
+        dataset_jsonl=args.dataset_jsonl,
+    )
     items_run, start_idx, end_idx = batched_slice(items, start=args.start, count=args.count)
 
     print(f"Sample size: {len(items)} | split={args.split} | seed={args.seed}")
+    print(f"Dataset source: {dataset_source}")
     print(f"Running indexes: [{start_idx}, {end_idx}) -> {len(items_run)} items")
-    print(f"Output JSONL: {out_path}")
+    print(f"Output JSONL: {out_path} | mode={output_mode} | run_id={run_id}")
 
     em_hits = 0
     f1_sum = 0.0
@@ -157,6 +267,19 @@ def main() -> None:
                 retry_sleep=args.retry_sleep,
             )
             pred = str(data.get("answer", ""))
+            sources = data.get("sources") or []
+            source_ids = []
+            for src in sources:
+                if isinstance(src, dict):
+                    source_ids.append(str(src.get("documentId") or src.get("document_id") or ""))
+
+            if (not args.allow_dataset_shortcut) and any(
+                sid == "insuranceqa_v2_local" for sid in source_ids
+            ):
+                raise RuntimeError(
+                    "Detected direct InsuranceQA dataset shortcut answer "
+                    "(source documentId=insuranceqa_v2_local)."
+                )
 
             pred_n = norm(pred)
             refs_n = [norm(x) for x in refs]
@@ -171,10 +294,12 @@ def main() -> None:
             append_jsonl(
                 out_path,
                 {
+                    "run_id": run_id,
                     "idx": i,
                     "question": q,
                     "refs": refs,
                     "prediction": pred,
+                    "source_ids": source_ids,
                     "em": em,
                     "best_f1": best_f1,
                 },
@@ -184,7 +309,7 @@ def main() -> None:
             consecutive_failures += 1
             append_jsonl(
                 out_path,
-                {"idx": i, "question": q, "error": str(exc)},
+                {"run_id": run_id, "idx": i, "question": q, "error": str(exc)},
             )
             print(f"[ERROR] idx={i}: {exc}")
             if consecutive_failures >= args.max_consecutive_failures:

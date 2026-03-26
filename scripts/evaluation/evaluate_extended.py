@@ -253,7 +253,7 @@ def main():
         print("No valid log entries found.")
         return
     
-    eval_model = os.getenv("EVAL_LLM_MODEL", os.getenv("ROUTER_MODEL", "functiongemma:270m"))
+    eval_model = os.getenv("EVAL_LLM_MODEL", "lfm2.5-thinking:1.2b")
     evaluator_llm = ChatOllama(
         model=eval_model,
         base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),

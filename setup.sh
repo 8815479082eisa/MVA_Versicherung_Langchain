@@ -54,14 +54,16 @@ BACKEND_PORT=8000
 # Model provider (local-only)
 MODEL_PROVIDER=ollama
 OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=ministral-3:8b
+OLLAMA_MODEL=rnj-1:8b
 
 # Role models
-ANSWER_MODEL=gpt-oss:20b
+ANSWER_MODEL=rnj-1:8b
 ROUTER_MODEL=functiongemma:270m
 SELF_CHECK_MODEL=lfm2.5-thinking:1.2b
-QUERY_REWRITE_MODEL=ministral-3:8b
-COMPRESSOR_MODEL=ministral-3:8b
+QUERY_REWRITE_MODEL=lfm2.5-thinking:1.2b
+COMPRESSOR_MODEL=lfm2.5-thinking:1.2b
+EVAL_LLM_MODEL=lfm2.5-thinking:1.2b
+# Reserved for a future OCR/scan pipeline; the current PDF flow uses PyPDFLoader directly.
 OCR_MODEL=glm-ocr:bf16
 
 # Data paths

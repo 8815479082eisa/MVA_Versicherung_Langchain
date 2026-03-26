@@ -14,6 +14,7 @@ import hashlib
 import json
 import os
 import re
+import threading
 from dataclasses import dataclass
 from datetime import datetime
 from difflib import SequenceMatcher
@@ -22,42 +23,11 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from dotenv import load_dotenv
 from langchain_core.documents import Document
-from langchain_core.prompts import ChatPromptTemplate
 
 try:
     from langchain_chroma import Chroma
 except Exception:
     Chroma = None
-
-try:
-    from langchain_community.document_loaders import PyPDFLoader
-except Exception:
-    PyPDFLoader = None
-
-try:
-    from langchain_community.embeddings import HuggingFaceEmbeddings
-except Exception:
-    HuggingFaceEmbeddings = None
-
-try:
-    from langchain_community.retrievers import BM25Retriever
-except Exception:
-    BM25Retriever = None
-
-try:
-    from langchain_ollama import ChatOllama
-except Exception:
-    ChatOllama = None
-
-try:
-    from langchain_text_splitters import RecursiveCharacterTextSplitter
-except Exception:
-    RecursiveCharacterTextSplitter = None
-
-try:
-    from FlagEmbedding import FlagReranker
-except Exception:
-    FlagReranker = None
 
 try:
     import chromadb
@@ -68,6 +38,15 @@ try:
     from config.models import ModelSettings, load_model_settings
 except Exception:
     from src.config.models import ModelSettings, load_model_settings
+
+
+HuggingFaceEmbeddings = None
+ChatOllama = None
+FlagReranker = None
+ChatPromptTemplate = None
+PyPDFLoader = None
+BM25Retriever = None
+RecursiveCharacterTextSplitter = None
 
 
 # Prefer the project .env over inherited shell variables so the active runtime
@@ -126,10 +105,12 @@ Respond ONLY in {RESPONSE_LANGUAGE}.
 
 
 _pipeline: Optional["RAGPipeline"] = None #This is the pipeline object that is used to store the pipeline
+_pipeline_lock = threading.RLock()
 
 _insuranceqa_questions_loaded = False #This is a flag that is used to check if the insuranceqa questions have been loaded
 _insuranceqa_norm_questions: set[str] = set() #This is a set that is used to store the normalized insuranceqa questions
 _insuranceqa_norm_questions_list: list[str] = [] #This is a list that is used to store the normalized insuranceqa questions
+_insuranceqa_answers_by_question: dict[str, str] = {}
 
 
 def _normalize_question(text: str) -> str:
@@ -148,7 +129,8 @@ def _load_insuranceqa_question_index() -> None:
     Build an in-memory index of InsuranceQA questions so we can route queries to
     the InsuranceQA retriever in a deterministic way (no LLM needed).
     """
-    global _insuranceqa_questions_loaded, _insuranceqa_norm_questions, _insuranceqa_norm_questions_list
+    global _insuranceqa_questions_loaded, _insuranceqa_norm_questions
+    global _insuranceqa_norm_questions_list, _insuranceqa_answers_by_question
     if _insuranceqa_questions_loaded:
         return
 
@@ -159,6 +141,7 @@ def _load_insuranceqa_question_index() -> None:
         return
 
     norm_questions: list[str] = []
+    answer_map: dict[str, str] = {}
     try:
         with path.open("r", encoding="utf-8") as f:
             for line in f:
@@ -175,6 +158,9 @@ def _load_insuranceqa_question_index() -> None:
                 norm_q = _normalize_question(q)
                 if norm_q:
                     norm_questions.append(norm_q)
+                    answer = str(row.get("answer", "")).strip()
+                    if answer:
+                        answer_map[norm_q] = answer
     except Exception:
         # Routing is best-effort. If it fails, fall back to default behavior.
         _insuranceqa_questions_loaded = True
@@ -182,7 +168,42 @@ def _load_insuranceqa_question_index() -> None:
 
     _insuranceqa_norm_questions = set(norm_questions)
     _insuranceqa_norm_questions_list = norm_questions
+    _insuranceqa_answers_by_question = answer_map
     _insuranceqa_questions_loaded = True
+
+
+def lookup_insuranceqa_answer(query: str) -> Optional[str]:
+    _load_insuranceqa_question_index()
+    norm_q = _normalize_question(query)
+    return _insuranceqa_answers_by_question.get(norm_q)
+
+
+def _insuranceqa_exact_match_enabled() -> bool:
+    shortcut_enabled = os.getenv("INSURANCEQA_EXACT_MATCH_SHORTCUT", "false").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "y",
+        "on",
+    }
+    if not shortcut_enabled:
+        return False
+
+    use_insuranceqa = os.getenv("USE_INSURANCEQA_DATA", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "y",
+        "on",
+    }
+    if not use_insuranceqa:
+        return False
+    mode = os.getenv("INSURANCEQA_RETRIEVAL_MODE", "merge").strip().lower()
+    return mode in {"switch", "auto"}
+
+
+def insuranceqa_exact_match_shortcut_enabled() -> bool:
+    return _insuranceqa_exact_match_enabled()
 
 
 def _should_route_to_insuranceqa(query: str) -> bool:
@@ -225,6 +246,69 @@ def _require_dependency(dep, package_name: str) -> None: #This function is used 
             f"Missing optional dependency '{package_name}'. "
             f"Install project requirements to use this feature."
         )
+
+
+def _get_hf_embeddings_cls():
+    global HuggingFaceEmbeddings
+    if HuggingFaceEmbeddings is None:
+        from langchain_community.embeddings import HuggingFaceEmbeddings as _HuggingFaceEmbeddings
+
+        HuggingFaceEmbeddings = _HuggingFaceEmbeddings
+    return HuggingFaceEmbeddings
+
+
+def _get_chat_ollama_cls():
+    global ChatOllama
+    if ChatOllama is None:
+        from langchain_ollama import ChatOllama as _ChatOllama
+
+        ChatOllama = _ChatOllama
+    return ChatOllama
+
+
+def _get_flag_reranker_cls():
+    global FlagReranker
+    if FlagReranker is None:
+        from FlagEmbedding import FlagReranker as _FlagReranker
+
+        FlagReranker = _FlagReranker
+    return FlagReranker
+
+
+def _get_chat_prompt_template_cls():
+    global ChatPromptTemplate
+    if ChatPromptTemplate is None:
+        from langchain_core.prompts import ChatPromptTemplate as _ChatPromptTemplate
+
+        ChatPromptTemplate = _ChatPromptTemplate
+    return ChatPromptTemplate
+
+
+def _get_pdf_loader_cls():
+    global PyPDFLoader
+    if PyPDFLoader is None:
+        from langchain_community.document_loaders import PyPDFLoader as _PyPDFLoader
+
+        PyPDFLoader = _PyPDFLoader
+    return PyPDFLoader
+
+
+def _get_bm25_retriever_cls():
+    global BM25Retriever
+    if BM25Retriever is None:
+        from langchain_community.retrievers import BM25Retriever as _BM25Retriever
+
+        BM25Retriever = _BM25Retriever
+    return BM25Retriever
+
+
+def _get_text_splitter_cls():
+    global RecursiveCharacterTextSplitter
+    if RecursiveCharacterTextSplitter is None:
+        from langchain_text_splitters import RecursiveCharacterTextSplitter as _RecursiveCharacterTextSplitter
+
+        RecursiveCharacterTextSplitter = _RecursiveCharacterTextSplitter
+    return RecursiveCharacterTextSplitter
 
 
 def _normalize_pdf_key(file_path: str) -> str: #This function is used to normalize the pdf key
@@ -370,10 +454,10 @@ def pdfs_have_changed() -> bool:
 
 
 def load_and_split_documents(pdf_files: List[str]) -> List[Document]:
-    _require_dependency(PyPDFLoader, "langchain-community")
-    _require_dependency(RecursiveCharacterTextSplitter, "langchain-text-splitters")
+    pdf_loader_cls = _get_pdf_loader_cls()
+    splitter_cls = _get_text_splitter_cls()
     all_splits: List[Document] = []
-    splitter = RecursiveCharacterTextSplitter(
+    splitter = splitter_cls(
         chunk_size=SETTINGS.chunking.chunk_size,
         chunk_overlap=SETTINGS.chunking.chunk_overlap,
         add_start_index=True,
@@ -381,7 +465,7 @@ def load_and_split_documents(pdf_files: List[str]) -> List[Document]:
 
     for file_path in pdf_files:
         try:
-            docs = PyPDFLoader(file_path).load()
+            docs = pdf_loader_cls(file_path).load()
             all_splits.extend(splitter.split_documents(docs))
         except Exception as exc:
             print(f"Error loading {file_path}: {exc}")
@@ -389,22 +473,22 @@ def load_and_split_documents(pdf_files: List[str]) -> List[Document]:
 
 
 def _build_chat_model(model_name: str, temperature: float):
+    chat_ollama_cls = _get_chat_ollama_cls()
     kwargs = {
         "model": model_name,
         "base_url": SETTINGS.ollama_base_url,
         "temperature": temperature,
     }
-    _require_dependency(ChatOllama, "langchain-ollama")
     if SETTINGS.generation.max_tokens is not None:
         kwargs["num_predict"] = SETTINGS.generation.max_tokens
     if SETTINGS.generation.timeout_seconds is not None:
         kwargs["timeout"] = SETTINGS.generation.timeout_seconds
-    return ChatOllama(**kwargs)
+    return chat_ollama_cls(**kwargs)
 
 
 def initialize_embeddings():
-    _require_dependency(HuggingFaceEmbeddings, "langchain-community")
-    return HuggingFaceEmbeddings(
+    embeddings_cls = _get_hf_embeddings_cls()
+    return embeddings_cls(
         model_name=SETTINGS.embedding.model,
         model_kwargs={"device": SETTINGS.embedding.device},
         encode_kwargs={"normalize_embeddings": SETTINGS.embedding.normalize_embeddings},
@@ -457,8 +541,8 @@ def build_vectorstore(all_splits: List[Document], embeddings, force_reindex: boo
 
 
 def build_retriever(vector_store: Chroma, all_splits: List[Document]) -> Callable[[str, int], List[Document]]:
-    _require_dependency(BM25Retriever, "langchain-community")
-    bm25 = BM25Retriever.from_documents(all_splits)
+    bm25_cls = _get_bm25_retriever_cls()
+    bm25 = bm25_cls.from_documents(all_splits)
     bm25.k = SETTINGS.retrieval.bm25_k
     vector_retriever = vector_store.as_retriever(search_kwargs={"k": SETTINGS.retrieval.vector_k})
 
@@ -492,11 +576,13 @@ def initialize_reranker():
 
 
 def build_reranker():
-    if FlagReranker is None:
+    try:
+        reranker_cls = _get_flag_reranker_cls()
+    except Exception:
         print("Warning: FlagEmbedding not available. Falling back to retrieval order.")
         return None
     try:
-        return FlagReranker(SETTINGS.reranker.model, use_fp16=SETTINGS.reranker.use_fp16)
+        return reranker_cls(SETTINGS.reranker.model, use_fp16=SETTINGS.reranker.use_fp16)
     except Exception as exc:
         print(f"Warning: Failed to initialize reranker '{SETTINGS.reranker.model}': {exc}")
         print("Falling back to retrieval order (no reranker).")
@@ -538,7 +624,8 @@ def build_generation_chain(answer_llm):
     else:
         task = "Produce a concise answer (1-2 sentences). Then add a source citation block."
 
-    prompt_template = ChatPromptTemplate.from_messages(
+    prompt_template_cls = _get_chat_prompt_template_cls()
+    prompt_template = prompt_template_cls.from_messages(
         [
             (
                 "system",
@@ -576,7 +663,8 @@ def _format_chat_history(chat_history: Optional[List[dict]]) -> str:
 
 
 def decide_retrieval(router_llm, query: str, chat_history: Optional[List[dict]] = None) -> str:
-    prompt_template = ChatPromptTemplate.from_messages(
+    prompt_template_cls = _get_chat_prompt_template_cls()
+    prompt_template = prompt_template_cls.from_messages(
         [
             ("system", ROUTER_SYSTEM_PROMPT),
             (
@@ -591,7 +679,8 @@ def decide_retrieval(router_llm, query: str, chat_history: Optional[List[dict]] 
 
 def rewrite_query(query_rewrite_llm, query: str, chat_history: Optional[List[dict]] = None) -> str:
     system_msg = QUERY_REWRITE_SYSTEM_PROMPT + f"\nChat History:\n{_format_chat_history(chat_history)}"
-    prompt = ChatPromptTemplate.from_messages(
+    prompt_template_cls = _get_chat_prompt_template_cls()
+    prompt = prompt_template_cls.from_messages(
         [
             ("system", system_msg),
             (
@@ -619,7 +708,8 @@ def perform_self_check(
             return rewrite_query(query_rewrite_llm, current_query, chat_history), []
 
         context_for_self_check = "\n---\n".join(doc.page_content for doc in current_docs)
-        prompt = ChatPromptTemplate.from_messages(
+        prompt_template_cls = _get_chat_prompt_template_cls()
+        prompt = prompt_template_cls.from_messages(
             [
                 ("system", SELF_CHECK_SYSTEM_PROMPT),
                 ("user", f"User Query: {current_query}\nContext:\n{context_for_self_check}"),
@@ -641,7 +731,8 @@ def compress_context(compressor_llm, documents: List[Document], instruction: str
         return []
 
     merged_text = "\n\n---\n\n".join(doc.page_content for doc in documents)
-    prompt = ChatPromptTemplate.from_messages(
+    prompt_template_cls = _get_chat_prompt_template_cls()
+    prompt = prompt_template_cls.from_messages(
         [
             (
                 "system",
@@ -662,6 +753,34 @@ def generate_answer(
     context_docs: List[Document],
     chat_history: Optional[List[dict]] = None,
 ) -> str:
+    def _extract_text(response: Any) -> str:
+        if response is None:
+            return ""
+        content = getattr(response, "content", response)
+        if isinstance(content, str):
+            return content.strip()
+        if isinstance(content, list):
+            parts: List[str] = []
+            for item in content:
+                if isinstance(item, str):
+                    parts.append(item)
+                elif isinstance(item, dict):
+                    text = item.get("text")
+                    if isinstance(text, str):
+                        parts.append(text)
+            return "\n".join(p.strip() for p in parts if p and p.strip()).strip()
+        return str(content).strip()
+
+    def _compact_context(docs: List[Document], max_docs: int = 3, max_chars: int = 1200) -> str:
+        snippets: List[str] = []
+        for doc in docs[:max_docs]:
+            source = doc.metadata.get("source", "unknown")
+            page = doc.metadata.get("page")
+            page_suffix = f":{page}" if page is not None else ""
+            body = (doc.page_content or "")[:max_chars].strip()
+            snippets.append(f"[{source}{page_suffix}] {body}")
+        return "\n\n".join(snippets)
+
     context = "\n---\n".join(doc.page_content for doc in context_docs)
     chain = build_generation_chain(llm)
     response = chain.invoke(
@@ -671,7 +790,38 @@ def generate_answer(
             "chat_history": _format_chat_history(chat_history),
         }
     )
-    return response.content
+    answer = _extract_text(response)
+    if answer:
+        return answer
+
+    # Some model/provider combinations occasionally return an empty payload.
+    # Retry once with a simpler prompt and compact context to improve robustness.
+    print("Warning: Empty LLM answer received. Retrying with fallback prompt.")
+    prompt_template_cls = _get_chat_prompt_template_cls()
+    fallback_prompt = prompt_template_cls.from_messages(
+        [
+            (
+                "system",
+                f"You are a helpful assistant. Answer using only the provided context in {RESPONSE_LANGUAGE}. "
+                "If the context is insufficient, say so clearly.",
+            ),
+            ("user", "Question:\n{query}\n\nContext:\n{context}\n\nAnswer in 2-5 sentences."),
+        ]
+    )
+    fallback_response = (fallback_prompt | llm).invoke(
+        {
+            "query": query,
+            "context": _compact_context(context_docs),
+        }
+    )
+    fallback_answer = _extract_text(fallback_response)
+    if fallback_answer:
+        return fallback_answer
+
+    return (
+        "I could not generate a reliable answer from the current model response. "
+        "Please try again or rephrase the question."
+    )
 
 
 def document_to_source(doc: Document) -> Source:
@@ -700,6 +850,7 @@ class RAGPipeline:
     def __init__(self, settings: ModelSettings):
         self.settings = settings
         self.components: Optional[Dict[str, Any]] = None
+        self._init_lock = threading.RLock()
 
     def build_vectorstore(self, all_splits: List[Document], embeddings, force_reindex: bool = False) -> Chroma:
         return build_vectorstore(all_splits, embeddings, force_reindex=force_reindex)
@@ -717,145 +868,181 @@ class RAGPipeline:
         return build_generation_chain(llm)
 
     def initialize(self, force_reindex: bool = False) -> Dict[str, Any]:
-        if self.components is not None and not force_reindex:
-            return self.components
+        with self._init_lock:
+            if self.components is not None and not force_reindex:
+                return self.components
 
-        os.makedirs(PDF_DIRECTORY, exist_ok=True)
-        pdf_files = get_pdf_files(PDF_DIRECTORY)
-        use_insuranceqa = os.getenv("USE_INSURANCEQA_DATA", "").strip().lower() in {
-            "1",
-            "true",
-            "yes",
-            "y",
-            "on",
-        }
-        insuranceqa_mode = os.getenv("INSURANCEQA_RETRIEVAL_MODE", "merge").strip().lower()
+            os.makedirs(PDF_DIRECTORY, exist_ok=True)
+            pdf_files = get_pdf_files(PDF_DIRECTORY)
+            use_insuranceqa = os.getenv("USE_INSURANCEQA_DATA", "").strip().lower() in {
+                "1",
+                "true",
+                "yes",
+                "y",
+                "on",
+            }
+            insuranceqa_mode = os.getenv("INSURANCEQA_RETRIEVAL_MODE", "merge").strip().lower()
 
-        # PDF layer is optional when we explicitly run in InsuranceQA-only modes.
-        vector_store: Optional[Chroma] = None
-        hybrid_retriever: Callable[[str, Optional[int]], List[Document]]
+            # PDF layer is optional when we explicitly run in InsuranceQA-only modes.
+            vector_store: Optional[Chroma] = None
+            hybrid_retriever: Callable[[str, Optional[int]], List[Document]]
 
-        if pdf_files:
-            all_splits = load_and_split_documents(pdf_files)
-            embeddings = initialize_embeddings()
+            if pdf_files:
+                all_splits = load_and_split_documents(pdf_files)
+                embeddings = initialize_embeddings()
 
-            reindex_required = force_reindex or embedding_model_has_changed()
-            vector_store = self.build_vectorstore(all_splits, embeddings, force_reindex=reindex_required)
-            hybrid_retriever = self.build_retriever(vector_store, all_splits)
-        else:
-            if not (use_insuranceqa and insuranceqa_mode in {"switch", "auto"}):
-                raise ValueError(f"No PDF files found in {PDF_DIRECTORY}. Please add insurance documents.")
+                reindex_required = force_reindex or embedding_model_has_changed()
+                vector_store = self.build_vectorstore(all_splits, embeddings, force_reindex=reindex_required)
+                hybrid_retriever = self.build_retriever(vector_store, all_splits)
+            else:
+                if not (use_insuranceqa and insuranceqa_mode in {"switch", "auto"}):
+                    raise ValueError(f"No PDF files found in {PDF_DIRECTORY}. Please add insurance documents.")
 
-            def _no_pdf_retriever(_query: str, k: Optional[int] = None) -> List[Document]:
-                del k
-                return []
+                def _no_pdf_retriever(_query: str, k: Optional[int] = None) -> List[Document]:
+                    del k
+                    return []
 
-            hybrid_retriever = _no_pdf_retriever
+                hybrid_retriever = _no_pdf_retriever
 
-        insuranceqa_retriever = None
-        if use_insuranceqa:
-            try:
-                from src.data.insuranceqa_ingestion import (
-                    INSURANCEQA_COLLECTION_NAME,
-                    build_insuranceqa_index,
-                    get_insuranceqa_retriever,
+            insuranceqa_retriever = None
+            if use_insuranceqa:
+                try:
+                    from src.data.insuranceqa_ingestion import (
+                        INSURANCEQA_COLLECTION_NAME,
+                        build_insuranceqa_index,
+                        get_insuranceqa_retriever,
+                    )
+
+                    auto_build_insuranceqa = os.getenv("INSURANCEQA_AUTO_BUILD", "true").strip().lower() in {
+                        "1",
+                        "true",
+                        "yes",
+                        "y",
+                        "on",
+                    }
+                    if auto_build_insuranceqa and _insuranceqa_collection_is_empty(INSURANCEQA_COLLECTION_NAME):
+                        print("Info: InsuranceQA collection is empty. Building index from dataset...")
+                        build_insuranceqa_index(force_reindex=False)
+
+                    insuranceqa_retriever = get_insuranceqa_retriever()
+                except Exception as exc:
+                    print(f"Warning: Failed to initialize InsuranceQA retriever: {exc}")
+                    insuranceqa_retriever = None
+
+            if use_insuranceqa and insuranceqa_mode == "switch" and insuranceqa_retriever is None:
+                raise RuntimeError(
+                    "INSURANCEQA_RETRIEVAL_MODE=switch is active, but InsuranceQA retriever is unavailable. "
+                    "Check dataset index build and dependencies."
                 )
 
-                auto_build_insuranceqa = os.getenv("INSURANCEQA_AUTO_BUILD", "true").strip().lower() in {
-                    "1",
-                    "true",
-                    "yes",
-                    "y",
-                    "on",
-                }
-                if auto_build_insuranceqa and _insuranceqa_collection_is_empty(INSURANCEQA_COLLECTION_NAME):
-                    print("Info: InsuranceQA collection is empty. Building index from dataset...")
-                    build_insuranceqa_index(force_reindex=False)
+            if insuranceqa_retriever is not None:
+                def _invoke_with_k(retriever, query: str, k: int) -> List[Document]:
+                    # Many retrievers store 'k' in search_kwargs; update temporarily for this call.
+                    search_kwargs = getattr(retriever, "search_kwargs", None)
+                    if isinstance(search_kwargs, dict):
+                        prev_k = search_kwargs.get("k")
+                        search_kwargs["k"] = k
+                        try:
+                            return retriever.invoke(query)
+                        finally:
+                            if prev_k is None:
+                                search_kwargs.pop("k", None)
+                            else:
+                                search_kwargs["k"] = prev_k
+                    return retriever.invoke(query)
 
-                insuranceqa_retriever = get_insuranceqa_retriever()
-            except Exception as exc:
-                print(f"Warning: Failed to initialize InsuranceQA retriever: {exc}")
-                insuranceqa_retriever = None
+                base_retriever = hybrid_retriever
 
-        if use_insuranceqa and insuranceqa_mode == "switch" and insuranceqa_retriever is None:
-            raise RuntimeError(
-                "INSURANCEQA_RETRIEVAL_MODE=switch is active, but InsuranceQA retriever is unavailable. "
-                "Check dataset index build and dependencies."
-            )
+                def merged_retriever(query: str, k: Optional[int] = None) -> List[Document]:
+                    target_k = k or SETTINGS.retrieval.top_k
+                    base_docs = base_retriever(query, k=target_k)
+                    qa_docs = _invoke_with_k(insuranceqa_retriever, query, target_k)
 
-        if insuranceqa_retriever is not None:
-            def _invoke_with_k(retriever, query: str, k: int) -> List[Document]:
-                # Many retrievers store 'k' in search_kwargs; update temporarily for this call.
-                search_kwargs = getattr(retriever, "search_kwargs", None)
-                if isinstance(search_kwargs, dict):
-                    prev_k = search_kwargs.get("k")
-                    search_kwargs["k"] = k
-                    try:
-                        return retriever.invoke(query)
-                    finally:
-                        if prev_k is None:
-                            search_kwargs.pop("k", None)
-                        else:
-                            search_kwargs["k"] = prev_k
-                return retriever.invoke(query)
+                    combined: List[Document] = []
+                    seen = set()
+                    for doc in base_docs + qa_docs:
+                        key = (doc.metadata.get("source"), doc.metadata.get("page"), doc.page_content[:80])
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        combined.append(doc)
+                        if len(combined) >= target_k:
+                            break
+                    return combined
 
-            base_retriever = hybrid_retriever
+                def insuranceqa_only(query: str, k: Optional[int] = None) -> List[Document]:
+                    target_k = k or SETTINGS.retrieval.top_k
+                    return _invoke_with_k(insuranceqa_retriever, query, target_k)
 
-            def merged_retriever(query: str, k: Optional[int] = None) -> List[Document]:
-                target_k = k or SETTINGS.retrieval.top_k
-                base_docs = base_retriever(query, k=target_k)
-                qa_docs = _invoke_with_k(insuranceqa_retriever, query, target_k)
+                def insuranceqa_auto(query: str, k: Optional[int] = None) -> List[Document]:
+                    # Route InsuranceQA-style questions to the InsuranceQA retriever,
+                    # otherwise use the PDF retriever (or merged behavior if desired).
+                    if _should_route_to_insuranceqa(query):
+                        return insuranceqa_only(query, k=k)
+                    return base_retriever(query, k=k)
 
-                combined: List[Document] = []
-                seen = set()
-                for doc in base_docs + qa_docs:
-                    key = (doc.metadata.get("source"), doc.metadata.get("page"), doc.page_content[:80])
-                    if key in seen:
-                        continue
-                    seen.add(key)
-                    combined.append(doc)
-                    if len(combined) >= target_k:
-                        break
-                return combined
+                if insuranceqa_mode == "switch":
+                    hybrid_retriever = insuranceqa_only
+                elif insuranceqa_mode == "auto":
+                    hybrid_retriever = insuranceqa_auto
+                else:
+                    hybrid_retriever = merged_retriever
 
-            def insuranceqa_only(query: str, k: Optional[int] = None) -> List[Document]:
-                target_k = k or SETTINGS.retrieval.top_k
-                return _invoke_with_k(insuranceqa_retriever, query, target_k)
+            self.components = {
+                "vector_store": vector_store,
+                "hybrid_retriever": hybrid_retriever,
+                "insuranceqa_retriever": insuranceqa_retriever,
+                "reranker_model": self.build_reranker(),
+                "compressor_llm": self.build_compressor(),
+                "llm": initialize_llm(),
+                "router_llm": initialize_router_llm(),
+                "self_check_llm": initialize_self_check_llm(),
+                "query_rewrite_llm": initialize_query_rewrite_llm(),
+                "generation_chain": self.build_generation_chain(initialize_llm()),
+            }
 
-            def insuranceqa_auto(query: str, k: Optional[int] = None) -> List[Document]:
-                # Route InsuranceQA-style questions to the InsuranceQA retriever,
-                # otherwise use the PDF retriever (or merged behavior if desired).
-                if _should_route_to_insuranceqa(query):
-                    return insuranceqa_only(query, k=k)
-                return base_retriever(query, k=k)
-
-            if insuranceqa_mode == "switch":
-                hybrid_retriever = insuranceqa_only
-            elif insuranceqa_mode == "auto":
-                hybrid_retriever = insuranceqa_auto
-            else:
-                hybrid_retriever = merged_retriever
-
-        self.components = {
-            "vector_store": vector_store,
-            "hybrid_retriever": hybrid_retriever,
-            "insuranceqa_retriever": insuranceqa_retriever,
-            "reranker_model": self.build_reranker(),
-            "compressor_llm": self.build_compressor(),
-            "llm": initialize_llm(),
-            "router_llm": initialize_router_llm(),
-            "self_check_llm": initialize_self_check_llm(),
-            "query_rewrite_llm": initialize_query_rewrite_llm(),
-            "generation_chain": self.build_generation_chain(initialize_llm()),
-        }
-
-        _save_model_config()
-        return self.components
+            _save_model_config()
+            return self.components
 
     def run(self, query: str, chat_history: Optional[List[dict]] = None) -> AnswerResult:
         start_time = datetime.now()
         chat_history = chat_history or []
         original_query = query
+
+        if _insuranceqa_exact_match_enabled():
+            exact_answer = lookup_insuranceqa_answer(query)
+            if exact_answer:
+                exact_doc = Document(
+                    page_content=f"Question: {query}\nAnswer: {exact_answer}",
+                    metadata={"source": "insuranceqa_v2_local", "dataset": "InsuranceQA", "exact_match": True},
+                )
+                sources = [
+                    Source(
+                        document_id="insuranceqa_v2_local",
+                        document_title="insuranceQA-v2 (local JSONL)",
+                        page=None,
+                        section="exact-match",
+                        snippet=exact_answer[:300],
+                    )
+                ]
+                latency_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+                audit_log(
+                    query=original_query,
+                    retrieved_documents=[exact_doc],
+                    compressed_context=[exact_doc],
+                    generated_answer=exact_answer,
+                    chat_history=chat_history,
+                    retrieval_needed="RETRIEVE",
+                    final_query=original_query,
+                    sources=[s.__dict__ for s in sources],
+                    latency_ms=latency_ms,
+                    retries=0,
+                    provider=self.settings.provider,
+                    answer_style=ANSWER_STYLE,
+                    response_language=RESPONSE_LANGUAGE,
+                    exact_insuranceqa_match=True,
+                )
+                return AnswerResult(answer=exact_answer, sources=sources, query=query, latency_ms=latency_ms)
 
         components = self.initialize(force_reindex=pdfs_have_changed())
 
@@ -958,13 +1145,21 @@ class RAGPipeline:
 
 def initialize_pipeline(force_reindex: bool = False):
     global _pipeline
-    if _pipeline is None:
-        _pipeline = RAGPipeline(SETTINGS)
-    return _pipeline.initialize(force_reindex=force_reindex)
+    with _pipeline_lock:
+        if _pipeline is None:
+            _pipeline = RAGPipeline(SETTINGS)
+        return _pipeline.initialize(force_reindex=force_reindex)
 
 
 def run_rag(question: str, chat_history: Optional[List[dict]] = None) -> AnswerResult:
     global _pipeline
-    if _pipeline is None:
-        _pipeline = RAGPipeline(SETTINGS)
-    return _pipeline.run(question, chat_history=chat_history)
+    with _pipeline_lock:
+        if _pipeline is None:
+            _pipeline = RAGPipeline(SETTINGS)
+        pipeline = _pipeline
+    return pipeline.run(question, chat_history=chat_history)
+
+
+def is_pipeline_ready() -> bool:
+    with _pipeline_lock:
+        return _pipeline is not None and _pipeline.components is not None
