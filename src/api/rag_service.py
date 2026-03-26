@@ -43,6 +43,7 @@ except Exception:
 HuggingFaceEmbeddings = None
 ChatOllama = None
 FlagReranker = None
+CrossEncoder = None
 ChatPromptTemplate = None
 PyPDFLoader = None
 BM25Retriever = None
@@ -273,6 +274,15 @@ def _get_flag_reranker_cls():
 
         FlagReranker = _FlagReranker
     return FlagReranker
+
+
+def _get_cross_encoder_cls():
+    global CrossEncoder
+    if CrossEncoder is None:
+        from sentence_transformers import CrossEncoder as _CrossEncoder
+
+        CrossEncoder = _CrossEncoder
+    return CrossEncoder
 
 
 def _get_chat_prompt_template_cls():
@@ -578,9 +588,27 @@ def initialize_reranker():
 def build_reranker():
     try:
         reranker_cls = _get_flag_reranker_cls()
-    except Exception:
-        print("Warning: FlagEmbedding not available. Falling back to retrieval order.")
-        return None
+    except Exception as exc:
+        print(f"Warning: FlagEmbedding not available ({exc}). Trying sentence-transformers CrossEncoder fallback.")
+        try:
+            cross_encoder_cls = _get_cross_encoder_cls()
+            model = cross_encoder_cls(SETTINGS.reranker.model)
+
+            class _CrossEncoderAdapter:
+                def __init__(self, ce_model):
+                    self._ce_model = ce_model
+
+                def compute_score(self, pairs):
+                    return self._ce_model.predict(pairs).tolist()
+
+            print(f"Info: Using CrossEncoder fallback reranker with model '{SETTINGS.reranker.model}'.")
+            return _CrossEncoderAdapter(model)
+        except Exception as ce_exc:
+            print(
+                "Warning: CrossEncoder fallback not available "
+                f"({ce_exc}). Falling back to retrieval order."
+            )
+            return None
     try:
         return reranker_cls(SETTINGS.reranker.model, use_fp16=SETTINGS.reranker.use_fp16)
     except Exception as exc:
