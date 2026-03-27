@@ -66,6 +66,15 @@ EVAL_LLM_MODEL=lfm2.5-thinking:1.2b
 # Reserved for a future OCR/scan pipeline; the current PDF flow uses PyPDFLoader directly.
 OCR_MODEL=glm-ocr:bf16
 
+# Safety layer
+SAFETY_ENABLED=true
+SAFETY_MODE=monitor
+SAFETY_MIN_GROUNDEDNESS=0.7
+SAFETY_BLOCK_PII=true
+SAFETY_BLOCK_INJECTION=true
+SAFETY_FAIL_CLOSED=true
+SAFETY_FALLBACK_TEXT=I cannot provide a safe, policy-compliant answer for this request. Please rephrase.
+
 # Data paths
 DATA_DIR=./data
 PDF_DIRECTORY=./data/raw/pdfs

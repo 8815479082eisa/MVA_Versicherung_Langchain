@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Literal, Optional
 
 Provider = Literal["ollama"]
+SafetyMode = Literal["off", "monitor", "enforce"]
 
 
 def _env_bool(name: str, default: bool = False) -> bool:
@@ -99,6 +100,17 @@ class ChunkingConfig:
 
 
 @dataclass(frozen=True)
+class SafetyConfig:
+    enabled: bool
+    mode: SafetyMode
+    min_groundedness: float
+    block_pii: bool
+    block_injection: bool
+    fail_closed: bool
+    fallback_text: str
+
+
+@dataclass(frozen=True)
 class ModelSettings:
     provider: Provider
     ollama_base_url: str
@@ -109,6 +121,7 @@ class ModelSettings:
     retrieval: RetrievalConfig
     storage: StorageConfig
     chunking: ChunkingConfig
+    safety: SafetyConfig
 
 
 def load_model_settings() -> ModelSettings:
@@ -207,6 +220,32 @@ def load_model_settings() -> ModelSettings:
         chunk_overlap=_env_int("CHUNK_OVERLAP", 200),
     )
 
+    raw_mode = os.getenv("SAFETY_MODE", "monitor").strip().lower()
+    safety_mode: SafetyMode
+    if raw_mode in {"off", "monitor", "enforce"}:
+        safety_mode = raw_mode  # type: ignore[assignment]
+    else:
+        safety_mode = "monitor"
+
+    min_groundedness = _env_float("SAFETY_MIN_GROUNDEDNESS", 0.7)
+    if min_groundedness < 0.0:
+        min_groundedness = 0.0
+    if min_groundedness > 1.0:
+        min_groundedness = 1.0
+
+    safety = SafetyConfig(
+        enabled=_env_bool("SAFETY_ENABLED", True),
+        mode=safety_mode,
+        min_groundedness=min_groundedness,
+        block_pii=_env_bool("SAFETY_BLOCK_PII", True),
+        block_injection=_env_bool("SAFETY_BLOCK_INJECTION", True),
+        fail_closed=_env_bool("SAFETY_FAIL_CLOSED", True),
+        fallback_text=os.getenv(
+            "SAFETY_FALLBACK_TEXT",
+            "I cannot provide a safe, policy-compliant answer for this request. Please rephrase.",
+        ).strip(),
+    )
+
     return ModelSettings(
         provider=provider,
         ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
@@ -217,4 +256,5 @@ def load_model_settings() -> ModelSettings:
         retrieval=retrieval,
         storage=storage,
         chunking=chunking,
+        safety=safety,
     )

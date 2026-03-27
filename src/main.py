@@ -256,6 +256,8 @@ async def health_check():
         "pipelineInitializing": pipeline_initializing,
         "pipelineInitError": _startup_init_error,
         "insuranceqaExactMatchShortcut": rag_service.insuranceqa_exact_match_shortcut_enabled(),
+        "safetyEnabled": rag_service.safety_enabled(),
+        "safetyMode": rag_service.safety_mode(),
     }
 
 

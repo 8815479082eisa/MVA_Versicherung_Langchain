@@ -39,6 +39,11 @@ try:
 except Exception:
     from src.config.models import ModelSettings, load_model_settings
 
+try:
+    from core.safety_audit import SafetyAuditLayer, SafetyResult
+except Exception:
+    from src.core.safety_audit import SafetyAuditLayer, SafetyResult
+
 
 HuggingFaceEmbeddings = None
 ChatOllama = None
@@ -207,6 +212,14 @@ def insuranceqa_exact_match_shortcut_enabled() -> bool:
     return _insuranceqa_exact_match_enabled()
 
 
+def safety_enabled() -> bool:
+    return SETTINGS.safety.enabled and SETTINGS.safety.mode != "off"
+
+
+def safety_mode() -> str:
+    return SETTINGS.safety.mode
+
+
 def _should_route_to_insuranceqa(query: str) -> bool:
     """
     Decide whether a query should use the InsuranceQA retriever.
@@ -338,6 +351,9 @@ def _model_config_payload() -> dict:
         "router_model": SETTINGS.roles.router,
         "self_check_model": SETTINGS.roles.self_check,
         "query_rewrite_model": SETTINGS.roles.rewrite,
+        "safety_enabled": SETTINGS.safety.enabled,
+        "safety_mode": SETTINGS.safety.mode,
+        "safety_min_groundedness": SETTINGS.safety.min_groundedness,
     }
 
 
@@ -378,6 +394,30 @@ def audit_log(
     audit_path.parent.mkdir(parents=True, exist_ok=True)
     with audit_path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+
+
+def _safety_result_to_dict(result: Optional[SafetyResult]) -> dict:
+    if result is None:
+        return {}
+    return {
+        "allow": result.allow,
+        "risk_level": result.risk_level,
+        "reasons": list(result.reasons),
+        "action": result.action,
+        "scores": dict(result.scores),
+        "details": dict(result.details),
+    }
+
+
+def _default_allow_safety_result(stage: str) -> SafetyResult:
+    return SafetyResult(
+        allow=True,
+        risk_level="low",
+        reasons=[],
+        action="allow",
+        scores={},
+        details={"stage": stage, "mode": SETTINGS.safety.mode},
+    )
 
 
 def _load_model_config() -> dict: #This function is used to load the model config
@@ -1027,6 +1067,7 @@ class RAGPipeline:
                 "self_check_llm": initialize_self_check_llm(),
                 "query_rewrite_llm": initialize_query_rewrite_llm(),
                 "generation_chain": self.build_generation_chain(initialize_llm()),
+                "safety_checker": SafetyAuditLayer(self.settings.safety),
             }
 
             _save_model_config()
@@ -1036,6 +1077,55 @@ class RAGPipeline:
         start_time = datetime.now()
         chat_history = chat_history or []
         original_query = query
+        local_safety_checker = SafetyAuditLayer(self.settings.safety)
+        safety_pre_result = _default_allow_safety_result("pre_query")
+        safety_context_result = _default_allow_safety_result("context")
+        safety_post_result = _default_allow_safety_result("post_generation")
+        final_safety_decision = "allow"
+
+        try:
+            safety_pre_result = local_safety_checker.check_query_safety(query, chat_history)
+        except Exception as exc:
+            if self.settings.safety.fail_closed and local_safety_checker.is_active:
+                safety_pre_result = SafetyResult(
+                    allow=False,
+                    risk_level="high",
+                    reasons=["safety_precheck_error"],
+                    action="fallback",
+                    details={"stage": "pre_query", "error": str(exc)},
+                )
+
+        if not safety_pre_result.allow:
+            blocked_answer = local_safety_checker.apply_safety_action(safety_pre_result, "")
+            latency_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+            final_safety_decision = f"pre_{safety_pre_result.action}"
+            audit_log(
+                query=original_query,
+                retrieved_documents=[],
+                compressed_context=[],
+                generated_answer=blocked_answer,
+                chat_history=chat_history,
+                retrieval_needed="SAFETY_PRECHECK_BLOCKED",
+                final_query=original_query,
+                sources=[],
+                latency_ms=latency_ms,
+                retries=0,
+                provider=self.settings.provider,
+                answer_style=ANSWER_STYLE,
+                response_language=RESPONSE_LANGUAGE,
+                safety_mode=self.settings.safety.mode,
+                safety_enabled=local_safety_checker.is_active,
+                safety_decision=final_safety_decision,
+                safety_risks=list(safety_pre_result.reasons),
+                safety_scores={"pre": dict(safety_pre_result.scores)},
+                safety_block_reason=safety_pre_result.reasons[0] if safety_pre_result.reasons else "precheck_blocked",
+                safety_results={
+                    "pre": _safety_result_to_dict(safety_pre_result),
+                    "context": _safety_result_to_dict(safety_context_result),
+                    "post": _safety_result_to_dict(safety_post_result),
+                },
+            )
+            return AnswerResult(answer=blocked_answer, sources=[], query=query, latency_ms=latency_ms)
 
         if _insuranceqa_exact_match_enabled():
             exact_answer = lookup_insuranceqa_answer(query)
@@ -1053,12 +1143,31 @@ class RAGPipeline:
                         snippet=exact_answer[:300],
                     )
                 ]
+                final_answer = exact_answer
+                try:
+                    safety_post_result = local_safety_checker.check_answer_safety(query, [exact_doc], exact_answer)
+                except Exception as exc:
+                    if self.settings.safety.fail_closed and local_safety_checker.is_active:
+                        safety_post_result = SafetyResult(
+                            allow=False,
+                            risk_level="high",
+                            reasons=["safety_postcheck_error"],
+                            action="fallback",
+                            details={"stage": "post_generation", "error": str(exc)},
+                        )
+
+                if not safety_post_result.allow:
+                    final_answer = local_safety_checker.apply_safety_action(safety_post_result, exact_answer)
+                    if safety_post_result.action in {"block", "fallback"}:
+                        sources = []
+                    final_safety_decision = f"post_{safety_post_result.action}"
+
                 latency_ms = int((datetime.now() - start_time).total_seconds() * 1000)
                 audit_log(
                     query=original_query,
                     retrieved_documents=[exact_doc],
                     compressed_context=[exact_doc],
-                    generated_answer=exact_answer,
+                    generated_answer=final_answer,
                     chat_history=chat_history,
                     retrieval_needed="RETRIEVE",
                     final_query=original_query,
@@ -1069,10 +1178,28 @@ class RAGPipeline:
                     answer_style=ANSWER_STYLE,
                     response_language=RESPONSE_LANGUAGE,
                     exact_insuranceqa_match=True,
+                    safety_mode=self.settings.safety.mode,
+                    safety_enabled=local_safety_checker.is_active,
+                    safety_decision=final_safety_decision,
+                    safety_risks=list(set(safety_pre_result.reasons + safety_post_result.reasons)),
+                    safety_scores={
+                        "pre": dict(safety_pre_result.scores),
+                        "context": dict(safety_context_result.scores),
+                        "post": dict(safety_post_result.scores),
+                    },
+                    safety_block_reason=safety_post_result.reasons[0]
+                    if (not safety_post_result.allow and safety_post_result.reasons)
+                    else None,
+                    safety_results={
+                        "pre": _safety_result_to_dict(safety_pre_result),
+                        "context": _safety_result_to_dict(safety_context_result),
+                        "post": _safety_result_to_dict(safety_post_result),
+                    },
                 )
-                return AnswerResult(answer=exact_answer, sources=sources, query=query, latency_ms=latency_ms)
+                return AnswerResult(answer=final_answer, sources=sources, query=query, latency_ms=latency_ms)
 
         components = self.initialize(force_reindex=pdfs_have_changed())
+        safety_checker = components.get("safety_checker", local_safety_checker)
 
         if self.settings.retrieval.force_retrieval:
             retrieval_needed = "RETRIEVE"
@@ -1096,6 +1223,21 @@ class RAGPipeline:
                 provider=self.settings.provider,
                 answer_style=ANSWER_STYLE,
                 response_language=RESPONSE_LANGUAGE,
+                safety_mode=self.settings.safety.mode,
+                safety_enabled=safety_checker.is_active,
+                safety_decision=final_safety_decision,
+                safety_risks=list(safety_pre_result.reasons),
+                safety_scores={
+                    "pre": dict(safety_pre_result.scores),
+                    "context": dict(safety_context_result.scores),
+                    "post": dict(safety_post_result.scores),
+                },
+                safety_block_reason=None,
+                safety_results={
+                    "pre": _safety_result_to_dict(safety_pre_result),
+                    "context": _safety_result_to_dict(safety_context_result),
+                    "post": _safety_result_to_dict(safety_post_result),
+                },
             )
             return AnswerResult(answer=answer, sources=sources, query=query, latency_ms=latency_ms)
 
@@ -1145,14 +1287,57 @@ class RAGPipeline:
             context_docs_for_log: List[Document] = []
         else:
             context_docs = reranked_docs
-            if self.settings.retrieval.enable_context_compression:
-                context_docs = compress_context(components["compressor_llm"], reranked_docs, current_query)
+            try:
+                safety_context_result = safety_checker.check_context_safety(reranked_docs)
+            except Exception as exc:
+                if self.settings.safety.fail_closed and safety_checker.is_active:
+                    safety_context_result = SafetyResult(
+                        allow=False,
+                        risk_level="high",
+                        reasons=["safety_context_check_error"],
+                        action="fallback",
+                        details={"stage": "context", "error": str(exc)},
+                    )
 
-            answer = generate_answer(components["llm"], current_query, context_docs, chat_history)
-            sources = [document_to_source(doc) for doc in reranked_docs]
-            context_docs_for_log = context_docs
+            if not safety_context_result.allow:
+                answer = safety_checker.apply_safety_action(safety_context_result, "")
+                sources = []
+                context_docs_for_log = reranked_docs
+                final_safety_decision = f"context_{safety_context_result.action}"
+            else:
+                if self.settings.retrieval.enable_context_compression:
+                    context_docs = compress_context(components["compressor_llm"], reranked_docs, current_query)
+
+                answer = generate_answer(components["llm"], current_query, context_docs, chat_history)
+                sources = [document_to_source(doc) for doc in reranked_docs]
+                context_docs_for_log = context_docs
+
+                try:
+                    safety_post_result = safety_checker.check_answer_safety(current_query, context_docs, answer)
+                except Exception as exc:
+                    if self.settings.safety.fail_closed and safety_checker.is_active:
+                        safety_post_result = SafetyResult(
+                            allow=False,
+                            risk_level="high",
+                            reasons=["safety_postcheck_error"],
+                            action="fallback",
+                            details={"stage": "post_generation", "error": str(exc)},
+                        )
+
+                if not safety_post_result.allow:
+                    answer = safety_checker.apply_safety_action(safety_post_result, answer)
+                    if safety_post_result.action in {"block", "fallback"}:
+                        sources = []
+                    final_safety_decision = f"post_{safety_post_result.action}"
 
         latency_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+        safety_risks = list(
+            set(
+                safety_pre_result.reasons
+                + safety_context_result.reasons
+                + safety_post_result.reasons
+            )
+        )
         audit_log(
             query=original_query,
             retrieved_documents=last_retrieved_docs,
@@ -1167,6 +1352,21 @@ class RAGPipeline:
             provider=self.settings.provider,
             answer_style=ANSWER_STYLE,
             response_language=RESPONSE_LANGUAGE,
+            safety_mode=self.settings.safety.mode,
+            safety_enabled=safety_checker.is_active,
+            safety_decision=final_safety_decision,
+            safety_risks=safety_risks,
+            safety_scores={
+                "pre": dict(safety_pre_result.scores),
+                "context": dict(safety_context_result.scores),
+                "post": dict(safety_post_result.scores),
+            },
+            safety_block_reason=safety_risks[0] if safety_risks and final_safety_decision != "allow" else None,
+            safety_results={
+                "pre": _safety_result_to_dict(safety_pre_result),
+                "context": _safety_result_to_dict(safety_context_result),
+                "post": _safety_result_to_dict(safety_post_result),
+            },
         )
         return AnswerResult(answer=answer, sources=sources, query=query, latency_ms=latency_ms)
 
