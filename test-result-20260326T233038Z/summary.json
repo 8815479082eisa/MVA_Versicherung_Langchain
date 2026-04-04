@@ -1,0 +1,13 @@
+{
+  "result_label": "test-result-20260326T233038Z",
+  "run_id": "20260326T233038Z",
+  "dataset_source": "data\\benchmarks\\qa\\insuranceqa\\data_insuranceqa_1000.jsonl",
+  "audit_log_source": "data\\processed\\logs\\audit.log",
+  "audit_timestamp_prefix": "2026-03-26T23:",
+  "audit_start_timestamp": null,
+  "audit_end_timestamp": null,
+  "processed": 20,
+  "failed": 0,
+  "exact_match": 0.0,
+  "token_f1": 0.3699221767271236
+}

@@ -1,0 +1,9 @@
+{
+  "result_label": "test-result-20260326T222652Z",
+  "run_id": "20260326T222652Z",
+  "dataset_source": "data\\benchmarks\\qa\\insuranceqa\\data_insuranceqa_1000.jsonl",
+  "processed": 20,
+  "failed": 0,
+  "exact_match": 0.0,
+  "token_f1": 0.3699221767271236
+}

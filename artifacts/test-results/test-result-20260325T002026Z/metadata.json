@@ -1,0 +1,33 @@
+{
+  "test_result_id": "test-result-20260325T002026Z",
+  "run_id": "20260325T002226Z",
+  "timestamp": "2026-03-25T00:20:26Z",
+  "objective": "Baseline preliminary 20-sample InsuranceQA EM/F1 run via external /api/ask evaluation.",
+  "pipeline_id": "pipeline-20260325",
+  "pipeline_readme_path": "docs/pipelines/pipeline-20260325/README.md",
+  "pipeline_snapshot_path": "snapshots/pipeline-readme-snapshot.md",
+  "test_setup_id": "test-setup-first-20-EM-F1",
+  "test_setup_readme_path": "docs/test-setups/test-setup-first-20-EM-F1/README.md",
+  "test_setup_snapshot_path": "snapshots/test-setup-readme-snapshot.md",
+  "commit_hash": "7d2adf72297540e1a86baf5d893ea82d96cee695",
+  "commit_hash_status": "recorded_in_original_artifact",
+  "run_command": "/usr/bin/python3 scripts/eval_insuranceqa.py --api-url http://localhost:8000/api/ask --split test --max-samples 20 --count 20 --timeout 3600",
+  "run_command_path": "run-command.txt",
+  "metrics_files": [
+    "summary.json"
+  ],
+  "result_files": [
+    "eval_insuranceqa_results.jsonl"
+  ],
+  "reference_files": [
+    "pipeline-reference.txt",
+    "test-setup-reference.txt",
+    "snapshots/pipeline-readme-snapshot.md",
+    "snapshots/test-setup-readme-snapshot.md"
+  ],
+  "notes": [
+    "Folder label timestamp differs from run_id timestamp (002026Z vs 002226Z).",
+    "Run metrics are preserved from existing artifact documentation and JSONL evidence."
+  ],
+  "status": "completed"
+}
