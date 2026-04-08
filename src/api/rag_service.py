@@ -1082,10 +1082,22 @@ class RAGPipeline:
         safety_context_result = _default_allow_safety_result("context")
         safety_post_result = _default_allow_safety_result("post_generation")
         final_safety_decision = "allow"
+        safety_system_error = False
+        safety_error_stage: Optional[str] = None
+        safety_error_type: Optional[str] = None
+        safety_error_message: Optional[str] = None
+
+        def _mark_safety_system_error(stage: str, exc: Exception) -> None:
+            nonlocal safety_system_error, safety_error_stage, safety_error_type, safety_error_message
+            safety_system_error = True
+            safety_error_stage = stage
+            safety_error_type = type(exc).__name__
+            safety_error_message = str(exc)
 
         try:
             safety_pre_result = local_safety_checker.check_query_safety(query, chat_history)
         except Exception as exc:
+            _mark_safety_system_error("pre_query", exc)
             if self.settings.safety.fail_closed and local_safety_checker.is_active:
                 safety_pre_result = SafetyResult(
                     allow=False,
@@ -1098,7 +1110,10 @@ class RAGPipeline:
         if not safety_pre_result.allow:
             blocked_answer = local_safety_checker.apply_safety_action(safety_pre_result, "")
             latency_ms = int((datetime.now() - start_time).total_seconds() * 1000)
-            final_safety_decision = f"pre_{safety_pre_result.action}"
+            if safety_system_error and safety_error_stage == "pre_query":
+                final_safety_decision = f"pre_system_error_{safety_pre_result.action}"
+            else:
+                final_safety_decision = f"pre_{safety_pre_result.action}"
             audit_log(
                 query=original_query,
                 retrieved_documents=[],
@@ -1124,6 +1139,10 @@ class RAGPipeline:
                     "context": _safety_result_to_dict(safety_context_result),
                     "post": _safety_result_to_dict(safety_post_result),
                 },
+                safety_system_error=safety_system_error,
+                safety_error_stage=safety_error_stage,
+                safety_error_type=safety_error_type,
+                safety_error_message=safety_error_message,
             )
             return AnswerResult(answer=blocked_answer, sources=[], query=query, latency_ms=latency_ms)
 
@@ -1147,6 +1166,7 @@ class RAGPipeline:
                 try:
                     safety_post_result = local_safety_checker.check_answer_safety(query, [exact_doc], exact_answer)
                 except Exception as exc:
+                    _mark_safety_system_error("post_generation", exc)
                     if self.settings.safety.fail_closed and local_safety_checker.is_active:
                         safety_post_result = SafetyResult(
                             allow=False,
@@ -1160,7 +1180,10 @@ class RAGPipeline:
                     final_answer = local_safety_checker.apply_safety_action(safety_post_result, exact_answer)
                     if safety_post_result.action in {"block", "fallback"}:
                         sources = []
-                    final_safety_decision = f"post_{safety_post_result.action}"
+                    if safety_system_error and safety_error_stage == "post_generation":
+                        final_safety_decision = f"post_system_error_{safety_post_result.action}"
+                    else:
+                        final_safety_decision = f"post_{safety_post_result.action}"
 
                 latency_ms = int((datetime.now() - start_time).total_seconds() * 1000)
                 audit_log(
@@ -1195,6 +1218,10 @@ class RAGPipeline:
                         "context": _safety_result_to_dict(safety_context_result),
                         "post": _safety_result_to_dict(safety_post_result),
                     },
+                    safety_system_error=safety_system_error,
+                    safety_error_stage=safety_error_stage,
+                    safety_error_type=safety_error_type,
+                    safety_error_message=safety_error_message,
                 )
                 return AnswerResult(answer=final_answer, sources=sources, query=query, latency_ms=latency_ms)
 
@@ -1238,6 +1265,10 @@ class RAGPipeline:
                     "context": _safety_result_to_dict(safety_context_result),
                     "post": _safety_result_to_dict(safety_post_result),
                 },
+                safety_system_error=safety_system_error,
+                safety_error_stage=safety_error_stage,
+                safety_error_type=safety_error_type,
+                safety_error_message=safety_error_message,
             )
             return AnswerResult(answer=answer, sources=sources, query=query, latency_ms=latency_ms)
 
@@ -1290,6 +1321,7 @@ class RAGPipeline:
             try:
                 safety_context_result = safety_checker.check_context_safety(reranked_docs)
             except Exception as exc:
+                _mark_safety_system_error("context", exc)
                 if self.settings.safety.fail_closed and safety_checker.is_active:
                     safety_context_result = SafetyResult(
                         allow=False,
@@ -1303,7 +1335,10 @@ class RAGPipeline:
                 answer = safety_checker.apply_safety_action(safety_context_result, "")
                 sources = []
                 context_docs_for_log = reranked_docs
-                final_safety_decision = f"context_{safety_context_result.action}"
+                if safety_system_error and safety_error_stage == "context":
+                    final_safety_decision = f"context_system_error_{safety_context_result.action}"
+                else:
+                    final_safety_decision = f"context_{safety_context_result.action}"
             else:
                 if self.settings.retrieval.enable_context_compression:
                     context_docs = compress_context(components["compressor_llm"], reranked_docs, current_query)
@@ -1315,6 +1350,7 @@ class RAGPipeline:
                 try:
                     safety_post_result = safety_checker.check_answer_safety(current_query, context_docs, answer)
                 except Exception as exc:
+                    _mark_safety_system_error("post_generation", exc)
                     if self.settings.safety.fail_closed and safety_checker.is_active:
                         safety_post_result = SafetyResult(
                             allow=False,
@@ -1328,7 +1364,10 @@ class RAGPipeline:
                     answer = safety_checker.apply_safety_action(safety_post_result, answer)
                     if safety_post_result.action in {"block", "fallback"}:
                         sources = []
-                    final_safety_decision = f"post_{safety_post_result.action}"
+                    if safety_system_error and safety_error_stage == "post_generation":
+                        final_safety_decision = f"post_system_error_{safety_post_result.action}"
+                    else:
+                        final_safety_decision = f"post_{safety_post_result.action}"
 
         latency_ms = int((datetime.now() - start_time).total_seconds() * 1000)
         safety_risks = list(
@@ -1367,6 +1406,10 @@ class RAGPipeline:
                 "context": _safety_result_to_dict(safety_context_result),
                 "post": _safety_result_to_dict(safety_post_result),
             },
+            safety_system_error=safety_system_error,
+            safety_error_stage=safety_error_stage,
+            safety_error_type=safety_error_type,
+            safety_error_message=safety_error_message,
         )
         return AnswerResult(answer=answer, sources=sources, query=query, latency_ms=latency_ms)
 

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal, Optional, Tuple
 
 Provider = Literal["ollama"]
 SafetyMode = Literal["off", "monitor", "enforce"]
@@ -34,6 +34,13 @@ def _env_float(name: str, default: float) -> float:
         return float(raw)
     except ValueError:
         return default
+
+
+def _env_csv(name: str) -> Tuple[str, ...]:
+    raw = os.getenv(name, "")
+    if not raw.strip():
+        return ()
+    return tuple(item.strip() for item in raw.split(",") if item.strip())
 
 
 @dataclass(frozen=True)
@@ -108,6 +115,10 @@ class SafetyConfig:
     block_injection: bool
     fail_closed: bool
     fallback_text: str
+    pii_allowed_emails: Tuple[str, ...] = field(default_factory=tuple)
+    pii_allowed_phone_numbers: Tuple[str, ...] = field(default_factory=tuple)
+    pii_allowed_domains: Tuple[str, ...] = field(default_factory=tuple)
+    pii_allowed_phone_prefixes: Tuple[str, ...] = field(default_factory=tuple)
 
 
 @dataclass(frozen=True)
@@ -233,17 +244,22 @@ def load_model_settings() -> ModelSettings:
     if min_groundedness > 1.0:
         min_groundedness = 1.0
 
+# ein objekt wird erstellt und zurückgegeben 
     safety = SafetyConfig(
         enabled=_env_bool("SAFETY_ENABLED", True),
         mode=safety_mode,
         min_groundedness=min_groundedness,
-        block_pii=_env_bool("SAFETY_BLOCK_PII", True),
+        block_pii=_env_bool("SAFETY_BLOCK_PII", True), # wenn true, dann werden pii-daten blockiert
         block_injection=_env_bool("SAFETY_BLOCK_INJECTION", True),
-        fail_closed=_env_bool("SAFETY_FAIL_CLOSED", True),
+        fail_closed=_env_bool("SAFETY_FAIL_CLOSED", True), # wenn true, beim fehlschlagen oder zweifelhaften ergebnis, wird der fallback-text zurückgegeben
         fallback_text=os.getenv(
             "SAFETY_FALLBACK_TEXT",
             "I cannot provide a safe, policy-compliant answer for this request. Please rephrase.",
         ).strip(),
+        pii_allowed_emails=_env_csv("SAFETY_PII_ALLOWED_EMAILS"), # liste von erlaubten emails  
+        pii_allowed_phone_numbers=_env_csv("SAFETY_PII_ALLOWED_PHONE_NUMBERS"), # liste von erlaubten telefonnummern
+        pii_allowed_domains=_env_csv("SAFETY_PII_ALLOWED_DOMAINS"), # liste von erlaubten domains
+        pii_allowed_phone_prefixes=_env_csv("SAFETY_PII_ALLOWED_PHONE_PREFIXES"), # liste von erlaubten telefonprefixen
     )
 
     return ModelSettings(

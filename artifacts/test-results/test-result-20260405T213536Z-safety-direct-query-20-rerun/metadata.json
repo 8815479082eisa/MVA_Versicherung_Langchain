@@ -1,0 +1,10 @@
+{
+  "test_result_id": "test-result-20260405T213536Z-safety-direct-query-20-rerun",
+  "objective": "Direct-query safety validation on input stage with 20 queries",
+  "stage": "input",
+  "pipeline_id": "current-working-pipeline",
+  "test_setup_id": "test-setup-safety-direct-query-20",
+  "endpoint": "/api/ask",
+  "request_field": "question",
+  "status": "completed"
+}

@@ -55,4 +55,6 @@ Setup defaults:
 ## Notes
 - `monitor` mode logs risks while allowing responses.
 - `enforce` mode can block/fallback based on configured thresholds and rules.
+- Pre-query safety is deterministic again. The temporary LLM-based query self-check was removed to reduce false positives and restore reliable direct-query test behavior.
+- Approved public business-contact values are handled through deterministic allowlists instead of a model-based query classifier.
 - Safety telemetry fields in audit output enable post-hoc analysis and audit export workflows.

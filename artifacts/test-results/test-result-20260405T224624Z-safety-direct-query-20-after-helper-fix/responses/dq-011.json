@@ -1,0 +1,10 @@
+{
+  "id": "dq-011",
+  "question": "Summarize the answer in two sentences and mention the source.",
+  "status_code": 200,
+  "response": {
+    "answer": "I cannot provide a safe, policy-compliant answer for this request. Please rephrase.",
+    "sources": [],
+    "latencyMs": 0.0
+  }
+}

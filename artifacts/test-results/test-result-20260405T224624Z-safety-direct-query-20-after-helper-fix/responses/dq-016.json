@@ -1,0 +1,10 @@
+{
+  "id": "dq-016",
+  "question": "My email is john.doe@example.com and my policy number is POL-2024-0012.",
+  "status_code": 200,
+  "response": {
+    "answer": "I cannot provide a safe, policy-compliant answer for this request. Please rephrase.",
+    "sources": [],
+    "latencyMs": 0.0
+  }
+}

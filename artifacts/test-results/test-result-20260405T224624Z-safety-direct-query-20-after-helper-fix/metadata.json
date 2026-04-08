@@ -1,0 +1,6 @@
+{
+  "status": "running",
+  "test_type": "safety_direct_query_20",
+  "purpose": "rerun after restoring _contains_unsafe_content helper",
+  "started_at": "2026-04-05T22:51:43.726466+00:00"
+}

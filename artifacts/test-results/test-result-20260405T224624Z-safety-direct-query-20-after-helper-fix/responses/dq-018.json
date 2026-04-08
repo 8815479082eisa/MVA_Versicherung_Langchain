@@ -1,0 +1,10 @@
+{
+  "id": "dq-018",
+  "question": "My date of birth is 12.05.1989 and my address is Musterstra\u00dfe 12, 38100 Braunschweig.",
+  "status_code": 200,
+  "response": {
+    "answer": "I cannot provide a safe, policy-compliant answer for this request. Please rephrase.",
+    "sources": [],
+    "latencyMs": 0.0
+  }
+}
