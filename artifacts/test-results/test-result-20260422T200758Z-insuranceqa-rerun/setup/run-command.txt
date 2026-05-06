@@ -1,0 +1,11 @@
+python scripts/evaluation/eval_insuranceqa.py \
+  --api-url http://localhost:8000/api/ask \
+  --dataset-jsonl data/benchmarks/qa/insuranceqa/data_insuranceqa_thesis_200.jsonl \
+  --max-samples 200 \
+  --seed 42 \
+  --timeout 190 \
+  --retries 2 \
+  --retry-sleep 2 \
+  --wait-for-api-seconds 120 \
+  --max-consecutive-failures 15 \
+  --out data/processed/eval_outputs/insuranceqa/eval_insuranceqa_thesis_200_rerun.jsonl

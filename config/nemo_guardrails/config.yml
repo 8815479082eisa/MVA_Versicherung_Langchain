@@ -1,0 +1,5 @@
+rails:
+  input:
+    flows:
+      - inspect insurance input
+      - allow input

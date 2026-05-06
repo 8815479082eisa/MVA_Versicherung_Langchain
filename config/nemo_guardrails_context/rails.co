@@ -1,0 +1,27 @@
+define bot allow context
+  "[NEMO_ALLOW_CONTEXT]"
+
+define bot redact context
+  "[NEMO_REDACT_CONTEXT]"
+
+define bot fallback context
+  "[NEMO_FALLBACK_CONTEXT]"
+
+define subflow inspect insurance context
+  $decision = execute inspect_context_safety(context_docs=$context_docs)
+
+  if $decision["action"] == "redact"
+    bot redact context
+    stop
+
+  if $decision["action"] == "block"
+    bot fallback context
+    stop
+
+  if $decision["action"] == "fallback"
+    bot fallback context
+    stop
+
+define subflow allow context
+  bot allow context
+  stop

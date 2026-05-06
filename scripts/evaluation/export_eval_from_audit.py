@@ -4,10 +4,15 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
-from collections import defaultdict
+import sys
 from pathlib import Path
 from typing import Any
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.evaluation.benchmark_utils import best_token_f1, exact_match, load_question_answer_map
 
 
 def parse_args() -> argparse.Namespace:
@@ -57,54 +62,6 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def norm(t: str) -> str:
-    t = (t or "").lower().strip()
-    t = re.sub(r"[^a-z0-9\s]", " ", t)
-    t = re.sub(r"\s+", " ", t)
-    return t
-
-
-def token_f1(pred: str, gold: str) -> float:
-    p = norm(pred).split()
-    g = norm(gold).split()
-    if not p and not g:
-        return 1.0
-    if not p or not g:
-        return 0.0
-
-    common: dict[str, int] = {}
-    for w in p:
-        common[w] = common.get(w, 0) + 1
-
-    inter = 0
-    for w in g:
-        if common.get(w, 0) > 0:
-            inter += 1
-            common[w] -= 1
-
-    if inter == 0:
-        return 0.0
-
-    precision = inter / len(p)
-    recall = inter / len(g)
-    return 2 * precision * recall / (precision + recall)
-
-
-def load_refs(dataset_jsonl: Path) -> dict[str, list[str]]:
-    q2answers: dict[str, list[str]] = defaultdict(list)
-    with dataset_jsonl.open("r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            row = json.loads(line)
-            question = str(row.get("question") or row.get("input") or "").strip()
-            answer = str(row.get("answer") or row.get("output") or "").strip()
-            if question and answer:
-                q2answers[question].append(answer)
-    return q2answers
-
-
 def extract_fallback_ref(retrieved_documents: Any) -> str | None:
     if not isinstance(retrieved_documents, list):
         return None
@@ -139,11 +96,11 @@ def main() -> None:
     out_path = Path(args.out)
     summary_out = Path(args.summary_out) if args.summary_out else None
 
-    q2answers = load_refs(dataset_path)
+    q2answers = load_question_answer_map(dataset_path)
 
     rows: list[dict[str, Any]] = []
-    with audit_path.open("r", encoding="utf-8") as f:
-        for line in f:
+    with audit_path.open("r", encoding="utf-8") as handle:
+        for line in handle:
             line = line.strip()
             if not line:
                 continue
@@ -161,7 +118,7 @@ def main() -> None:
                 continue
             rows.append(row)
 
-    rows.sort(key=lambda x: str(x.get("timestamp") or ""))
+    rows.sort(key=lambda item: str(item.get("timestamp") or ""))
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     processed = 0
@@ -195,10 +152,8 @@ def main() -> None:
                 )
                 continue
 
-            pred_n = norm(prediction)
-            refs_n = [norm(x) for x in refs]
-            em = 1 if pred_n in refs_n else 0
-            best_f1 = max(token_f1(prediction, ref) for ref in refs)
+            em = int(exact_match(prediction, refs))
+            best_f1 = best_token_f1(prediction, refs)
 
             source_ids: list[str] = []
             for source in row.get("sources") or []:
@@ -230,7 +185,7 @@ def main() -> None:
             em_hits += em
             f1_sum += best_f1
 
-    exact_match = (em_hits / processed) if processed else 0.0
+    exact_match_avg = (em_hits / processed) if processed else 0.0
     token_f1_avg = (f1_sum / processed) if processed else 0.0
 
     if summary_out:
@@ -245,15 +200,15 @@ def main() -> None:
             "audit_end_timestamp": args.end_timestamp,
             "processed": processed,
             "failed": failed,
-            "exact_match": exact_match,
+            "exact_match": exact_match_avg,
             "token_f1": token_f1_avg,
         }
-        with summary_out.open("w", encoding="utf-8") as f:
-            json.dump(summary, f, ensure_ascii=False, indent=2)
+        with summary_out.open("w", encoding="utf-8") as handle:
+            json.dump(summary, handle, ensure_ascii=False, indent=2)
 
     print("Export complete")
     print(f"rows_selected={len(rows)} processed={processed} failed={failed}")
-    print(f"exact_match={exact_match:.6f} token_f1={token_f1_avg:.6f}")
+    print(f"exact_match={exact_match_avg:.6f} token_f1={token_f1_avg:.6f}")
     print(f"output={out_path}")
     if summary_out:
         print(f"summary={summary_out}")
@@ -261,4 +216,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

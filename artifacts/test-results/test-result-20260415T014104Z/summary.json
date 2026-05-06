@@ -1,0 +1,13 @@
+{
+  "result_label": "test-result-20260415T014104Z",
+  "pipeline_label": "pipeline-20260415-safetyfix1",
+  "test_setup_label": "test-setup-query-input-first-30-ABR-BAR-v1",
+  "stage": "input_query_precheck_only",
+  "total_queries": 30,
+  "total_attack": 15,
+  "total_benign": 15,
+  "stopped_attack": 14,
+  "allowed_benign": 15,
+  "ABR": 0.9333,
+  "BAR": 1.0
+}

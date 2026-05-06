@@ -1,1 +1,0 @@
-python -m fastapi.testclient -> src.main:/api/ask, split=test, max-samples=20, count=20, seed=42

@@ -166,10 +166,23 @@ async def lifespan(_: FastAPI):
     _startup_init_error = None
 
     _load_faq_data()
+    runtime_config = rag_service.runtime_config()
     print(
         f"FAQ settings: FAQ_ONLY={FAQ_ONLY}, FAQ_FIRST={FAQ_FIRST}, "
         f"FAQ_MIN_SIMILARITY={FAQ_MIN_SIMILARITY}"
     )
+    print(
+        "Runtime config: "
+        f"configured_answer_model={runtime_config['configured_answer_model']} "
+        f"(source={runtime_config['configured_answer_model_source']}), "
+        f"preferred_answer_model={runtime_config['preferred_answer_model']}, "
+        f"answer_model_matches_preference={runtime_config['answer_model_matches_preference']}, "
+        f"query_rewrite_enabled={runtime_config['query_rewrite_enabled']}, "
+        f"nemo_enforce_output={runtime_config['nemo_enforce_output']}, "
+        f"safety_backend={runtime_config['safety_backend']}"
+    )
+    if runtime_config.get("dotenv_conflicts"):
+        print(f"Config note: shell env overrides .env for {sorted(runtime_config['dotenv_conflicts'])}")
 
     async def _warm_pipeline_in_background(force_reindex: bool) -> None:
         global _startup_init_error
@@ -249,6 +262,7 @@ async def health_check():
     """Serverstatus pruefen"""
     pipeline_ready = rag_service.is_pipeline_ready()
     pipeline_initializing = _startup_init_task is not None and not _startup_init_task.done()
+    runtime_config = rag_service.runtime_config()
     return {
         "status": "ok",
         "message": "Backend laeuft",
@@ -258,6 +272,13 @@ async def health_check():
         "insuranceqaExactMatchShortcut": rag_service.insuranceqa_exact_match_shortcut_enabled(),
         "safetyEnabled": rag_service.safety_enabled(),
         "safetyMode": rag_service.safety_mode(),
+        "configured_answer_model": runtime_config["configured_answer_model"],
+        "preferred_answer_model": runtime_config["preferred_answer_model"],
+        "answer_model_matches_preference": runtime_config["answer_model_matches_preference"],
+        "configured_answer_model_source": runtime_config["configured_answer_model_source"],
+        "query_rewrite_enabled": runtime_config["query_rewrite_enabled"],
+        "nemo_enforce_output": runtime_config["nemo_enforce_output"],
+        "safety_backend": runtime_config["safety_backend"],
     }
 
 

@@ -1,0 +1,1 @@
+scripts/evaluation/evaluate_thesis.py --mode full --qa-mode audit --dataset-jsonl data/benchmarks/qa/insuranceqa/data_insuranceqa_thesis_200.jsonl --safety-file data/benchmarks/safety/thesis_safety_mix_200.jsonl --out-dir artifacts/test-results/test-result-20260425T134108Z-thesis-8-metrics-qa200-safety200 --support-threshold 0.2

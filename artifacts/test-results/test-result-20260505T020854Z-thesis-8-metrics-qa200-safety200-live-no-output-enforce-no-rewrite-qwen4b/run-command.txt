@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /workspace
+source .venv/bin/activate
+source "/workspace/artifacts/test-results/test-result-20260505T020854Z-thesis-8-metrics-qa200-safety200-live-no-output-enforce-no-rewrite-qwen4b/runtime-env.sh"
+
+python scripts/evaluation/evaluate_thesis.py \
+  --mode full \
+  --qa-mode live \
+  --dataset-jsonl data/benchmarks/qa/insuranceqa/data_insuranceqa_thesis_200.jsonl \
+  --max-samples 200 \
+  --count 200 \
+  --audit-log data/processed/logs/audit.log \
+  --audit-limit 200 \
+  --safety-file data/benchmarks/safety/thesis_safety_mix_200.jsonl \
+  --support-threshold 0.2 \
+  --out-dir "artifacts/test-results/test-result-20260505T020854Z-thesis-8-metrics-qa200-safety200-live-no-output-enforce-no-rewrite-qwen4b"

@@ -1,0 +1,37 @@
+define user input
+  "..."
+
+define flow
+  user input
+  bot $llm_output
+
+define bot allow output
+  "[NEMO_ALLOW_OUTPUT]"
+
+define bot redact output
+  "[NEMO_REDACT_OUTPUT]"
+
+define bot block output
+  "[NEMO_BLOCK_OUTPUT]"
+
+define bot fallback output
+  "[NEMO_FALLBACK_OUTPUT]"
+
+define subflow inspect insurance output
+  $decision = execute inspect_output_safety(query=$user_message, answer=$bot_message, context_docs=$context_docs)
+
+  if $decision["action"] == "redact"
+    bot redact output
+    stop
+
+  if $decision["action"] == "block"
+    bot block output
+    stop
+
+  if $decision["action"] == "fallback"
+    bot fallback output
+    stop
+
+define subflow allow output
+  bot allow output
+  stop

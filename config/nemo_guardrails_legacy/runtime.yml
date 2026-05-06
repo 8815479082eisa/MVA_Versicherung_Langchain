@@ -1,0 +1,11 @@
+version: 1
+flows:
+  pre_query:
+    - rail: input.prompt_injection
+      on_block_action: action.annotate_decision
+      stop_on_block: true
+
+  post_generation:
+    - rail: output.pii_redaction
+      on_block_action: action.annotate_decision
+      stop_on_block: true

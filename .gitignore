@@ -46,6 +46,9 @@ data/processed/
 # Audit Logs
 audit.log
 *.log
+tmp_backend_*.log
+tmp_backend_*.err.log
+**/audit_excerpt.log
 
 # PDF Hash Tracking
 .pdf_hashes.json
@@ -60,6 +63,9 @@ Thumbs.db
 # Jupyter Notebooks
 .ipynb_checkpoints/
 *.ipynb
+
+# Test caches
+.pytest_cache/
 
 # Data files (optional - uncomment if you don't want to track PDFs)
 # docs/*.pdf

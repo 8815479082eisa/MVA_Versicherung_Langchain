@@ -1,0 +1,9 @@
+rails:
+  output:
+    flows:
+      - inspect insurance output
+      - allow output
+
+  dialog:
+    user_messages:
+      embeddings_only: true

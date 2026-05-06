@@ -1,1 +1,0 @@
-/usr/bin/python3 scripts/eval_insuranceqa.py --api-url http://localhost:8000/api/ask --split test --max-samples 20 --count 20 --timeout 3600

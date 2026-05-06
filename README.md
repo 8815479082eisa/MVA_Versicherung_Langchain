@@ -1,9 +1,18 @@
-# Test Results Overview
+# MVA Insurance RAG + Guardrails
 
-Test-result artifacts are organized run-centrically under this directory.
+Python-based RAG/Guardrails pipeline for master-thesis work with emphasis on:
 
-- Canonical run overview: `INDEX.md`
-- One folder per run: `test-result-*`
-- Each run folder is self-contained with command, commit, metadata, summary, references, and snapshots.
+- reproducible evaluation runs
+- safety guardrails and fallback behavior
+- auditable artifacts and test evidence
 
-See `INDEX.md` for the compact table across all runs.
+## Repository Navigation
+
+- Runtime/backend code: `src/`
+- Configurations: `config/`
+- Tests: `tests/`
+- Evaluation and helper scripts: `scripts/`
+- Documentation: `docs/`
+- Canonical test result artifacts: `artifacts/test-results/`
+
+For the compact run index, see `INDEX.md` and `artifacts/test-results/INDEX.md`.

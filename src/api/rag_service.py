@@ -19,30 +19,52 @@ from dataclasses import dataclass
 from datetime import datetime
 from difflib import SequenceMatcher
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, TypeAlias
 
-from dotenv import load_dotenv
 from langchain_core.documents import Document
 
-try:
-    from langchain_chroma import Chroma
-except Exception:
-    Chroma = None
+Chroma = None
+
+if TYPE_CHECKING:
+    from langchain_chroma import Chroma as _ChromaVectorStore
+
+    ChromaVectorStore: TypeAlias = _ChromaVectorStore
+else:
+    ChromaVectorStore: TypeAlias = Any
+
+chromadb = None
 
 try:
-    import chromadb
+    from config.models import (
+        ModelSettings,
+        build_answer_model_warning,
+        load_model_settings,
+        runtime_config_snapshot,
+    )
 except Exception:
-    chromadb = None
+    from src.config.models import (
+        ModelSettings,
+        build_answer_model_warning,
+        load_model_settings,
+        runtime_config_snapshot,
+    )
 
 try:
-    from config.models import ModelSettings, load_model_settings
+    from core.safety_adapter import (
+        SafetyChecker,
+        SafetyResult,
+        classify_safety_result,
+        create_safety_checker,
+        fallback_text_for_result,
+    )
 except Exception:
-    from src.config.models import ModelSettings, load_model_settings
-
-try:
-    from core.safety_audit import SafetyAuditLayer, SafetyResult
-except Exception:
-    from src.core.safety_audit import SafetyAuditLayer, SafetyResult
+    from src.core.safety_adapter import (
+        SafetyChecker,
+        SafetyResult,
+        classify_safety_result,
+        create_safety_checker,
+        fallback_text_for_result,
+    )
 
 
 HuggingFaceEmbeddings = None
@@ -55,15 +77,58 @@ BM25Retriever = None
 RecursiveCharacterTextSplitter = None
 
 
-# Prefer the project .env over inherited shell variables so the active runtime
-# stays aligned with the repo configuration.
-load_dotenv(override=True) #load the .env file and override the environment variables
-SETTINGS: ModelSettings = load_model_settings() #load the model settings from the .env file
+SETTINGS: ModelSettings = load_model_settings()
 
 PDF_DIRECTORY = str(SETTINGS.storage.pdf_directory) 
 AUDIT_LOG_FILE = str(SETTINGS.storage.audit_log_file)
 RESPONSE_LANGUAGE = os.getenv("RESPONSE_LANGUAGE", "English")
 ANSWER_STYLE = os.getenv("ANSWER_STYLE", "detailed")  # detailed | concise
+
+QUESTION_MODAL_TOKENS = {
+    "can",
+    "could",
+    "should",
+    "would",
+    "will",
+    "do",
+    "does",
+    "did",
+    "is",
+    "are",
+    "was",
+    "were",
+    "has",
+    "have",
+    "had",
+    "may",
+    "might",
+    "must",
+}
+QUESTION_OPENING_TOKENS = {"what", "when", "where", "which", "why", "how", "who", "whom"}
+FIRST_PERSON_TOKENS = {"i", "me", "my", "mine", "we", "us", "our", "ours"}
+REWRITE_STOPWORDS = {
+    "a",
+    "an",
+    "the",
+    "and",
+    "or",
+    "for",
+    "to",
+    "of",
+    "on",
+    "in",
+    "at",
+    "by",
+    "with",
+    "from",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "being",
+    "been",
+}
 
 
 @dataclass #This decorator is used to create a class that can be used to store the source of the answer
@@ -92,15 +157,20 @@ SELF_CHECK_SYSTEM_PROMPT = """You are an assistant evaluating whether the provid
 Respond ONLY with RELEVANT or IRRELEVANT.
 """
 
-QUERY_REWRITE_SYSTEM_PROMPT = """You rewrite user queries to improve retrieval results.
-Keep the original intent while optimizing phrasing for better search matches.
-Reply only with the rewritten query.
+QUERY_REWRITE_SYSTEM_PROMPT = """You rewrite user search queries to improve document retrieval.
+Rules:
+- Preserve the original user intent exactly. Do not change what the user is asking about.
+- Only adjust phrasing or word order to better match document terminology.
+- Do not change the subject, perspective, or goal of the question.
+- Reply only with the rewritten query, nothing else.
 """
 
-SYSTEM_PROMPT = f"""You are a domain-specific assistant.
-Answer strictly based on the provided context passages.
-If the answer cannot be derived from the context, say so explicitly in {RESPONSE_LANGUAGE}.
-Do not fabricate information.
+SYSTEM_PROMPT = f"""You are a helpful insurance information assistant.
+Answer questions based on the provided context passages.
+Do not produce safety disclaimers, policy-compliance warnings, or refusal messages — safety is enforced externally by a separate guardrail layer.
+If the context contains relevant information, answer from it directly and concisely.
+If the context does not contain sufficient information to answer the question, respond with: "The available sources do not contain enough information to answer this question."
+Do not fabricate information not present in the context.
 Always include source references in the format [Doc-ID:page].
 Respond ONLY in {RESPONSE_LANGUAGE}.
 
@@ -123,6 +193,69 @@ def _normalize_question(text: str) -> str:
     t = (text or "").strip().lower()
     t = re.sub(r"\s+", " ", t)
     return t
+
+
+def _question_tokens(text: str) -> list[str]:
+    return re.findall(r"[a-z0-9]+", _normalize_question(text))
+
+
+def _question_shape(text: str) -> str:
+    tokens = _question_tokens(text)
+    if not tokens:
+        return "unknown"
+    head = tokens[0]
+    if head in QUESTION_MODAL_TOKENS:
+        return "yes_no"
+    if head in QUESTION_OPENING_TOKENS:
+        return head
+    return "other"
+
+
+def _rewrite_guard_tokens(text: str) -> set[str]:
+    return {
+        token
+        for token in _question_tokens(text)
+        if token not in QUESTION_MODAL_TOKENS
+        and token not in QUESTION_OPENING_TOKENS
+        and token not in REWRITE_STOPWORDS
+    }
+
+
+def _introduces_first_person_perspective(original: str, rewritten: str) -> bool:
+    original_tokens = set(_question_tokens(original))
+    rewritten_tokens = set(_question_tokens(rewritten))
+    return not bool(original_tokens & FIRST_PERSON_TOKENS) and bool(rewritten_tokens & FIRST_PERSON_TOKENS)
+
+
+def _rewrite_is_semantically_safe(original: str, rewritten: str) -> bool:
+    normalized_original = _normalize_question(original)
+    normalized_rewritten = _normalize_question(rewritten)
+    if not normalized_original or not normalized_rewritten:
+        return False
+    if normalized_original == normalized_rewritten:
+        return True
+    if _introduces_first_person_perspective(original, rewritten):
+        return False
+
+    original_shape = _question_shape(original)
+    rewritten_shape = _question_shape(rewritten)
+    if original_shape != "other" and rewritten_shape != original_shape:
+        return False
+
+    original_tokens = _rewrite_guard_tokens(original)
+    rewritten_tokens = _rewrite_guard_tokens(rewritten)
+    if not original_tokens or not rewritten_tokens:
+        return False
+
+    token_recall = len(original_tokens & rewritten_tokens) / len(original_tokens)
+    if token_recall < 0.75:
+        return False
+
+    similarity = SequenceMatcher(None, normalized_original, normalized_rewritten).ratio()
+    if similarity < SETTINGS.retrieval.query_rewrite_min_similarity and token_recall < 1.0:
+        return False
+
+    return True
 
 
 def _default_insuranceqa_jsonl_path() -> Path:
@@ -220,6 +353,24 @@ def safety_mode() -> str:
     return SETTINGS.safety.mode
 
 
+def runtime_config() -> dict:
+    snapshot = runtime_config_snapshot(SETTINGS)
+    return {
+        "configured_answer_model": snapshot["configured_answer_model"],
+        "configured_answer_model_source": snapshot["configured_answer_model_source"],
+        "configured_answer_model_source_detail": snapshot.get(
+            "configured_answer_model_source_detail"
+        ),
+        "preferred_answer_model": snapshot["preferred_answer_model"],
+        "preferred_answer_model_source": snapshot["preferred_answer_model_source"],
+        "answer_model_matches_preference": snapshot["answer_model_matches_preference"],
+        "query_rewrite_enabled": snapshot["query_rewrite_enabled"],
+        "nemo_enforce_output": snapshot["nemo_enforce_output"],
+        "safety_backend": snapshot["safety_backend"],
+        "dotenv_conflicts": snapshot.get("dotenv_conflicts", {}),
+    }
+
+
 def _should_route_to_insuranceqa(query: str) -> bool:
     """
     Decide whether a query should use the InsuranceQA retriever.
@@ -278,6 +429,24 @@ def _get_chat_ollama_cls():
 
         ChatOllama = _ChatOllama
     return ChatOllama
+
+
+def _get_chroma_cls():
+    global Chroma
+    if Chroma is None:
+        from langchain_chroma import Chroma as _Chroma
+
+        Chroma = _Chroma
+    return Chroma
+
+
+def _get_chromadb_module():
+    global chromadb
+    if chromadb is None:
+        import chromadb as _chromadb
+
+        chromadb = _chromadb
+    return chromadb
 
 
 def _get_flag_reranker_cls():
@@ -342,24 +511,56 @@ def _normalize_pdf_key(file_path: str) -> str: #This function is used to normali
 
 
 def _model_config_payload() -> dict:
+    runtime = runtime_config_snapshot(SETTINGS)
+    answer_model_matches_preference = runtime["answer_model_matches_preference"]
     return {
         "provider": SETTINGS.provider,
         "embedding_model": SETTINGS.embedding.model,
         "reranker_model": SETTINGS.reranker.model,
         "compressor_model": SETTINGS.roles.compress,
         "answer_model": SETTINGS.roles.answer,
+        "answer_model_source": runtime["configured_answer_model_source"],
+        "answer_model_source_detail": runtime.get("configured_answer_model_source_detail"),
+        "preferred_answer_model": SETTINGS.preferred_answer_model,
+        "preferred_answer_model_source": runtime["preferred_answer_model_source"],
+        "answer_model_matches_preference": answer_model_matches_preference,
+        "answer_model_warning": build_answer_model_warning(SETTINGS),
         "router_model": SETTINGS.roles.router,
         "self_check_model": SETTINGS.roles.self_check,
         "query_rewrite_model": SETTINGS.roles.rewrite,
+        "query_rewrite_enabled": SETTINGS.retrieval.query_rewrite_enabled,
+        "query_rewrite_min_similarity": SETTINGS.retrieval.query_rewrite_min_similarity,
         "safety_enabled": SETTINGS.safety.enabled,
         "safety_mode": SETTINGS.safety.mode,
         "safety_min_groundedness": SETTINGS.safety.min_groundedness,
+        "safety_backend": SETTINGS.safety.backend,
+        "nemo_config_path": str(SETTINGS.safety.nemo_config_path)
+        if SETTINGS.safety.nemo_config_path
+        else None,
+        "nemo_context_config_path": str(SETTINGS.safety.nemo_context_config_path)
+        if SETTINGS.safety.nemo_context_config_path
+        else None,
+        "nemo_output_config_path": str(SETTINGS.safety.nemo_output_config_path)
+        if SETTINGS.safety.nemo_output_config_path
+        else None,
+        "nemo_input_enabled": SETTINGS.safety.nemo_input_enabled,
+        "nemo_context_enabled": SETTINGS.safety.nemo_context_enabled,
+        "nemo_output_enabled": SETTINGS.safety.nemo_output_enabled,
+        "nemo_enforce_input": SETTINGS.safety.nemo_enforce_input,
+        "nemo_enforce_output": SETTINGS.safety.nemo_enforce_output,
+        "dotenv_conflicts": runtime.get("dotenv_conflicts", {}),
+        "safety_fallback_texts": {
+            "security": SETTINGS.safety.security_fallback_text or SETTINGS.safety.fallback_text,
+            "grounding": SETTINGS.safety.grounding_fallback_text,
+            "pii": SETTINGS.safety.pii_fallback_text,
+            "context": SETTINGS.safety.context_fallback_text,
+        },
     }
 
 
 def _insuranceqa_collection_is_empty(collection_name: str) -> bool:
-    _require_dependency(chromadb, "chromadb")
-    client = chromadb.PersistentClient(path=str(SETTINGS.storage.chroma_persist_directory))
+    chromadb_module = _get_chromadb_module()
+    client = chromadb_module.PersistentClient(path=str(SETTINGS.storage.chroma_persist_directory))
     collection = client.get_or_create_collection(name=collection_name)
     return collection.count() == 0
 
@@ -380,6 +581,8 @@ def audit_log(
     chat_history: Optional[List[dict]] = None,
     **extra_fields: Any,
 ) -> None:
+    runtime = runtime_config_snapshot(SETTINGS)
+    answer_model_matches_preference = runtime["answer_model_matches_preference"]
     payload = {
         "timestamp": datetime.now().isoformat(),
         "query": query,
@@ -387,8 +590,26 @@ def audit_log(
         "compressed_context": [_doc_to_json(doc) for doc in (compressed_context or [])],
         "generated_answer": generated_answer,
         "chat_history": chat_history or [],
+        "configured_answer_model": SETTINGS.roles.answer,
+        "configured_answer_model_source": runtime["configured_answer_model_source"],
+        "configured_answer_model_source_detail": runtime.get(
+            "configured_answer_model_source_detail"
+        ),
+        "preferred_answer_model": SETTINGS.preferred_answer_model,
+        "preferred_answer_model_source": runtime["preferred_answer_model_source"],
+        "answer_model_matches_preference": answer_model_matches_preference,
+        "answer_model_warning": build_answer_model_warning(SETTINGS),
+        "router_model": SETTINGS.roles.router,
+        "query_rewrite_model": SETTINGS.roles.rewrite,
+        "query_rewrite_enabled": SETTINGS.retrieval.query_rewrite_enabled,
+        "safety_backend": SETTINGS.safety.backend,
+        "safety_min_groundedness": SETTINGS.safety.min_groundedness,
+        "nemo_enforce_output": SETTINGS.safety.nemo_enforce_output,
     }
     payload.update(extra_fields)
+    final_query = payload.get("final_query")
+    if isinstance(final_query, str):
+        payload["query_rewrite_applied"] = _normalize_question(final_query) != _normalize_question(query)
 
     audit_path = Path(AUDIT_LOG_FILE)
     audit_path.parent.mkdir(parents=True, exist_ok=True)
@@ -399,7 +620,7 @@ def audit_log(
 def _safety_result_to_dict(result: Optional[SafetyResult]) -> dict:
     if result is None:
         return {}
-    return {
+    payload = {
         "allow": result.allow,
         "risk_level": result.risk_level,
         "reasons": list(result.reasons),
@@ -407,6 +628,90 @@ def _safety_result_to_dict(result: Optional[SafetyResult]) -> dict:
         "scores": dict(result.scores),
         "details": dict(result.details),
     }
+    fallback_category = classify_safety_result(result)
+    if fallback_category is not None:
+        payload["fallback_category"] = fallback_category
+    if result.action in {"block", "fallback"}:
+        payload["fallback_text"] = fallback_text_for_result(SETTINGS.safety, result)
+    return payload
+
+
+def _active_safety_result(
+    final_safety_decision: str,
+    safety_pre_result: SafetyResult,
+    safety_context_result: SafetyResult,
+    safety_post_result: SafetyResult,
+) -> Optional[SafetyResult]:
+    if final_safety_decision.startswith("pre_"):
+        return safety_pre_result
+    if final_safety_decision.startswith("context_"):
+        return safety_context_result
+    if final_safety_decision.startswith("post_"):
+        return safety_post_result
+    return None
+
+
+def _primary_safety_reason(
+    final_safety_decision: str,
+    safety_pre_result: SafetyResult,
+    safety_context_result: SafetyResult,
+    safety_post_result: SafetyResult,
+) -> Optional[str]:
+    active_result = _active_safety_result(
+        final_safety_decision,
+        safety_pre_result,
+        safety_context_result,
+        safety_post_result,
+    )
+    if active_result and active_result.reasons:
+        return active_result.reasons[0]
+    return None
+
+
+def _safety_audit_fields(
+    final_safety_decision: str,
+    safety_pre_result: SafetyResult,
+    safety_context_result: SafetyResult,
+    safety_post_result: SafetyResult,
+) -> dict[str, Any]:
+    active_result = _active_safety_result(
+        final_safety_decision,
+        safety_pre_result,
+        safety_context_result,
+        safety_post_result,
+    )
+    if active_result is None:
+        return {"safety_fallback_category": None, "safety_applied_fallback_text": None}
+    return {
+        "safety_fallback_category": classify_safety_result(active_result),
+        "safety_applied_fallback_text": (
+            fallback_text_for_result(SETTINGS.safety, active_result)
+            if active_result.action in {"block", "fallback"}
+            else None
+        ),
+    }
+
+
+def _context_docs_from_safety_result(result: Optional[SafetyResult]) -> Optional[List[Document]]:
+    if result is None:
+        return None
+
+    payload = (result.details or {}).get("sanitized_docs")
+    if not isinstance(payload, list):
+        return None
+
+    docs: List[Document] = []
+    for item in payload:
+        if not isinstance(item, dict):
+            continue
+        docs.append(
+            Document(
+                page_content=str(item.get("page_content", "")),
+                metadata=dict(item.get("metadata", {}) or {}),
+            )
+        )
+
+    return docs or None
 
 
 def _default_allow_safety_result(stage: str) -> SafetyResult:
@@ -545,13 +850,17 @@ def initialize_embeddings():
     )
 
 
-def build_vectorstore(all_splits: List[Document], embeddings, force_reindex: bool = False) -> Chroma:
-    _require_dependency(chromadb, "chromadb")
-    _require_dependency(Chroma, "langchain-chroma")
-    client = chromadb.PersistentClient(path=str(SETTINGS.storage.chroma_persist_directory))
+def build_vectorstore(
+    all_splits: List[Document],
+    embeddings,
+    force_reindex: bool = False,
+) -> ChromaVectorStore:
+    chromadb_module = _get_chromadb_module()
+    chroma_cls = _get_chroma_cls()
+    client = chromadb_module.PersistentClient(path=str(SETTINGS.storage.chroma_persist_directory))
     collection = client.get_or_create_collection(name=SETTINGS.storage.collection_name)
 
-    vector_store = Chroma(
+    vector_store = chroma_cls(
         client=client,
         collection_name=SETTINGS.storage.collection_name,
         embedding_function=embeddings,
@@ -575,14 +884,19 @@ def build_vectorstore(all_splits: List[Document], embeddings, force_reindex: boo
         if collection.count() > 0:
             client.delete_collection(name=SETTINGS.storage.collection_name)
             client.create_collection(name=SETTINGS.storage.collection_name)
-            vector_store = Chroma(
+            vector_store = chroma_cls(
                 client=client,
                 collection_name=SETTINGS.storage.collection_name,
                 embedding_function=embeddings,
                 persist_directory=str(SETTINGS.storage.chroma_persist_directory),
             )
 
-        vector_store.add_documents(documents=all_splits)
+        batch_size = 1000
+        print(f"Info: Reindexing Chroma with {len(all_splits)} chunks (batch_size={batch_size}).")
+
+        for start in range(0, len(all_splits), batch_size):
+            batch = all_splits[start:start + batch_size]
+            vector_store.add_documents(documents=batch)
         pdf_files = get_pdf_files(PDF_DIRECTORY)
         if pdf_files:
             save_pdf_hashes(get_pdf_hashes(pdf_files))
@@ -590,7 +904,10 @@ def build_vectorstore(all_splits: List[Document], embeddings, force_reindex: boo
     return vector_store
 
 
-def build_retriever(vector_store: Chroma, all_splits: List[Document]) -> Callable[[str, int], List[Document]]:
+def build_retriever(
+    vector_store: ChromaVectorStore,
+    all_splits: List[Document],
+) -> Callable[[str, int], List[Document]]:
     bm25_cls = _get_bm25_retriever_cls()
     bm25 = bm25_cls.from_documents(all_splits)
     bm25.k = SETTINGS.retrieval.bm25_k
@@ -718,6 +1035,8 @@ def initialize_self_check_llm():
 
 
 def initialize_query_rewrite_llm():
+    if not SETTINGS.retrieval.query_rewrite_enabled:
+        return None
     return _build_chat_model(SETTINGS.roles.rewrite, SETTINGS.generation.temperature_aux)
 
 
@@ -746,6 +1065,9 @@ def decide_retrieval(router_llm, query: str, chat_history: Optional[List[dict]] 
 
 
 def rewrite_query(query_rewrite_llm, query: str, chat_history: Optional[List[dict]] = None) -> str:
+    if not SETTINGS.retrieval.query_rewrite_enabled or query_rewrite_llm is None:
+        return query
+
     system_msg = QUERY_REWRITE_SYSTEM_PROMPT + f"\nChat History:\n{_format_chat_history(chat_history)}"
     prompt_template_cls = _get_chat_prompt_template_cls()
     prompt = prompt_template_cls.from_messages(
@@ -753,11 +1075,16 @@ def rewrite_query(query_rewrite_llm, query: str, chat_history: Optional[List[dic
             ("system", system_msg),
             (
                 "user",
-                f"Original Query: {query}\nContext: (low relevance)\nTASK: Rewrite the query to improve retrieval results.",
+                f"Original query: {query}\nRewritten query:",
             ),
         ]
     )
-    return (prompt | query_rewrite_llm).invoke({}).content.strip()
+    rewritten_query = (prompt | query_rewrite_llm).invoke({}).content.strip()
+    if not rewritten_query:
+        return query
+    if not _rewrite_is_semantically_safe(query, rewritten_query):
+        return query
+    return rewritten_query
 
 
 def perform_self_check(
@@ -920,10 +1247,15 @@ class RAGPipeline:
         self.components: Optional[Dict[str, Any]] = None
         self._init_lock = threading.RLock()
 
-    def build_vectorstore(self, all_splits: List[Document], embeddings, force_reindex: bool = False) -> Chroma:
+    def build_vectorstore(
+        self,
+        all_splits: List[Document],
+        embeddings,
+        force_reindex: bool = False,
+    ) -> ChromaVectorStore:
         return build_vectorstore(all_splits, embeddings, force_reindex=force_reindex)
 
-    def build_retriever(self, vector_store: Chroma, all_splits: List[Document]):
+    def build_retriever(self, vector_store: ChromaVectorStore, all_splits: List[Document]):
         return build_retriever(vector_store, all_splits)
 
     def build_reranker(self):
@@ -940,6 +1272,10 @@ class RAGPipeline:
             if self.components is not None and not force_reindex:
                 return self.components
 
+            answer_model_warning = build_answer_model_warning(self.settings)
+            if answer_model_warning:
+                print(f"Warning: {answer_model_warning}")
+
             os.makedirs(PDF_DIRECTORY, exist_ok=True)
             pdf_files = get_pdf_files(PDF_DIRECTORY)
             use_insuranceqa = os.getenv("USE_INSURANCEQA_DATA", "").strip().lower() in {
@@ -952,7 +1288,7 @@ class RAGPipeline:
             insuranceqa_mode = os.getenv("INSURANCEQA_RETRIEVAL_MODE", "merge").strip().lower()
 
             # PDF layer is optional when we explicitly run in InsuranceQA-only modes.
-            vector_store: Optional[Chroma] = None
+            vector_store: Optional[ChromaVectorStore] = None
             hybrid_retriever: Callable[[str, Optional[int]], List[Document]]
 
             if pdf_files:
@@ -1067,7 +1403,6 @@ class RAGPipeline:
                 "self_check_llm": initialize_self_check_llm(),
                 "query_rewrite_llm": initialize_query_rewrite_llm(),
                 "generation_chain": self.build_generation_chain(initialize_llm()),
-                "safety_checker": SafetyAuditLayer(self.settings.safety),
             }
 
             _save_model_config()
@@ -1077,7 +1412,7 @@ class RAGPipeline:
         start_time = datetime.now()
         chat_history = chat_history or []
         original_query = query
-        local_safety_checker = SafetyAuditLayer(self.settings.safety)
+        safety_checker: SafetyChecker = create_safety_checker(self.settings.safety)
         safety_pre_result = _default_allow_safety_result("pre_query")
         safety_context_result = _default_allow_safety_result("context")
         safety_post_result = _default_allow_safety_result("post_generation")
@@ -1095,10 +1430,10 @@ class RAGPipeline:
             safety_error_message = str(exc)
 
         try:
-            safety_pre_result = local_safety_checker.check_query_safety(query, chat_history)
+            safety_pre_result = safety_checker.check_query_safety(query, chat_history)
         except Exception as exc:
             _mark_safety_system_error("pre_query", exc)
-            if self.settings.safety.fail_closed and local_safety_checker.is_active:
+            if self.settings.safety.fail_closed and safety_checker.is_active:
                 safety_pre_result = SafetyResult(
                     allow=False,
                     risk_level="high",
@@ -1108,7 +1443,7 @@ class RAGPipeline:
                 )
 
         if not safety_pre_result.allow:
-            blocked_answer = local_safety_checker.apply_safety_action(safety_pre_result, "")
+            blocked_answer = safety_checker.apply_safety_action(safety_pre_result, "")
             latency_ms = int((datetime.now() - start_time).total_seconds() * 1000)
             if safety_system_error and safety_error_stage == "pre_query":
                 final_safety_decision = f"pre_system_error_{safety_pre_result.action}"
@@ -1129,16 +1464,28 @@ class RAGPipeline:
                 answer_style=ANSWER_STYLE,
                 response_language=RESPONSE_LANGUAGE,
                 safety_mode=self.settings.safety.mode,
-                safety_enabled=local_safety_checker.is_active,
+                safety_enabled=safety_checker.is_active,
                 safety_decision=final_safety_decision,
                 safety_risks=list(safety_pre_result.reasons),
                 safety_scores={"pre": dict(safety_pre_result.scores)},
-                safety_block_reason=safety_pre_result.reasons[0] if safety_pre_result.reasons else "precheck_blocked",
+                safety_block_reason=_primary_safety_reason(
+                    final_safety_decision,
+                    safety_pre_result,
+                    safety_context_result,
+                    safety_post_result,
+                )
+                or "precheck_blocked",
                 safety_results={
                     "pre": _safety_result_to_dict(safety_pre_result),
                     "context": _safety_result_to_dict(safety_context_result),
                     "post": _safety_result_to_dict(safety_post_result),
                 },
+                **_safety_audit_fields(
+                    final_safety_decision,
+                    safety_pre_result,
+                    safety_context_result,
+                    safety_post_result,
+                ),
                 safety_system_error=safety_system_error,
                 safety_error_stage=safety_error_stage,
                 safety_error_type=safety_error_type,
@@ -1164,10 +1511,10 @@ class RAGPipeline:
                 ]
                 final_answer = exact_answer
                 try:
-                    safety_post_result = local_safety_checker.check_answer_safety(query, [exact_doc], exact_answer)
+                    safety_post_result = safety_checker.check_answer_safety(query, [exact_doc], exact_answer)
                 except Exception as exc:
                     _mark_safety_system_error("post_generation", exc)
-                    if self.settings.safety.fail_closed and local_safety_checker.is_active:
+                    if self.settings.safety.fail_closed and safety_checker.is_active:
                         safety_post_result = SafetyResult(
                             allow=False,
                             risk_level="high",
@@ -1177,7 +1524,7 @@ class RAGPipeline:
                         )
 
                 if not safety_post_result.allow:
-                    final_answer = local_safety_checker.apply_safety_action(safety_post_result, exact_answer)
+                    final_answer = safety_checker.apply_safety_action(safety_post_result, exact_answer)
                     if safety_post_result.action in {"block", "fallback"}:
                         sources = []
                     if safety_system_error and safety_error_stage == "post_generation":
@@ -1202,7 +1549,7 @@ class RAGPipeline:
                     response_language=RESPONSE_LANGUAGE,
                     exact_insuranceqa_match=True,
                     safety_mode=self.settings.safety.mode,
-                    safety_enabled=local_safety_checker.is_active,
+                    safety_enabled=safety_checker.is_active,
                     safety_decision=final_safety_decision,
                     safety_risks=list(set(safety_pre_result.reasons + safety_post_result.reasons)),
                     safety_scores={
@@ -1210,14 +1557,23 @@ class RAGPipeline:
                         "context": dict(safety_context_result.scores),
                         "post": dict(safety_post_result.scores),
                     },
-                    safety_block_reason=safety_post_result.reasons[0]
-                    if (not safety_post_result.allow and safety_post_result.reasons)
-                    else None,
+                    safety_block_reason=_primary_safety_reason(
+                        final_safety_decision,
+                        safety_pre_result,
+                        safety_context_result,
+                        safety_post_result,
+                    ),
                     safety_results={
                         "pre": _safety_result_to_dict(safety_pre_result),
                         "context": _safety_result_to_dict(safety_context_result),
                         "post": _safety_result_to_dict(safety_post_result),
                     },
+                    **_safety_audit_fields(
+                        final_safety_decision,
+                        safety_pre_result,
+                        safety_context_result,
+                        safety_post_result,
+                    ),
                     safety_system_error=safety_system_error,
                     safety_error_stage=safety_error_stage,
                     safety_error_type=safety_error_type,
@@ -1226,7 +1582,6 @@ class RAGPipeline:
                 return AnswerResult(answer=final_answer, sources=sources, query=query, latency_ms=latency_ms)
 
         components = self.initialize(force_reindex=pdfs_have_changed())
-        safety_checker = components.get("safety_checker", local_safety_checker)
 
         if self.settings.retrieval.force_retrieval:
             retrieval_needed = "RETRIEVE"
@@ -1265,6 +1620,12 @@ class RAGPipeline:
                     "context": _safety_result_to_dict(safety_context_result),
                     "post": _safety_result_to_dict(safety_post_result),
                 },
+                **_safety_audit_fields(
+                    final_safety_decision,
+                    safety_pre_result,
+                    safety_context_result,
+                    safety_post_result,
+                ),
                 safety_system_error=safety_system_error,
                 safety_error_stage=safety_error_stage,
                 safety_error_type=safety_error_type,
@@ -1288,7 +1649,10 @@ class RAGPipeline:
             )
 
             if not reranked_docs:
-                current_query = rewrite_query(components["query_rewrite_llm"], current_query, chat_history)
+                rewritten_query = rewrite_query(components["query_rewrite_llm"], current_query, chat_history)
+                if rewritten_query == current_query:
+                    break
+                current_query = rewritten_query
                 retries += 1
                 continue
 
@@ -1302,6 +1666,8 @@ class RAGPipeline:
             )
 
             if checked_query != current_query or not checked_docs:
+                if checked_query == current_query and not checked_docs:
+                    break
                 current_query = checked_query
                 retries += 1
                 continue
@@ -1318,6 +1684,7 @@ class RAGPipeline:
             context_docs_for_log: List[Document] = []
         else:
             context_docs = reranked_docs
+            sanitized_context_docs: Optional[List[Document]] = None
             try:
                 safety_context_result = safety_checker.check_context_safety(reranked_docs)
             except Exception as exc:
@@ -1332,6 +1699,11 @@ class RAGPipeline:
                     )
 
             if not safety_context_result.allow:
+                sanitized_context_docs = _context_docs_from_safety_result(safety_context_result)
+
+            if not safety_context_result.allow and not (
+                safety_context_result.action == "redact" and sanitized_context_docs
+            ):
                 answer = safety_checker.apply_safety_action(safety_context_result, "")
                 sources = []
                 context_docs_for_log = reranked_docs
@@ -1340,8 +1712,11 @@ class RAGPipeline:
                 else:
                     final_safety_decision = f"context_{safety_context_result.action}"
             else:
+                if sanitized_context_docs:
+                    context_docs = sanitized_context_docs
+                    final_safety_decision = "context_redact"
                 if self.settings.retrieval.enable_context_compression:
-                    context_docs = compress_context(components["compressor_llm"], reranked_docs, current_query)
+                    context_docs = compress_context(components["compressor_llm"], context_docs, current_query)
 
                 answer = generate_answer(components["llm"], current_query, context_docs, chat_history)
                 sources = [document_to_source(doc) for doc in reranked_docs]
@@ -1400,12 +1775,23 @@ class RAGPipeline:
                 "context": dict(safety_context_result.scores),
                 "post": dict(safety_post_result.scores),
             },
-            safety_block_reason=safety_risks[0] if safety_risks and final_safety_decision != "allow" else None,
+            safety_block_reason=_primary_safety_reason(
+                final_safety_decision,
+                safety_pre_result,
+                safety_context_result,
+                safety_post_result,
+            ),
             safety_results={
                 "pre": _safety_result_to_dict(safety_pre_result),
                 "context": _safety_result_to_dict(safety_context_result),
                 "post": _safety_result_to_dict(safety_post_result),
             },
+            **_safety_audit_fields(
+                final_safety_decision,
+                safety_pre_result,
+                safety_context_result,
+                safety_post_result,
+            ),
             safety_system_error=safety_system_error,
             safety_error_stage=safety_error_stage,
             safety_error_type=safety_error_type,

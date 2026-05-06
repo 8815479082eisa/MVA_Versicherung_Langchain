@@ -19,7 +19,14 @@ class ApiBootTest(unittest.TestCase):
     def test_health_endpoint(self):
         response = self.client.get("/health")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json().get("status"), "ok")
+        body = response.json()
+        self.assertEqual(body.get("status"), "ok")
+        self.assertIn("configured_answer_model", body)
+        self.assertIn("preferred_answer_model", body)
+        self.assertIn("answer_model_matches_preference", body)
+        self.assertIn("query_rewrite_enabled", body)
+        self.assertIn("nemo_enforce_output", body)
+        self.assertIn("safety_backend", body)
 
     def test_ask_endpoint_schema(self):
         mocked = AnswerResult(

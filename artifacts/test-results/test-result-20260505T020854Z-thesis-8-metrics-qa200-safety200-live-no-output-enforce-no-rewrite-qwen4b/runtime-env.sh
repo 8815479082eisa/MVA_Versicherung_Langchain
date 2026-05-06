@@ -1,0 +1,15 @@
+export SAFETY_BACKEND=nemo
+export NEMO_INPUT_ENABLED=true
+export NEMO_CONTEXT_ENABLED=true
+export NEMO_OUTPUT_ENABLED=true
+export NEMO_ENFORCE_INPUT=true
+export NEMO_ENFORCE_OUTPUT=false
+
+export QUERY_REWRITE_ENABLED=false
+
+export ANSWER_MODEL=qwen3.5:4b
+export PREFERRED_ANSWER_MODEL=qwen3.5:4b
+export OLLAMA_MODEL=qwen3.5:4b
+export ROUTER_MODEL=functiongemma:270m
+
+export INSURANCEQA_EXACT_MATCH_SHORTCUT=false

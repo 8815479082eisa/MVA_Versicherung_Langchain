@@ -1,0 +1,1 @@
+python scripts/evaluation/run_query_input_safety_eval.py --pipeline-label "pipeline-<pipeline-20260415>" --test-setup-label "test-setup-query-input-first-30-ABR-BAR-v1" --queries-file "docs/test-setups/test-setup-query-input-first-30-ABR-BAR-v1/queries.jsonl" --result-dir "artifacts/test-results/test-result-20260415T005834Z" --result-label "test-result-20260415T005834Z"

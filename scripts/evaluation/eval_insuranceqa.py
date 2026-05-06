@@ -1,9 +1,6 @@
-﻿import argparse
-import json
-import random
-import re
+import argparse
+import sys
 import time
-from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -15,6 +12,18 @@ except Exception as exc:
     raise SystemExit(
         "Missing dependency `datasets`. Install with: pip install datasets"
     ) from exc
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.evaluation.benchmark_utils import (
+    best_token_f1,
+    exact_match,
+    load_question_answer_pairs,
+    sample_question_answer_pairs,
+    slice_question_answer_pairs,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -73,63 +82,16 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def norm(t: str) -> str:
-    t = (t or "").lower().strip()
-    t = re.sub(r"[^a-z0-9\s]", " ", t)
-    t = re.sub(r"\s+", " ", t)
-    return t
-
-
-def token_f1(pred: str, gold: str) -> float:
-    p = norm(pred).split()
-    g = norm(gold).split()
-    if not p and not g:
-        return 1.0
-    if not p or not g:
-        return 0.0
-
-    common = {}
-    for w in p:
-        common[w] = common.get(w, 0) + 1
-
-    inter = 0
-    for w in g:
-        if common.get(w, 0) > 0:
-            inter += 1
-            common[w] -= 1
-
-    if inter == 0:
-        return 0.0
-
-    precision = inter / len(p)
-    recall = inter / len(g)
-    return 2 * precision * recall / (precision + recall)
-
-
-def _load_local_sample(path: Path) -> list[tuple[str, list[str]]]:
-    q2answers: dict[str, list[str]] = defaultdict(list)
-    with path.open("r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            row = json.loads(line)
-            question = str(row.get("question") or row.get("input") or "").strip()
-            answer = str(row.get("answer") or row.get("output") or "").strip()
-            if question and answer:
-                q2answers[question].append(answer)
-    return list(q2answers.items())
-
-
 def _load_hf_sample(split: str) -> list[tuple[str, list[str]]]:
     ds = load_dataset("deccan-ai/insuranceQA-v2", split=split)
 
-    q2answers: dict[str, list[str]] = defaultdict(list)
+    q2answers: dict[str, list[str]] = {}
     for row in ds:
         question = str(row.get("input", "")).strip()
         answer = str(row.get("output", "")).strip()
-        if question and answer:
-            q2answers[question].append(answer)
+        if not question or not answer:
+            continue
+        q2answers.setdefault(question, []).append(answer)
     return list(q2answers.items())
 
 
@@ -141,24 +103,18 @@ def build_sample(
 ) -> tuple[list[tuple[str, list[str]]], str]:
     dataset_path = Path(dataset_jsonl)
     if dataset_path.exists():
-        items_all = _load_local_sample(dataset_path)
+        items_all = load_question_answer_pairs(dataset_path)
         source_label = str(dataset_path)
     else:
         items_all = _load_hf_sample(split)
         source_label = f"hf://deccan-ai/insuranceQA-v2[{split}]"
 
-    random.seed(seed)
-    k = min(max_samples, len(items_all))
-    sampled = random.sample(items_all, k=k)
+    sampled = sample_question_answer_pairs(
+        items_all,
+        max_samples=max_samples,
+        seed=seed,
+    )
     return sampled, source_label
-
-
-def batched_slice(
-    items: list[tuple[str, list[str]]], start: int, count: int | None
-) -> tuple[list[tuple[str, list[str]]], int, int]:
-    safe_start = max(0, min(start, len(items)))
-    end = len(items) if count is None else min(len(items), safe_start + max(0, count))
-    return items[safe_start:end], safe_start, end
 
 
 def post_with_retry(
@@ -171,9 +127,9 @@ def post_with_retry(
     last_err = None
     for attempt in range(1, retries + 1):
         try:
-            r = requests.post(api_url, json={"question": question}, timeout=timeout)
-            r.raise_for_status()
-            return r.json()
+            response = requests.post(api_url, json={"question": question}, timeout=timeout)
+            response.raise_for_status()
+            return response.json()
         except Exception as exc:
             last_err = exc
             if attempt < retries:
@@ -183,8 +139,10 @@ def post_with_retry(
 
 def append_jsonl(path: Path, row: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    with path.open("a", encoding="utf-8") as handle:
+        import json
+
+        handle.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
 def derive_health_url(api_url: str, explicit_health_url: str | None) -> str:
@@ -244,7 +202,11 @@ def main() -> None:
         seed=args.seed,
         dataset_jsonl=args.dataset_jsonl,
     )
-    items_run, start_idx, end_idx = batched_slice(items, start=args.start, count=args.count)
+    items_run, start_idx, end_idx = slice_question_answer_pairs(
+        items,
+        start=args.start,
+        count=args.count,
+    )
 
     print(f"Sample size: {len(items)} | split={args.split} | seed={args.seed}")
     print(f"Dataset source: {dataset_source}")
@@ -257,34 +219,34 @@ def main() -> None:
     failed = 0
     consecutive_failures = 0
 
-    for i, (q, refs) in enumerate(items_run, start=start_idx):
+    for i, (question, refs) in enumerate(items_run, start=start_idx):
         try:
             data = post_with_retry(
                 api_url=args.api_url,
-                question=q,
+                question=question,
                 timeout=args.timeout,
                 retries=args.retries,
                 retry_sleep=args.retry_sleep,
             )
-            pred = str(data.get("answer", ""))
+            prediction = str(data.get("answer", ""))
             sources = data.get("sources") or []
             source_ids = []
-            for src in sources:
-                if isinstance(src, dict):
-                    source_ids.append(str(src.get("documentId") or src.get("document_id") or ""))
+            for source in sources:
+                if isinstance(source, dict):
+                    source_ids.append(
+                        str(source.get("documentId") or source.get("document_id") or "")
+                    )
 
             if (not args.allow_dataset_shortcut) and any(
-                sid == "insuranceqa_v2_local" for sid in source_ids
+                source_id == "insuranceqa_v2_local" for source_id in source_ids
             ):
                 raise RuntimeError(
                     "Detected direct InsuranceQA dataset shortcut answer "
                     "(source documentId=insuranceqa_v2_local)."
                 )
 
-            pred_n = norm(pred)
-            refs_n = [norm(x) for x in refs]
-            em = 1 if pred_n in refs_n else 0
-            best_f1 = max(token_f1(pred, ref) for ref in refs)
+            em = int(exact_match(prediction, refs))
+            best_f1 = best_token_f1(prediction, refs)
 
             em_hits += em
             f1_sum += best_f1
@@ -296,9 +258,9 @@ def main() -> None:
                 {
                     "run_id": run_id,
                     "idx": i,
-                    "question": q,
+                    "question": question,
                     "refs": refs,
-                    "prediction": pred,
+                    "prediction": prediction,
                     "source_ids": source_ids,
                     "em": em,
                     "best_f1": best_f1,
@@ -309,7 +271,7 @@ def main() -> None:
             consecutive_failures += 1
             append_jsonl(
                 out_path,
-                {"run_id": run_id, "idx": i, "question": q, "error": str(exc)},
+                {"run_id": run_id, "idx": i, "question": question, "error": str(exc)},
             )
             print(f"[ERROR] idx={i}: {exc}")
             if consecutive_failures >= args.max_consecutive_failures:

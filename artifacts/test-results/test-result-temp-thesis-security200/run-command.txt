@@ -1,0 +1,1 @@
+scripts/evaluation/evaluate_thesis.py --mode security --safety-file data/benchmarks/safety/thesis_safety_mix_200.jsonl --out-dir artifacts/test-results/test-result-temp-thesis-security200

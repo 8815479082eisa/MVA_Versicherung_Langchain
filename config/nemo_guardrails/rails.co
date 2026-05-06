@@ -1,0 +1,23 @@
+define bot allow input
+  "[NEMO_ALLOW_INPUT]"
+
+define bot block unsafe input
+  "[NEMO_BLOCK_INPUT]"
+
+define bot fallback unsafe input
+  "[NEMO_FALLBACK_INPUT]"
+
+define subflow inspect insurance input
+  $decision = execute inspect_query_safety(query=$user_message)
+
+  if $decision["action"] == "block"
+    bot block unsafe input
+    stop
+
+  if $decision["action"] == "fallback"
+    bot fallback unsafe input
+    stop
+
+define subflow allow input
+  bot allow input
+  stop

@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, List, Literal, Optional, Sequence, Tuple
-
-from langchain_core.documents import Document
+from typing import Any, Dict, List, Literal, Optional, Sequence, Tuple
 
 try:
     from config.models import SafetyConfig
@@ -38,32 +36,32 @@ class PIIItem:
     reason: str = ""
 
 
-# Regex definitions
 EMAIL_RE = re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECASE)
-PHONE_RE = re.compile(
-    r"(?<!\w)(?:\+|00)?(?:\d[\d\s()./-]{5,}\d)(?!\w)"
-)
+PHONE_RE = re.compile(r"(?<!\w)(?:\+|00)?(?:\d[\d\s()./-]{5,}\d)(?!\w)")
 IBAN_RE = re.compile(r"(?<![A-Z0-9])[A-Z]{2}\d{2}[A-Z0-9]{11,30}(?![A-Z0-9])", re.IGNORECASE)
+SSN_RE = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
+PAYMENT_CARD_RE = re.compile(r"(?<!\d)(?:\d[ -]?){13,19}(?!\d)")
 
 IDENTIFIER_LABEL_RE = re.compile(
     r"""(?ix)
     \b(?P<label>
-        customer(?:\s*(?:no\.?|nr\.?|number|id))?
-        |kunde(?:\s*(?:nr\.?|nummer|id))?
-        |kunden(?:\s*(?:nr\.?|nummer|id))?
-        |policy(?:\s*(?:no\.?|nr\.?|number|id))?
+        customer(?:\s*(?:no\.?|nr\.?|number|id))
+        |kunde(?:\s*(?:nr\.?|nummer|id))
+        |kunden(?:\s*(?:nr\.?|nummer|id))
+        |policy(?:\s*(?:no\.?|nr\.?|number|id))
         |policynumber
-        |claim(?:\s*(?:no\.?|nr\.?|number|id))?
-        |schaden(?:\s*(?:nr\.?|nummer|id))?
-        |contract(?:\s*(?:no\.?|nr\.?|number|id))?
-        |vertrags(?:\s*(?:nr\.?|nummer|id))?
-        |member(?:\s*(?:no\.?|nr\.?|number|id))?
-        |account(?:\s*(?:no\.?|nr\.?|number|id))?
-        |reference(?:\s*(?:no\.?|nr\.?|number|id))?
-        |id(?:\s*(?:no\.?|nr\.?|number))?
+        |claim(?:\s*(?:no\.?|nr\.?|number|id))
+        |schaden(?:\s*(?:nr\.?|nummer|id))
+        |contract(?:\s*(?:no\.?|nr\.?|number|id))
+        |vertrags(?:\s*(?:nr\.?|nummer|id))
+        |member(?:\s*(?:no\.?|nr\.?|number|id))
+        |account(?:\s*(?:no\.?|nr\.?|number|id))
+        |reference(?:\s*(?:no\.?|nr\.?|number|id))
+        |id(?:\s*(?:no\.?|nr\.?|number))
     )\b\s*[:#-]?\s*(?P<value>[A-Z0-9][A-Z0-9/-]{4,24})
     """,
 )
+
 FORMATTED_IDENTIFIER_RE = re.compile(
     r"""(?ix)
     (?<!\w)
@@ -71,6 +69,7 @@ FORMATTED_IDENTIFIER_RE = re.compile(
     (?!\w)
     """,
 )
+
 DOB_LABEL_RE = re.compile(
     r"""(?ix)
     \b(?:date of birth|dob|birth date|born|geburtsdatum|geb\.?\s*datum)\b
@@ -83,6 +82,7 @@ DOB_LABEL_RE = re.compile(
     )
     """,
 )
+
 ADDRESS_LABEL_RE = re.compile(
     r"""(?ix)
     \b(?:address|anschrift|billing address|shipping address|street address|postal address|postanschrift|wohnanschrift)\b
@@ -90,6 +90,7 @@ ADDRESS_LABEL_RE = re.compile(
     (?P<value>[^\n;]{8,120})
     """,
 )
+
 ADDRESS_FORMAT_RE = re.compile(
     r"""(?ix)
     (?:
@@ -106,19 +107,64 @@ ADDRESS_FORMAT_RE = re.compile(
 )
 
 HARD_INJECTION_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
-    ("ignore_instructions", re.compile(r"ignore (all|previous|prior) (instructions|prompts)", re.IGNORECASE)),
+    ("ignore_instructions", re.compile(r"\bignore\b[\s\S]{0,60}\b(?:instructions?|prompts?|rules?)\b", re.IGNORECASE)),
+    ("disregard_instructions", re.compile(r"\bdisregard\b[\s\S]{0,60}\b(?:instructions?|prompts?|rules?)\b", re.IGNORECASE)),
+    (
+        "override_prior_instructions",
+        re.compile(
+            r"\boverride\b[\s\S]{0,60}\b(?:all|any|previous|prior|existing)\b[\s\S]{0,60}\b(?:instructions?|prompts?|rules?)\b",
+            re.IGNORECASE,
+        ),
+    ),
     ("ignore_safety_rules", re.compile(r"ignore all safety rules", re.IGNORECASE)),
-    ("ignore_role", re.compile(r"\bignore (?:your|the) role\b", re.IGNORECASE)),
-    ("reveal_prompt", re.compile(r"reveal (the )?(system|developer) prompt", re.IGNORECASE)),
-    ("reveal_developer_instructions", re.compile(r"reveal (the )?(developer|internal) instructions", re.IGNORECASE)),
-    ("reveal_hidden_prompt", re.compile(r"reveal (the )?(system instructions|hidden prompt|internal hidden prompt)", re.IGNORECASE)),
-    ("developer_mode_override", re.compile(r"you are now (in )?(developer|system) mode", re.IGNORECASE)),
-    ("role_override", re.compile(r"you are no longer a retrieval assistant", re.IGNORECASE)),
-    ("bypass_policy", re.compile(r"bypass (safety|guardrails|policy)", re.IGNORECASE)),
+    (
+        "ignore_safety_controls",
+        re.compile(
+            r"\b(?:ignore|disregard|bypass|disable|drop|remove)\b[\s\S]{0,40}\b(?:safety|guardrails?|policy|compliance|constraints?)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "follow_only_message_bypass_rules",
+        re.compile(
+            r"\b(?:follow|obey)\b[\s\S]{0,40}\b(?:only|just)\b[\s\S]{0,40}\b(?:this message|this prompt|these instructions)\b[\s\S]{0,80}\b(?:bypass|ignore|override)\b[\s\S]{0,40}\b(?:rules?|policy|guardrails?|constraints?)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "privilege_escalation_role_request",
+        re.compile(
+            r"\b(?:act|behave)\s+(?:as|like)\s+(?:an?\s+)?(?:administrator|admin|internal operator|privileged user|unrestricted assistant)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    ("ignore_role", re.compile(r"\b(?:ignore|override)\s+(?:your|the)\s+role\b", re.IGNORECASE)),
+    ("reveal_prompt", re.compile(r"\breveal\b[\s\S]{0,40}\b(?:system|developer|internal)\b[\s\S]{0,20}\b(?:prompt|template|settings?)\b", re.IGNORECASE)),
+    (
+        "print_or_show_hidden_prompt",
+        re.compile(
+            r"\b(?:print|show|display)\b[\s\S]{0,40}\b(?:hidden|system|developer|internal)\b[\s\S]{0,30}\b(?:prompt|template|settings?)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    ("reveal_developer_instructions", re.compile(r"\breveal\b[\s\S]{0,40}\b(?:developer|internal)\b[\s\S]{0,20}\binstructions?\b", re.IGNORECASE)),
+    ("reveal_hidden_prompt", re.compile(r"\breveal\b[\s\S]{0,40}\b(?:system instructions?|hidden prompt|internal hidden prompt)\b", re.IGNORECASE)),
+    ("developer_mode_override", re.compile(r"\byou are now\b[\s\S]{0,20}\b(?:developer|system|backdoor)\s+mode\b", re.IGNORECASE)),
+    ("role_override", re.compile(r"\byou are no longer a retrieval assistant\b|\bunrestricted (?:mode|assistant)\b", re.IGNORECASE)),
+    ("bypass_policy", re.compile(r"\bbypass\b[\s\S]{0,30}\b(?:safety(?: layer)?|guardrails?|policy|constraints?)\b", re.IGNORECASE)),
+    ("disable_safety_mode", re.compile(r"\bdisable\b[\s\S]{0,20}\b(?:safety|guardrails?|policy)\b[\s\S]{0,20}\bmode\b", re.IGNORECASE)),
+    (
+        "policy_checks_disabled",
+        re.compile(
+            r"\b(?:safety|policy|guardrails?|compliance)\s+checks?\b[\s\S]{0,20}\b(?:are\s+)?disabled\b",
+            re.IGNORECASE,
+        ),
+    ),
+    ("dump_audit_logs", re.compile(r"\b(?:dump|print|show)\b[\s\S]{0,30}\baudit logs?\b", re.IGNORECASE)),
     (
         "retrieval_bypass",
         re.compile(
-            r"\bdo not use\b[\s\S]{0,30}\b(?:retrieved|provided|given)\b[\s\S]{0,20}\b(?:documents?|sources?|context)\b",
+            r"\b(?:do not use|don't use|bypass)\b[\s\S]{0,40}\b(?:retrieval|retrieved|provided|given)\b[\s\S]{0,30}\b(?:documents?|sources?|context)?\b",
             re.IGNORECASE,
         ),
     ),
@@ -132,11 +178,57 @@ HARD_INJECTION_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
     (
         "context_bypass_ignore_context",
         re.compile(
-            r"\b(?:ignore|don't use|do not use)\b[\s\S]{0,40}\b(?:provided|given|retrieved)\b[\s\S]{0,40}\b(?:context|documents?|sources?)\b",
+            r"\b(?:ignore|don't use|do not use)\b[\s\S]{0,40}\b(?:provided|given|retrieved|context)\b[\s\S]{0,40}\b(?:context|documents?|sources?)\b",
             re.IGNORECASE,
         ),
     ),
-    ("ungrounded_answer_request", re.compile(r"answer only from your own knowledge", re.IGNORECASE)),
+    ("ungrounded_answer_request", re.compile(r"answer only from your own knowledge|answer freely from private memory", re.IGNORECASE)),
+    (
+        "no_safeguards_response_request",
+        re.compile(
+            r"\b(?:respond|answer|output)\b[\s\S]{0,100}\b(?:no|without|do not mention|don't mention)\b[\s\S]{0,40}\b(?:policy(?: references?)?|safeguards?|guardrails?|compliance checks?)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "restrictions_removed_simulation",
+        re.compile(
+            r"\b(?:simulate|pretend|act)\b[\s\S]{0,80}\b(?:all|any)\s+(?:restrictions?|constraints?)\s+(?:removed|off)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "policy_not_applicable_request",
+        re.compile(
+            r"\b(?:as if|pretend)\b[\s\S]{0,80}\b(?:safety|policy|guardrails?)\b[\s\S]{0,50}\b(?:does not apply|don't apply|is not applicable)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "private_channel_bypass",
+        re.compile(
+            r"\b(?:private|trusted)\s+channel\b[\s\S]{0,80}\b(?:bypass|ignore|disable)\b[\s\S]{0,40}\b(?:protections?|guardrails?|policy|constraints?)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "switch_backdoor_mode",
+        re.compile(r"\b(?:switch|enter)\b[\s\S]{0,40}\b(?:developer|backdoor)\s+mode\b", re.IGNORECASE),
+    ),
+    (
+        "authorized_policy_bypass_claim",
+        re.compile(
+            r"\b(?:assume|pretend)\b[\s\S]{0,60}\b(?:authorized|approved)\b[\s\S]{0,40}\b(?:policy|guardrails?)\b[\s\S]{0,40}\b(?:bypass|disable)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "reveal_safety_rules_for_bypass",
+        re.compile(
+            r"\breveal\b[\s\S]{0,60}\b(?:secret|hidden)?\s*(?:safety|policy)\s+rules?\b[\s\S]{0,80}\b(?:bypass|evade)\b",
+            re.IGNORECASE,
+        ),
+    ),
     (
         "history_override",
         re.compile(
@@ -144,60 +236,144 @@ HARD_INJECTION_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
             re.IGNORECASE,
         ),
     ),
-    ("jailbreak", re.compile(r"jailbreak", re.IGNORECASE)),
+    ("jailbreak", re.compile(r"\bjailbreak\b|\bno-?filter mode\b|\braw mode\b|\bunrestricted mode\b", re.IGNORECASE)),
 )
 
-SOFT_INJECTION_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
-    ("without_sources", re.compile(r"without sources", re.IGNORECASE)),
+SENSITIVE_DATA_REQUEST_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
+    (
+        "personal_data_exfiltration",
+        re.compile(
+            r"\b(?:show|list|print|return|output|dump|reveal)\b[\s\S]{0,120}\b(?:raw )?(?:personal data|pii)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "customer_profile_operation",
+        re.compile(
+            r"\b(?:update|validate|verify|confirm|process|merge|cross-?check|reconcile|identify|review|use|expose)\b[\s\S]{0,80}\b(?:customer|policyholder|claimant|account)\b[\s\S]{0,80}\b(?:data|details?|records?|profile|identity|billing|contact|address|email|phone|payment)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "email_or_phone_ownership_lookup",
+        re.compile(
+            r"\b(?:verify|confirm|check)\b[\s\S]{0,70}\b(?:email|phone)\b[\s\S]{0,70}\b(?:belongs to|linked to|associated with)\b[\s\S]{0,40}\b(?:claimant|customer|policyholder|account)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "sensitive_profile_review_request",
+        re.compile(
+            r"\b(?:review|inspect|analyze)\b[\s\S]{0,60}\b(?:sensitive|private)\s+(?:profile|record)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "personal_records_linkage_request",
+        re.compile(
+            r"\b(?:identify|find|list)\b[\s\S]{0,80}\b(?:personal|private)\s+records?\b[\s\S]{0,80}\b(?:linked to|associated with)\b[\s\S]{0,40}\b(?:payment\s+account|account)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "private_data_reconciliation_policyholder",
+        re.compile(
+            r"\b(?:private|sensitive)\s+data\s+reconciliation\b[\s\S]{0,80}\b(?:policyholder|customer|profile|identity)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "validate_contract_with_sensitive_profile_data",
+        re.compile(
+            r"\b(?:use|apply)\b[\s\S]{0,60}\b(?:sensitive|private)\s+profile\s+data\b[\s\S]{0,80}\b(?:validate|verify|process)\b[\s\S]{0,40}\b(?:insurance\s+)?contract\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "person_existence_lookup",
+        re.compile(
+            r"\b(?:verify|confirm)\b[\s\S]{0,80}\b(?:this|a)\s+person\b[\s\S]{0,80}\b(?:insured|customer)\b[\s\S]{0,40}\b(?:base|database|records?)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "identity_reconciliation_request",
+        re.compile(
+            r"\b(?:merge|reconcile|cross-?check)\b[\s\S]{0,80}\b(?:customer|identity|profile|record|records?)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "account_recovery_data_exposure",
+        re.compile(
+            r"\b(?:expose|reveal|provide)\b[\s\S]{0,80}\b(?:customer|personal|private)\b[\s\S]{0,60}\b(?:details?|data)\b[\s\S]{0,60}\b(?:account recovery|billing|contract)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "phone_numbers_request",
+        re.compile(
+            r"\b(?:show|list|print|return|output|dump|reveal)\b[\s\S]{0,120}\bphone numbers?\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "addresses_request",
+        re.compile(
+            r"\b(?:show|list|print|return|output|dump|reveal)\b[\s\S]{0,120}\baddress(?:es)?\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "social_security_request",
+        re.compile(
+            r"\b(?:show|list|print|return|output|dump|reveal)\b[\s\S]{0,120}\b(?:social security numbers?|ssn)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "passport_number_request",
+        re.compile(
+            r"\b(?:show|list|print|return|output|dump|reveal)\b[\s\S]{0,120}\bpassport numbers?\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "iban_request",
+        re.compile(
+            r"\b(?:show|list|print|return|output|dump|reveal)\b[\s\S]{0,120}\bibans?\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "restricted_customer_records_request",
+        re.compile(
+            r"\b(?:reveal|show|disclose|expose|print|return|output|dump)\b[\s\S]{0,120}\b(?:restricted|protected|internal)\b[\s\S]{0,40}\bcustomer records?\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "customer_names_request",
+        re.compile(
+            r"\b(?:show|list|print|return|output|dump|reveal|disclose|expose)\b[\s\S]{0,120}\bcustomer names?\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "contract_numbers_request",
+        re.compile(
+            r"\b(?:show|list|print|return|output|dump|reveal|disclose|expose)\b[\s\S]{0,120}\bcontract numbers?\b",
+            re.IGNORECASE,
+        ),
+    ),
 )
-
-# Backward-compatible alias used by answer-safety checks.
-INJECTION_PATTERNS: Tuple[re.Pattern[str], ...] = tuple(pattern for _, pattern in HARD_INJECTION_PATTERNS)
-
-UNSAFE_CONTENT_PATTERNS = [
-    re.compile(r"\bbuild (a )?(bomb|explosive)\b", re.IGNORECASE),
-    re.compile(r"\bhow to (hack|phish|steal)\b", re.IGNORECASE),
-    re.compile(r"\bmalware|ransomware\b", re.IGNORECASE),
-]
-
-STOPWORDS = {
-    "the",
-    "and",
-    "for",
-    "that",
-    "with",
-    "from",
-    "this",
-    "have",
-    "will",
-    "your",
-    "are",
-    "but",
-    "not",
-    "you",
-    "can",
-    "all",
-    "was",
-    "has",
-    "had",
-    "into",
-    "their",
-    "they",
-    "them",
-    "there",
-    "about",
-    "what",
-    "when",
-    "where",
-    "which",
-    "why",
-    "how",
-}
 
 PII_PLACEHOLDERS = {
     "email": "[REDACTED_EMAIL]",
     "phone": "[REDACTED_PHONE]",
     "iban": "[REDACTED_IBAN]",
+    "ssn": "[REDACTED_SSN]",
+    "payment_card": "[REDACTED_PAYMENT_CARD]",
     "policy_id": "[REDACTED_POLICY_ID]",
     "claim_id": "[REDACTED_CLAIM_ID]",
     "contract_id": "[REDACTED_CONTRACT_ID]",
@@ -206,31 +382,6 @@ PII_PLACEHOLDERS = {
     "date_of_birth": "[REDACTED_DATE_OF_BIRTH]",
     "address": "[REDACTED_ADDRESS]",
 }
-
-
-def _tokenize(text: str) -> set[str]:
-    tokens = re.findall(r"[a-zA-Z]{3,}", (text or "").lower())
-    return {token for token in tokens if token not in STOPWORDS}
-
-
-def _extract_texts(docs: Iterable[Any]) -> List[str]:
-    texts: List[str] = []
-    for doc in docs or []:
-        if isinstance(doc, Document):
-            texts.append(doc.page_content or "")
-        elif isinstance(doc, dict):
-            texts.append(str(doc.get("page_content", "")))
-        else:
-            texts.append(str(doc))
-    return texts
-
-
-def _contains_injection(text: str) -> bool:
-    return any(pattern.search(text) for pattern in INJECTION_PATTERNS)
-
-
-def _contains_unsafe_content(text: str) -> bool:
-    return any(pattern.search(text) for pattern in UNSAFE_CONTENT_PATTERNS)
 
 
 def _find_matching_injection_patterns(
@@ -244,11 +395,12 @@ def _find_matching_injection_patterns(
     return matches
 
 
-def _detect_injection_signals(text: str) -> Dict[str, List[str]]:
-    return {
-        "hard": _find_matching_injection_patterns(text, HARD_INJECTION_PATTERNS),
-        "soft": _find_matching_injection_patterns(text, SOFT_INJECTION_PATTERNS),
-    }
+def detect_query_hard_injection_signals(text: str) -> List[str]:
+    return _find_matching_injection_patterns(text or "", HARD_INJECTION_PATTERNS)
+
+
+def detect_sensitive_data_request_signals(text: str) -> List[str]:
+    return _find_matching_injection_patterns(text or "", SENSITIVE_DATA_REQUEST_PATTERNS)
 
 
 def _config_values(config: Optional[SafetyConfig], attribute: str) -> Tuple[str, ...]:
@@ -274,6 +426,24 @@ def _normalize_phone(value: str) -> str:
 
 def _placeholder_for_pii_type(pii_type: str) -> str:
     return PII_PLACEHOLDERS.get(pii_type, "[REDACTED_PII]")
+
+
+def _looks_like_identifier_value(value: str) -> bool:
+    candidate = (value or "").strip()
+    if not candidate:
+        return False
+
+    digit_count = sum(ch.isdigit() for ch in candidate)
+    if digit_count >= 2:
+        return True
+
+    if re.search(r"[A-Z]{2,8}[-/]\d{2,}", candidate, re.IGNORECASE):
+        return True
+
+    if re.search(r"\d{3,}", candidate):
+        return True
+
+    return False
 
 
 def _classify_identifier(value: str, label: str = "") -> Tuple[str, str]:
@@ -334,6 +504,23 @@ def _is_valid_phone_match(value: str) -> bool:
     return False
 
 
+def _passes_luhn(number: str) -> bool:
+    digits = [int(ch) for ch in number if ch.isdigit()]
+    if len(digits) < 13 or len(digits) > 19:
+        return False
+
+    checksum = 0
+    parity = len(digits) % 2
+    for idx, digit in enumerate(digits):
+        value = digit
+        if idx % 2 == parity:
+            value *= 2
+            if value > 9:
+                value -= 9
+        checksum += value
+    return checksum % 10 == 0
+
+
 def _pii_item(
     pii_type: str,
     value: str,
@@ -361,7 +548,6 @@ def _detect_email_items(text: str, config: Optional[SafetyConfig]) -> List[PIIIt
     for match in EMAIL_RE.finditer(text):
         value = match.group(0)
         allowed, allow_reason = _is_allowed_email(value, config)
-        reason = allow_reason or "email_pattern"
         items.append(
             _pii_item(
                 "email",
@@ -370,7 +556,7 @@ def _detect_email_items(text: str, config: Optional[SafetyConfig]) -> List[PIIIt
                 match.end(),
                 "email_regex",
                 allowed=allowed,
-                reason=reason,
+                reason=allow_reason or "email_pattern",
             )
         )
     return items
@@ -380,10 +566,12 @@ def _detect_phone_items(text: str, config: Optional[SafetyConfig]) -> List[PIIIt
     items: List[PIIItem] = []
     for match in PHONE_RE.finditer(text):
         value = match.group(0).strip()
+        # Avoid classifying SSN-formatted identifiers as phone numbers.
+        if SSN_RE.fullmatch(value):
+            continue
         if not _is_valid_phone_match(value):
             continue
         allowed, allow_reason = _is_allowed_phone(value, config)
-        reason = allow_reason or "phone_pattern"
         items.append(
             _pii_item(
                 "phone",
@@ -392,7 +580,7 @@ def _detect_phone_items(text: str, config: Optional[SafetyConfig]) -> List[PIIIt
                 match.end(),
                 "phone_regex",
                 allowed=allowed,
-                reason=reason,
+                reason=allow_reason or "phone_pattern",
             )
         )
     return items
@@ -402,15 +590,52 @@ def _detect_iban_items(text: str, config: Optional[SafetyConfig]) -> List[PIIIte
     del config
     items: List[PIIItem] = []
     for match in IBAN_RE.finditer(text):
-        value = match.group(0)
         items.append(
             _pii_item(
                 "iban",
-                value,
+                match.group(0),
                 match.start(),
                 match.end(),
                 "iban_regex",
                 reason="iban_pattern",
+            )
+        )
+    return items
+
+
+def _detect_ssn_items(text: str, config: Optional[SafetyConfig]) -> List[PIIItem]:
+    del config
+    items: List[PIIItem] = []
+    for match in SSN_RE.finditer(text):
+        items.append(
+            _pii_item(
+                "ssn",
+                match.group(0),
+                match.start(),
+                match.end(),
+                "ssn_regex",
+                reason="ssn_pattern",
+            )
+        )
+    return items
+
+
+def _detect_payment_card_items(text: str, config: Optional[SafetyConfig]) -> List[PIIItem]:
+    del config
+    items: List[PIIItem] = []
+    for match in PAYMENT_CARD_RE.finditer(text):
+        value = match.group(0).strip()
+        digits = _normalize_phone(value)
+        if not _passes_luhn(digits):
+            continue
+        items.append(
+            _pii_item(
+                "payment_card",
+                value,
+                match.start(),
+                match.end(),
+                "payment_card_regex",
+                reason="payment_card_pattern",
             )
         )
     return items
@@ -423,6 +648,8 @@ def _detect_identifier_items(text: str, config: Optional[SafetyConfig]) -> List[
     for match in IDENTIFIER_LABEL_RE.finditer(text):
         label = match.group("label")
         value = match.group("value")
+        if not _looks_like_identifier_value(value):
+            continue
         pii_type, placeholder = _classify_identifier(value, label)
         items.append(
             PIIItem(
@@ -438,6 +665,8 @@ def _detect_identifier_items(text: str, config: Optional[SafetyConfig]) -> List[
 
     for match in FORMATTED_IDENTIFIER_RE.finditer(text):
         value = match.group("value")
+        if not _looks_like_identifier_value(value):
+            continue
         pii_type, placeholder = _classify_identifier(value)
         items.append(
             PIIItem(
@@ -458,11 +687,10 @@ def _detect_dob_items(text: str, config: Optional[SafetyConfig]) -> List[PIIItem
     del config
     items: List[PIIItem] = []
     for match in DOB_LABEL_RE.finditer(text):
-        value = match.group("value")
         items.append(
             _pii_item(
                 "date_of_birth",
-                value,
+                match.group("value"),
                 match.start("value"),
                 match.end("value"),
                 "dob_label_regex",
@@ -500,7 +728,6 @@ def _detect_address_items(text: str, config: Optional[SafetyConfig]) -> List[PII
                 reason="address_format",
             )
         )
-
     return items
 
 
@@ -512,6 +739,8 @@ def detect_pii(text: str, config: Optional[SafetyConfig] = None) -> List[PIIItem
     items.extend(_detect_email_items(text, config))
     items.extend(_detect_phone_items(text, config))
     items.extend(_detect_iban_items(text, config))
+    items.extend(_detect_ssn_items(text, config))
+    items.extend(_detect_payment_card_items(text, config))
     items.extend(_detect_identifier_items(text, config))
     items.extend(_detect_dob_items(text, config))
     items.extend(_detect_address_items(text, config))
@@ -543,12 +772,7 @@ def _dedupe_pii_items(items: Sequence[PIIItem]) -> List[PIIItem]:
 
 
 def _select_sensitive_items(items: Sequence[PIIItem], config: Optional[SafetyConfig] = None) -> List[PIIItem]:
-    sensitive_items: List[PIIItem] = []
-    for item in items:
-        if is_allowed_pii(item, config):
-            continue
-        sensitive_items.append(item)
-    return sensitive_items
+    return [item for item in items if not is_allowed_pii(item, config)]
 
 
 def _apply_span_replacements(text: str, replacements: Sequence[PIIItem]) -> str:
@@ -573,372 +797,3 @@ def sanitize_pii(text: str, items: Sequence[PIIItem], config: Optional[SafetyCon
     if not sensitive_items:
         return text
     return _apply_span_replacements(text, sensitive_items)
-
-
-def _summarize_pii_items(items: Sequence[PIIItem]) -> Dict[str, int]:
-    summary: Dict[str, int] = {}
-    for item in items:
-        summary[item.pii_type] = summary.get(item.pii_type, 0) + 1
-    return summary
-
-
-def _allowed_contact_items(items: Sequence[PIIItem], config: Optional[SafetyConfig]) -> List[PIIItem]:
-    return [item for item in items if is_allowed_pii(item, config)]
-
-
-def _redacted_contact_items(items: Sequence[PIIItem], config: Optional[SafetyConfig]) -> List[PIIItem]:
-    return [item for item in items if not is_allowed_pii(item, config)]
-
-
-def _append_pii_reasons(
-    reasons: List[str],
-    *,
-    stage: str,
-    items: Sequence[PIIItem],
-    config: Optional[SafetyConfig] = None,
-    include_redacted_reason: bool = True,
-) -> None:
-    allowed_items = _allowed_contact_items(items, config)
-    redacted_items = _redacted_contact_items(items, config)
-
-    if allowed_items:
-        reasons.append("pii_allowed_business_contact")
-
-    if not redacted_items:
-        return
-
-    if stage == "answer":
-        reasons.append("response_contains_pii")
-    elif stage == "query":
-        reasons.append("query_contains_pii")
-    elif stage == "context":
-        reasons.append("context_contains_pii")
-
-    if include_redacted_reason:
-        reasons.append(f"pii_{stage}_redacted")
-
-    for pii_type in sorted({item.pii_type for item in redacted_items}):
-        reasons.append(f"pii_{pii_type}_redacted")
-
-
-def _pii_details(items: Sequence[PIIItem], config: Optional[SafetyConfig] = None) -> Dict[str, Any]:
-    allowed_items = _allowed_contact_items(items, config)
-    redacted_items = _redacted_contact_items(items, config)
-    return {
-        "detected_count": len(items),
-        "allowed_count": len(allowed_items),
-        "redacted_count": len(redacted_items),
-        "detected_types": _summarize_pii_items(items),
-        "allowed_types": _summarize_pii_items(allowed_items),
-        "redacted_types": _summarize_pii_items(redacted_items),
-        "items": [
-            {
-                "pii_type": item.pii_type,
-                "start": item.start,
-                "end": item.end,
-                "allowed": item.allowed or is_allowed_pii(item, config),
-                "source": item.source,
-                "reason": item.reason,
-            }
-            for item in items
-        ],
-    }
-
-
-def _mark_pii_items_with_allowlist(items: Sequence[PIIItem], config: Optional[SafetyConfig]) -> List[PIIItem]:
-    marked: List[PIIItem] = []
-    for item in items:
-        if is_allowed_pii(item, config):
-            allowed = True
-            if item.pii_type == "email":
-                allowed_reason = _is_allowed_email(item.value, config)[1]
-            elif item.pii_type == "phone":
-                allowed_reason = _is_allowed_phone(item.value, config)[1]
-            else:
-                allowed_reason = item.reason
-            marked.append(
-                PIIItem(
-                    pii_type=item.pii_type,
-                    value=item.value,
-                    start=item.start,
-                    end=item.end,
-                    source=item.source,
-                    placeholder=item.placeholder,
-                    allowed=allowed,
-                    reason=allowed_reason or item.reason,
-                )
-            )
-        else:
-            marked.append(item)
-    return marked
-
-
-def _contains_pii(text: str, config: Optional[SafetyConfig] = None) -> bool:
-    return bool(_redacted_contact_items(detect_pii(text, config), config))
-
-
-def _primary_query_decision_source(
-    *,
-    hard_signals: Sequence[str],
-    soft_signals: Sequence[str],
-    redacted_pii_items: Sequence[PIIItem],
-    allowed_pii_items: Sequence[PIIItem],
-    unsafe_content: bool,
-    action: SafetyAction,
-) -> str:
-    if unsafe_content:
-        return "unsafe_content"
-    if hard_signals and action == "block":
-        return "injection_hard_rule"
-    if redacted_pii_items and action == "fallback":
-        return "pii_rule"
-    if soft_signals:
-        return "injection_soft_rule"
-    if allowed_pii_items:
-        return "allowed_business_contact"
-    return "allow"
-
-
-class SafetyAuditLayer:
-    def __init__(self, config: SafetyConfig):
-        self.config = config
-
-    @property #check if the safety audit is active
-    def is_active(self) -> bool:
-        return self.config.enabled and self.config.mode != "off"
-
-    (self, query: str, chat_history: Optional[List[dict]] = None) -> SafetyResult:
-        del chat_history
-        reasons: List[str] = []
-        action: SafetyAction = "allow"
-        allow = True
-        risk: RiskLevel = "low"
-        text = query or ""
-
-        injection_signals = _detect_injection_signals(text)
-        hard_signals = injection_signals["hard"]
-        soft_signals = injection_signals["soft"]
-
-        if hard_signals:
-            reasons.append("prompt_injection_pattern_detected")
-            reasons.extend(f"injection_hard_{name}" for name in hard_signals)
-            risk = "high"
-            if self.config.block_injection:
-                action = "block"
-                allow = False
-        if soft_signals:
-            reasons.append("suspicious_query_pattern_detected")
-            reasons.extend(f"injection_soft_{name}" for name in soft_signals)
-            if risk == "low":
-                risk = "medium"
-
-        pii_items = _mark_pii_items_with_allowlist(detect_pii(text, self.config), self.config)
-        redacted_pii_items = _redacted_contact_items(pii_items, self.config)
-        allowed_pii_items = _allowed_contact_items(pii_items, self.config)
-        unsafe_check_details: Dict[str, Any] = {}
-        unsafe_content_detected = False
-        try:
-            unsafe_contedef check_query_safetynt_detected = _contains_unsafe_content(text)
-        except Exception as exc:
-            # Keep precheck deterministic even if a helper breaks.
-            reasons.append("unsafe_content_check_error")
-            unsafe_check_details["unsafe_check_error"] = str(exc)
-
-        if self.config.block_pii and redacted_pii_items:
-            reasons.append("pii_detected_in_query")
-            _append_pii_reasons(reasons, stage="query", items=pii_items, config=self.config)
-            action = "fallback" if allow else action
-            allow = False
-            risk = "high" if risk == "high" else "medium"
-        elif allowed_pii_items:
-            reasons.append("pii_allowed_business_contact")
-
-        if unsafe_content_detected:
-            reasons.append("unsafe_request_pattern_detected")
-            action = "block"
-            allow = False
-            risk = "high"
-
-        result = SafetyResult(
-            allow=allow,
-            risk_level=risk,
-            reasons=reasons,
-            action=action,
-            scores={
-                "query_pii_hits": float(len(redacted_pii_items)),
-                "query_allowed_pii_hits": float(len(allowed_pii_items)),
-                "query_injection_hits": float(len(hard_signals)),
-                "query_suspicious_hits": float(len(soft_signals)),
-                "query_length": float(len(text)),
-                "query_token_count": float(len(_tokenize(text))),
-            },
-            details={
-                "stage": "pre_query",
-                "decision": {
-                    "allow": allow,
-                    "action": action,
-                    "risk_level": risk,
-                    "source": _primary_query_decision_source(
-                        hard_signals=hard_signals,
-                        soft_signals=soft_signals,
-                        redacted_pii_items=redacted_pii_items,
-                        allowed_pii_items=allowed_pii_items,
-                        unsafe_content=unsafe_content_detected,
-                        action=action,
-                    ),
-                },
-                "pii": _pii_details(pii_items, self.config),
-                "injection": {
-                    "hard": hard_signals,
-                    "soft": soft_signals,
-                },
-                "query": {
-                    "length": len(text),
-                    "token_count": len(_tokenize(text)),
-                    "contains_sensitive_pii": bool(redacted_pii_items),
-                    "contains_allowed_pii": bool(allowed_pii_items),
-                    "contains_hard_injection": bool(hard_signals),
-                    "contains_soft_injection": bool(soft_signals),
-                },
-                **unsafe_check_details,
-            },
-        )
-        return self._mode_adjust(result)
-
-    def check_context_safety(self, docs: List[Any]) -> SafetyResult:
-        reasons: List[str] = []
-        action: SafetyAction = "allow"
-        allow = True
-        risk: RiskLevel = "low"
-        texts = _extract_texts(docs)
-        pii_items: List[PIIItem] = []
-
-        if self.config.block_pii:
-            for text in texts:
-                pii_items.extend(detect_pii(text, self.config))
-            pii_items = _mark_pii_items_with_allowlist(pii_items, self.config)
-            redacted_items = _redacted_contact_items(pii_items, self.config)
-            if redacted_items:
-                reasons.append("pii_detected_in_context")
-                _append_pii_reasons(reasons, stage="context", items=pii_items, config=self.config)
-                action = "redact"
-                allow = False
-                risk = "medium"
-            elif _allowed_contact_items(pii_items, self.config):
-                reasons.append("pii_allowed_business_contact")
-
-        result = SafetyResult(
-            allow=allow,
-            risk_level=risk,
-            reasons=reasons,
-            action=action,
-            scores={
-                "context_pii_hits": float(len(_redacted_contact_items(pii_items, self.config))),
-                "context_allowed_pii_hits": float(len(_allowed_contact_items(pii_items, self.config))),
-            },
-            details={
-                "stage": "context",
-                "pii": _pii_details(pii_items, self.config),
-            },
-        )
-        return self._mode_adjust(result)
-
-    def check_answer_safety(self, query: str, docs: List[Any], answer: str) -> SafetyResult:
-        del query
-        reasons: List[str] = []
-        action: SafetyAction = "allow"
-        allow = True
-        risk: RiskLevel = "low"
-        scores: Dict[str, float] = {}
-        sanitized_answer: Optional[str] = None
-
-        answer_text = answer or ""
-        context_text = "\n".join(_extract_texts(docs))
-        pii_items = _mark_pii_items_with_allowlist(detect_pii(answer_text, self.config), self.config)
-        sensitive_items = _redacted_contact_items(pii_items, self.config)
-
-        if self.config.block_pii and sensitive_items:
-            reasons.append("pii_detected_in_answer")
-            _append_pii_reasons(reasons, stage="answer", items=pii_items, config=self.config)
-            action = "redact"
-            allow = False
-            risk = "high"
-            sanitized_answer = sanitize_pii(answer_text, pii_items, self.config)
-        elif _allowed_contact_items(pii_items, self.config):
-            reasons.append("pii_allowed_business_contact")
-
-        if self.config.block_injection and _contains_injection(answer_text):
-            reasons.append("prompt_injection_signal_in_answer")
-            action = "fallback"
-            allow = False
-            risk = "high"
-
-        groundedness = self._groundedness_score(answer_text, context_text)
-        scores["groundedness"] = groundedness
-        if groundedness < self.config.min_groundedness:
-            reasons.append("low_groundedness")
-            if action == "allow":
-                action = "fallback"
-            allow = False
-            risk = "medium" if risk == "low" else risk
-
-        result = SafetyResult(
-            allow=allow,
-            risk_level=risk,
-            reasons=reasons,
-            sanitized_answer=sanitized_answer,
-            action=action,
-            scores=scores,
-            details={
-                "stage": "post_generation",
-                "pii": _pii_details(pii_items, self.config),
-            },
-        )
-        return self._mode_adjust(result)
-
-    def apply_safety_action(self, result: SafetyResult, answer: str) -> str:
-        if result.action == "allow":
-            return answer
-        if result.action == "redact":
-            if result.sanitized_answer:
-                return result.sanitized_answer
-            return self._redact_pii(answer)
-        if result.action in {"fallback", "block"}:
-            return self.config.fallback_text
-        return answer
-
-    def _mode_adjust(self, result: SafetyResult) -> SafetyResult:
-        if not self.is_active:
-            return SafetyResult(
-                allow=True,
-                risk_level="low",
-                reasons=[],
-                action="allow",
-                scores=result.scores,
-                details={**result.details, "mode": self.config.mode},
-            )
-        if self.config.mode == "monitor":
-            return SafetyResult(
-                allow=True,
-                risk_level=result.risk_level,
-                reasons=result.reasons,
-                sanitized_answer=result.sanitized_answer,
-                action="allow",
-                scores=result.scores,
-                details={**result.details, "mode": "monitor", "would_action": result.action},
-            )
-        return result
-
-    def _redact_pii(self, text: str) -> str:
-        items = _mark_pii_items_with_allowlist(detect_pii(text, self.config), self.config)
-        return sanitize_pii(text, items, self.config)
-
-    def _groundedness_score(self, answer: str, context: str) -> float:
-        answer_tokens = _tokenize(answer)
-        context_tokens = _tokenize(context)
-        if not answer_tokens:
-            return 0.0
-        if not context_tokens:
-            return 0.0
-        overlap = len(answer_tokens & context_tokens)
-        return overlap / max(len(answer_tokens), 1)
