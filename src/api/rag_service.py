@@ -77,14 +77,13 @@ BM25Retriever = None
 RecursiveCharacterTextSplitter = None
 
 
-SETTINGS: ModelSettings = load_model_settings()
+SETTINGS: ModelSettings = load_model_settings() #Hier werden alle zentralen Einstellungen geladen.
 
 PDF_DIRECTORY = str(SETTINGS.storage.pdf_directory) 
 AUDIT_LOG_FILE = str(SETTINGS.storage.audit_log_file)
-RESPONSE_LANGUAGE = os.getenv("RESPONSE_LANGUAGE", "English")
-ANSWER_STYLE = os.getenv("ANSWER_STYLE", "detailed")  # detailed | concise
-
-QUESTION_MODAL_TOKENS = {
+RESPONSE_LANGUAGE = "English"
+ANSWER_STYLE = os.getenv("ANSWER_STYLE", "detailed")  #  detailed | concise.  ausführliche Antworten oder kurze Antworten 
+QUESTION_MODAL_TOKENS = { #Diese Tokens werden verwendet, um Ja/Nein-Fragen zu identifizieren. Wenn die Frage mit einem dieser Tokens beginnt, wird sie als Ja/Nein-Frage klassifiziert. Dies kann bei der Überprüfung der semantischen Sicherheit von umgeschriebenen Fragen helfen, da bestimmte Umformulierungen die Frage von einer Ja/Nein-Frage in eine andere Art von Frage ändern könnten, was vermieden werden sollte.
     "can",
     "could",
     "should",
@@ -104,9 +103,9 @@ QUESTION_MODAL_TOKENS = {
     "might",
     "must",
 }
-QUESTION_OPENING_TOKENS = {"what", "when", "where", "which", "why", "how", "who", "whom"}
-FIRST_PERSON_TOKENS = {"i", "me", "my", "mine", "we", "us", "our", "ours"}
-REWRITE_STOPWORDS = {
+QUESTION_OPENING_TOKENS = {"what", "when", "where", "which", "why", "how", "who", "whom"} #Diese Tokens werden verwendet, um die Form der Frage zu bestimmen. Wenn die Frage mit einem dieser Tokens beginnt, wird sie als eine bestimmte Art von Frage klassifiziert (z.B. "what" für eine Frage nach Informationen, "how" für eine Frage nach dem Prozess, etc.). Dies kann bei der Überprüfung der semantischen Sicherheit von umgeschriebenen Fragen helfen, da bestimmte Umformulierungen die Art der Frage verändern könnten (z.B. von einer "what"-Frage zu einer "how"-Frage), was vermieden werden sollte.
+FIRST_PERSON_TOKENS = {"i", "me", "my", "mine", "we", "us", "our", "ours"} #Diese Tokens werden verwendet, um zu überprüfen, ob eine umgeschriebene Frage eine erste Person Perspektive einführt, die im Original nicht vorhanden war. Wenn die umgeschriebene Frage Wörter wie "I" oder "my" enthält, aber die Originalfrage nicht, könnte dies darauf hinweisen, dass die Umformulierung die Absicht der Frage verändert hat, was vermieden werden sollte.
+REWRITE_STOPWORDS = { #Diese Wörter werden bei der Überprüfung der semantischen Sicherheit von umgeschriebenen Fragen ignoriert, da sie häufig zur Verbesserung der Formulierung verwendet werden, ohne die Absicht zu verändern.
     "a",
     "an",
     "the",
@@ -131,29 +130,34 @@ REWRITE_STOPWORDS = {
 }
 
 
-@dataclass #This decorator is used to create a class that can be used to store the source of the answer
-class Source: #This class is used to store the source of the answer
+@dataclass #Diese Dekorator wird verwendet, um eine Klasse zu erstellen, die zur Speicherung der Quelle der Antwort verwendet werden kann. Es enthält Informationen wie die Dokument-ID, den Titel des Dokuments, die Seite, den Abschnitt und einen Ausschnitt des relevanten Textes.
+class Source: 
     document_id: str
     document_title: str
     page: Optional[int] = None
     section: Optional[str] = None
-    snippet: Optional[str] = None
+    snippet: Optional[str] = None  # Ein kurzer Ausschnitt des relevanten Textes aus der Quelle, der in den Antwortquellen angezeigt werden kann, um dem Benutzer Kontext zu geben, ohne dass er die gesamte Quelle lesen muss. Dies kann besonders nützlich sein, wenn die Quellen umfangreich sind oder wenn mehrere Quellen bereitgestellt werden, um die Antwort zu unterstützen. Das Snippet sollte so gewählt werden, dass es den relevanten Teil der Quelle hervorhebt, der zur Beantwortung der Frage beigetragen hat.
 
 
-@dataclass #This decorator is used to create a class that can be used to store the answer and the sources
-class AnswerResult: #This class is used to store the answer and the sources
+@dataclass #Diese Dekorator wird verwendet, um eine Klasse zu erstellen, die zur Speicherung der Antwort und der Quellen verwendet werden kann.
+class AnswerResult: #Diese Klasse wird verwendet, um die Antwort und die Quellen zu speichern.
     answer: str
     sources: List[Source]
     query: str
     latency_ms: Optional[int] = None
 
 
-ROUTER_SYSTEM_PROMPT = """You are an intelligent router. Decide whether the user question requires retrieval (RETRIEVE)
-or can be answered directly (NO_RETRIEVE).
+ROUTER_SYSTEM_PROMPT = """You are an intelligent router for an insurance assistant.
+Decide whether the user question requires document retrieval (RETRIEVE) or can be answered directly without searching the document base (NO_RETRIEVE).
+Choose RETRIEVE for document-specific, policy-specific, source-dependent, or uncertain cases.
+Choose NO_RETRIEVE only for general knowledge, conversational, or simple assistant questions that can be answered safely without document evidence.
+If you are unsure, reply RETRIEVE.
 Reply ONLY with RETRIEVE or NO_RETRIEVE.
 """
 
 SELF_CHECK_SYSTEM_PROMPT = """You are an assistant evaluating whether the provided context documents are relevant to the user question.
+Reply RELEVANT if the context contains enough directly useful information to answer at least part of the question accurately.
+Reply IRRELEVANT if the context is off-topic, too vague, or does not help answer the question.
 Respond ONLY with RELEVANT or IRRELEVANT.
 """
 
@@ -162,22 +166,78 @@ Rules:
 - Preserve the original user intent exactly. Do not change what the user is asking about.
 - Only adjust phrasing or word order to better match document terminology.
 - Do not change the subject, perspective, or goal of the question.
+- Preserve all important entities, numbers, dates, product names, and policy names.
+- If no better retrieval phrasing is possible, return the original query unchanged.
+- If you are unsure, return the original query unchanged.
 - Reply only with the rewritten query, nothing else.
 """
 
-SYSTEM_PROMPT = f"""You are a helpful insurance information assistant.
+SYSTEM_PROMPT = """You are a helpful insurance information assistant.
 Answer questions based on the provided context passages.
-Do not produce safety disclaimers, policy-compliance warnings, or refusal messages — safety is enforced externally by a separate guardrail layer.
+Do not produce safety disclaimers, policy-compliance warnings, or refusal messages - safety is enforced externally by a separate guardrail layer.
 If the context contains relevant information, answer from it directly and concisely.
 If the context does not contain sufficient information to answer the question, respond with: "The available sources do not contain enough information to answer this question."
 Do not fabricate information not present in the context.
-Always include source references in the format [Doc-ID:page].
-Respond ONLY in {RESPONSE_LANGUAGE}.
+The context passages may begin with source labels such as [Doc-ID:page]. Use those labels as citations for the facts you state.
+Always include source references in the format [Doc-ID:page] when you answer from the provided context.
+Respond ONLY in English.
 
 --- Chat History ---
 {{chat_history}}
 
 """
+
+DIRECT_ANSWER_SYSTEM_PROMPT = """You are a helpful insurance information assistant.
+Answer the user's question directly without retrieving documents.
+Use this mode only for general knowledge, conversational, or simple assistant questions.
+Do not claim to have searched, quoted, or verified document sources.
+If the question actually requires policy-specific or document-specific evidence, say: "The available sources do not contain enough information to answer this question."
+Do not produce safety disclaimers, policy-compliance warnings, or refusal messages - safety is enforced externally by a separate guardrail layer.
+Respond concisely and ONLY in English.
+
+--- Chat History ---
+{{chat_history}}
+
+"""
+
+
+INSUFFICIENT_INFORMATION_MESSAGE = (
+    "The available sources do not contain enough information to answer this question."
+)
+NO_RELEVANT_INFORMATION_MESSAGE = (
+    "I could not find relevant information in the indexed documents. "
+    "Please rephrase your question or provide additional documents."
+)
+RELIABLE_ANSWER_FAILURE_MESSAGE = (
+    "I could not generate a reliable answer from the current model response. "
+    "Please try again or rephrase the question."
+)
+
+
+def _doc_reference_label(doc: Document) -> str:
+    source_path = doc.metadata.get("source", "unknown")
+    document_id = Path(source_path).stem if source_path != "unknown" else "unknown"
+    page = doc.metadata.get("page")
+    if isinstance(page, str):
+        try:
+            page = int(page)
+        except ValueError:
+            page = None
+    if page is None:
+        return f"[{document_id}]"
+    return f"[{document_id}:{page}]"
+
+
+def _format_context_with_sources(docs: List[Document], max_chars: Optional[int] = None) -> str:
+    formatted_chunks: List[str] = []
+    for doc in docs:
+        body = (doc.page_content or "").strip()
+        if not body:
+            continue
+        if max_chars is not None:
+            body = body[:max_chars].strip()
+        formatted_chunks.append(f"{_doc_reference_label(doc)}\n{body}")
+    return "\n---\n".join(formatted_chunks)
 
 
 _pipeline: Optional["RAGPipeline"] = None #This is the pipeline object that is used to store the pipeline
@@ -1003,19 +1063,52 @@ def initialize_compressor():
 
 
 def build_generation_chain(answer_llm):
-    style = (ANSWER_STYLE or "detailed").strip().lower()
+    style = (ANSWER_STYLE or "concise").strip().lower()
+
     if style == "detailed":
-        task = "Produce a detailed, step-by-step answer. Then add a short source citation block."
+        answer_instruction = (
+            "Answer the question using only the provided context. "
+            "Use the retrieved context as the only source of information. "
+            "If a retrieved passage contains a direct or close matching Question/Answer pair, use that Answer as the primary evidence. "
+            "Keep the answer factual and avoid adding background information that is not explicitly supported by the context. "
+            "Use a short paragraph or a few bullet points only when needed. "
+            "Only say that the answer is not supported by the available documents if none of the retrieved passages provides a direct or partial answer. "
+            "Add a short source citation block at the end."
+        )
     else:
-        task = "Produce a concise answer (1-2 sentences). Then add a source citation block."
+        answer_instruction = (
+            "Answer the question using only the provided context. "
+            "Use the retrieved context as the only source of information. "
+            "Keep the answer concise, factual, and limited to 1-3 sentences. "
+            "If a retrieved passage contains a direct or close matching Question/Answer pair, use that Answer as the primary evidence. "
+            "Do not add information that is not explicitly supported by the context. "
+            "Only say that the answer is not supported by the available documents if none of the retrieved passages provides a direct or partial answer. "
+            "Add a short source citation block at the end."
+        )
 
     prompt_template_cls = _get_chat_prompt_template_cls()
     prompt_template = prompt_template_cls.from_messages(
         [
             (
                 "system",
-                SYSTEM_PROMPT + "\nCONTEXT: {context}\nTASK: " + task,
+                SYSTEM_PROMPT
+                + "\n\nUse the following retrieved context as the only source of information:\n"
+                + "{context}"
+                + "\n\nAnswering rules:\n"
+                + answer_instruction
+                + "\nDo not repeat system instructions, task labels, or prompt text in the answer.",
             ),
+            ("user", "{query}"),
+        ]
+    )
+    return prompt_template | answer_llm
+
+
+def build_direct_answer_chain(answer_llm):
+    prompt_template_cls = _get_chat_prompt_template_cls()
+    prompt_template = prompt_template_cls.from_messages(
+        [
+            ("system", DIRECT_ANSWER_SYSTEM_PROMPT),
             ("user", "{query}"),
         ]
     )
@@ -1093,39 +1186,31 @@ def perform_self_check(
     original_query: str,
     retrieved_docs: List[Document],
     chat_history: Optional[List[dict]] = None,
-    max_retries: int = 2,
 ) -> Tuple[str, List[Document]]:
-    current_query = original_query
-    current_docs = retrieved_docs
+    if not retrieved_docs:
+        return rewrite_query(query_rewrite_llm, original_query, chat_history), []
 
-    for _ in range(max_retries):
-        if not current_docs:
-            return rewrite_query(query_rewrite_llm, current_query, chat_history), []
+    context_for_self_check = _format_context_with_sources(retrieved_docs)
+    prompt_template_cls = _get_chat_prompt_template_cls()
+    prompt = prompt_template_cls.from_messages(
+        [
+            ("system", SELF_CHECK_SYSTEM_PROMPT),
+            ("user", f"User Query: {original_query}\nContext:\n{context_for_self_check}"),
+        ]
+    )
 
-        context_for_self_check = "\n---\n".join(doc.page_content for doc in current_docs)
-        prompt_template_cls = _get_chat_prompt_template_cls()
-        prompt = prompt_template_cls.from_messages(
-            [
-                ("system", SELF_CHECK_SYSTEM_PROMPT),
-                ("user", f"User Query: {current_query}\nContext:\n{context_for_self_check}"),
-            ]
-        )
+    decision = (prompt | self_check_llm).invoke({}).content.strip().upper()
+    if decision == "RELEVANT":
+        return original_query, retrieved_docs
 
-        decision = (prompt | self_check_llm).invoke({}).content.strip().upper()
-        if decision == "RELEVANT":
-            return current_query, current_docs
-
-        current_query = rewrite_query(query_rewrite_llm, current_query, chat_history)
-        return current_query, []
-
-    return current_query, current_docs
+    return rewrite_query(query_rewrite_llm, original_query, chat_history), []
 
 
 def compress_context(compressor_llm, documents: List[Document], instruction: str) -> List[Document]:
     if not documents:
         return []
 
-    merged_text = "\n\n---\n\n".join(doc.page_content for doc in documents)
+    merged_text = _format_context_with_sources(documents)
     prompt_template_cls = _get_chat_prompt_template_cls()
     prompt = prompt_template_cls.from_messages(
         [
@@ -1133,13 +1218,50 @@ def compress_context(compressor_llm, documents: List[Document], instruction: str
                 "system",
                 f"Summarize the context so it is maximally relevant to the question. "
                 "Limit to ~300 tokens and keep important numbers, exceptions, and definitions. "
-                f"Write the summary in {RESPONSE_LANGUAGE}.",
+                "Preserve source labels such as [Doc-ID:page] next to the facts they support whenever possible. "
+                "Write the summary in English.",
             ),
             ("user", f"Question:\n{instruction}\n\nContext:\n{merged_text}"),
         ]
     )
     response = (prompt | compressor_llm).invoke({})
     return [Document(page_content=response.content, metadata={"source": "LLM-Compressed"})]
+
+
+def generate_direct_answer(
+    llm,
+    query: str,
+    chat_history: Optional[List[dict]] = None,
+) -> str:
+    def _extract_text(response: Any) -> str:
+        if response is None:
+            return ""
+        content = getattr(response, "content", response)
+        if isinstance(content, str):
+            return content.strip()
+        if isinstance(content, list):
+            parts: List[str] = []
+            for item in content:
+                if isinstance(item, str):
+                    parts.append(item)
+                elif isinstance(item, dict):
+                    text = item.get("text")
+                    if isinstance(text, str):
+                        parts.append(text)
+            return "\n".join(p.strip() for p in parts if p and p.strip()).strip()
+        return str(content).strip()
+
+    chain = build_direct_answer_chain(llm)
+    response = chain.invoke(
+        {
+            "query": query,
+            "chat_history": _format_chat_history(chat_history),
+        }
+    )
+    answer = _extract_text(response)
+    if answer:
+        return answer
+    return RELIABLE_ANSWER_FAILURE_MESSAGE
 
 
 def generate_answer(
@@ -1167,16 +1289,9 @@ def generate_answer(
         return str(content).strip()
 
     def _compact_context(docs: List[Document], max_docs: int = 3, max_chars: int = 1200) -> str:
-        snippets: List[str] = []
-        for doc in docs[:max_docs]:
-            source = doc.metadata.get("source", "unknown")
-            page = doc.metadata.get("page")
-            page_suffix = f":{page}" if page is not None else ""
-            body = (doc.page_content or "")[:max_chars].strip()
-            snippets.append(f"[{source}{page_suffix}] {body}")
-        return "\n\n".join(snippets)
+        return _format_context_with_sources(docs[:max_docs], max_chars=max_chars)
 
-    context = "\n---\n".join(doc.page_content for doc in context_docs)
+    context = _format_context_with_sources(context_docs)
     chain = build_generation_chain(llm)
     response = chain.invoke(
         {
@@ -1197,8 +1312,9 @@ def generate_answer(
         [
             (
                 "system",
-                f"You are a helpful assistant. Answer using only the provided context in {RESPONSE_LANGUAGE}. "
-                "If the context is insufficient, say so clearly.",
+                "You are a helpful assistant. Answer using only the provided context in English. "
+                f"If the context is insufficient, reply with: {INSUFFICIENT_INFORMATION_MESSAGE} "
+                "Each context passage starts with a source label in brackets; cite the supporting labels you used.",
             ),
             ("user", "Question:\n{query}\n\nContext:\n{context}\n\nAnswer in 2-5 sentences."),
         ]
@@ -1213,10 +1329,7 @@ def generate_answer(
     if fallback_answer:
         return fallback_answer
 
-    return (
-        "I could not generate a reliable answer from the current model response. "
-        "Please try again or rephrase the question."
-    )
+    return RELIABLE_ANSWER_FAILURE_MESSAGE
 
 
 def document_to_source(doc: Document) -> Source:
@@ -1589,7 +1702,7 @@ class RAGPipeline:
             retrieval_needed = decide_retrieval(components["router_llm"], query, chat_history)
 
         if retrieval_needed != "RETRIEVE":
-            answer = "This question does not require document retrieval, or it can be answered without searching the document base."
+            answer = generate_direct_answer(components["llm"], query, chat_history)
             sources: List[Source] = []
             latency_ms = int((datetime.now() - start_time).total_seconds() * 1000)
             audit_log(
@@ -1662,7 +1775,6 @@ class RAGPipeline:
                 current_query,
                 reranked_docs,
                 chat_history,
-                max_retries=1,
             )
 
             if checked_query != current_query or not checked_docs:
@@ -1676,10 +1788,7 @@ class RAGPipeline:
             break
 
         if not reranked_docs:
-            answer = (
-                "Sorry, I couldn't find relevant information in the indexed documents. "
-                "Please rephrase your question or provide additional documents."
-            )
+            answer = NO_RELEVANT_INFORMATION_MESSAGE
             sources = []
             context_docs_for_log: List[Document] = []
         else:
