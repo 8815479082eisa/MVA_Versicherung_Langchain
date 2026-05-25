@@ -240,6 +240,61 @@ def _format_context_with_sources(docs: List[Document], max_chars: Optional[int] 
     return "\n---\n".join(formatted_chunks)
 
 
+def _answer_has_inline_citation(answer: str) -> bool:
+    return bool(re.search(r"\[[^\]]+:[^\]]+\]", answer or ""))
+
+
+def _ensure_inline_citations(answer: str, docs: List[Document]) -> str:
+    answer = (answer or "").strip()
+    if not answer or _answer_has_inline_citation(answer):
+        return answer
+    if answer in {
+        INSUFFICIENT_INFORMATION_MESSAGE,
+        NO_RELEVANT_INFORMATION_MESSAGE,
+        RELIABLE_ANSWER_FAILURE_MESSAGE,
+    }:
+        return answer
+
+    labels: List[str] = []
+    seen = set()
+    for doc in docs:
+        label = _doc_reference_label(doc)
+        if label in seen or label == "[unknown]":
+            continue
+        seen.add(label)
+        labels.append(label)
+        if len(labels) >= 2:
+            break
+    if not labels:
+        return answer
+
+    citation = " " + " ".join(labels)
+    sentence_pattern = re.compile(r"[^.!?]+[.!?]?")
+    lines = answer.splitlines()
+    cited_lines: List[str] = []
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            cited_lines.append(line)
+            continue
+        if stripped.lower().startswith(("source", "citation", "references")):
+            cited_lines.append(line)
+            continue
+        if re.search(r"\[[^\]]+:[^\]]+\]", stripped):
+            cited_lines.append(line)
+            continue
+        cited_sentences: List[str] = []
+        for match in sentence_pattern.finditer(stripped):
+            sentence = match.group(0).strip()
+            if not sentence:
+                continue
+            if sentence[-1:] not in {".", "!", "?"}:
+                sentence += "."
+            cited_sentences.append(sentence + citation)
+        cited_lines.append(" ".join(cited_sentences) if cited_sentences else line)
+    return "\n".join(cited_lines)
+
+
 _pipeline: Optional["RAGPipeline"] = None #This is the pipeline object that is used to store the pipeline
 _pipeline_lock = threading.RLock()
 
@@ -1302,7 +1357,7 @@ def generate_answer(
     )
     answer = _extract_text(response)
     if answer:
-        return answer
+        return _ensure_inline_citations(answer, context_docs)
 
     # Some model/provider combinations occasionally return an empty payload.
     # Retry once with a simpler prompt and compact context to improve robustness.
@@ -1327,7 +1382,7 @@ def generate_answer(
     )
     fallback_answer = _extract_text(fallback_response)
     if fallback_answer:
-        return fallback_answer
+        return _ensure_inline_citations(fallback_answer, context_docs)
 
     return RELIABLE_ANSWER_FAILURE_MESSAGE
 
