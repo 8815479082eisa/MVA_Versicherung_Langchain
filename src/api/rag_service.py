@@ -997,6 +997,19 @@ def load_excel_source(file_path: str) -> List[Document]:
     return docs
 
 
+def load_docx_source(file_path: str) -> List[Document]:
+    from docx import Document as DocxDocument
+
+    docx = DocxDocument(file_path)
+    paragraphs = [paragraph.text.strip() for paragraph in docx.paragraphs if paragraph.text.strip()]
+    return [
+        Document(
+            page_content="\n".join(paragraphs),
+            metadata={"source": file_path, "source_type": "docx"},
+        )
+    ]
+
+
 def load_single_source(file_path: str) -> List[Document]:
     suffix = Path(file_path).suffix.lower()
     if suffix == ".pdf":
@@ -1007,6 +1020,8 @@ def load_single_source(file_path: str) -> List[Document]:
         return load_csv_source(file_path)
     if suffix == ".xlsx":
         return load_excel_source(file_path)
+    if suffix == ".docx":
+        return load_docx_source(file_path)
 
     print(f"Warning: unsupported source type skipped: {file_path}")
     return []

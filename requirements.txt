@@ -18,6 +18,7 @@ nemoguardrails>=0.21,<0.22
 pandas
 openpyxl
 tabulate
+python-docx
 
 # Optional evaluation dependencies (ALCE/NLI)
 # Install manually when needed:
