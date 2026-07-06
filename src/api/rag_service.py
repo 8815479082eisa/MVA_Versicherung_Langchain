@@ -81,6 +81,7 @@ SETTINGS: ModelSettings = load_model_settings() #Hier werden alle zentralen Eins
 
 PDF_DIRECTORY = str(SETTINGS.storage.pdf_directory) 
 AUDIT_LOG_FILE = str(SETTINGS.storage.audit_log_file)
+SUPPORTED_SOURCE_EXTENSIONS = {".pdf", ".txt", ".csv", ".xlsx", ".docx", ".png", ".jpg", ".jpeg"}
 RESPONSE_LANGUAGE = "English"
 ANSWER_STYLE = os.getenv("ANSWER_STYLE", "detailed")  #  detailed | concise.  ausführliche Antworten oder kurze Antworten 
 QUESTION_MODAL_TOKENS = { #Diese Tokens werden verwendet, um Ja/Nein-Fragen zu identifizieren. Wenn die Frage mit einem dieser Tokens beginnt, wird sie als Ja/Nein-Frage klassifiziert. Dies kann bei der Überprüfung der semantischen Sicherheit von umgeschriebenen Fragen helfen, da bestimmte Umformulierungen die Frage von einer Ja/Nein-Frage in eine andere Art von Frage ändern könnten, was vermieden werden sollte.
@@ -864,6 +865,21 @@ def get_pdf_files(directory: str) -> List[str]:
     return sorted(pdf_files)
 
 
+def get_source_files(directory: str) -> List[str]:
+    root = Path(directory)
+    if not root.exists():
+        return []
+
+    source_files = [
+        str(path)
+        for path in root.rglob("*")
+        if path.is_file()
+        and path.suffix.lower() in SUPPORTED_SOURCE_EXTENSIONS
+        and path.name.lower() != "example.pdf"
+    ]
+    return sorted(source_files)
+
+
 def compute_file_hash(file_path: str) -> str:
     hash_md5 = hashlib.md5()
     with open(file_path, "rb") as f:
@@ -923,8 +939,36 @@ def pdfs_have_changed() -> bool:
     return False
 
 
-def load_and_split_documents(pdf_files: List[str]) -> List[Document]:
+def load_pdf_source(file_path: str) -> List[Document]:
     pdf_loader_cls = _get_pdf_loader_cls()
+    docs = pdf_loader_cls(file_path).load()
+    for doc in docs:
+        doc.metadata["source_type"] = "pdf"
+    return docs
+
+
+def load_text_source(file_path: str) -> List[Document]:
+    text = Path(file_path).read_text(encoding="utf-8", errors="ignore")
+    return [
+        Document(
+            page_content=text,
+            metadata={"source": file_path, "source_type": "text"},
+        )
+    ]
+
+
+def load_single_source(file_path: str) -> List[Document]:
+    suffix = Path(file_path).suffix.lower()
+    if suffix == ".pdf":
+        return load_pdf_source(file_path)
+    if suffix == ".txt":
+        return load_text_source(file_path)
+
+    print(f"Warning: unsupported source type skipped: {file_path}")
+    return []
+
+
+def load_and_split_documents(pdf_files: List[str]) -> List[Document]:
     splitter_cls = _get_text_splitter_cls()
     all_splits: List[Document] = []
     splitter = splitter_cls(
@@ -935,7 +979,7 @@ def load_and_split_documents(pdf_files: List[str]) -> List[Document]:
 
     for file_path in pdf_files:
         try:
-            docs = pdf_loader_cls(file_path).load()
+            docs = load_single_source(file_path)
             all_splits.extend(splitter.split_documents(docs))
         except Exception as exc:
             print(f"Error loading {file_path}: {exc}")
@@ -1445,7 +1489,7 @@ class RAGPipeline:
                 print(f"Warning: {answer_model_warning}")
 
             os.makedirs(PDF_DIRECTORY, exist_ok=True)
-            pdf_files = get_pdf_files(PDF_DIRECTORY)
+            source_files = get_source_files(PDF_DIRECTORY)
             use_insuranceqa = os.getenv("USE_INSURANCEQA_DATA", "").strip().lower() in {
                 "1",
                 "true",
@@ -1459,8 +1503,8 @@ class RAGPipeline:
             vector_store: Optional[ChromaVectorStore] = None
             hybrid_retriever: Callable[[str, Optional[int]], List[Document]]
 
-            if pdf_files:
-                all_splits = load_and_split_documents(pdf_files)
+            if source_files:
+                all_splits = load_and_split_documents(source_files)
                 embeddings = initialize_embeddings()
 
                 reindex_required = force_reindex or embedding_model_has_changed()
