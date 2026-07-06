@@ -939,12 +939,69 @@ def pdfs_have_changed() -> bool:
     return False
 
 
+def load_pdf_table_source(file_path: str) -> List[Document]:
+    import pandas as pd
+    import pdfplumber
+
+    table_docs: List[Document] = []
+    try:
+        with pdfplumber.open(file_path) as pdf:
+            for page in pdf.pages:
+                tables = page.extract_tables() or []
+                for table_index, table in enumerate(tables, start=1):
+                    rows = [
+                        ["" if cell is None else str(cell).strip() for cell in row]
+                        for row in table
+                        if row
+                    ]
+                    rows = [row for row in rows if any(cell for cell in row)]
+                    if not rows:
+                        continue
+
+                    width = max(len(row) for row in rows)
+                    header = rows[0] + [""] * (width - len(rows[0]))
+                    data_rows = rows[1:] if len(rows) > 1 else []
+                    if not any(header):
+                        header = [f"column_{idx + 1}" for idx in range(width)]
+                        data_rows = rows
+
+                    columns: List[str] = []
+                    seen_columns: dict[str, int] = {}
+                    for idx, column in enumerate(header):
+                        name = column or f"column_{idx + 1}"
+                        seen_columns[name] = seen_columns.get(name, 0) + 1
+                        if seen_columns[name] > 1:
+                            name = f"{name}_{seen_columns[name]}"
+                        columns.append(name)
+
+                    normalized_rows = [
+                        (row + [""] * (width - len(row)))[:width]
+                        for row in data_rows
+                    ]
+                    content = pd.DataFrame(normalized_rows, columns=columns).to_markdown(index=False)
+                    table_docs.append(
+                        Document(
+                            page_content=content,
+                            metadata={
+                                "source": file_path,
+                                "source_type": "pdf_table",
+                                "table_format": "pdf",
+                                "page": page.page_number,
+                                "table_index": table_index,
+                            },
+                        )
+                    )
+    except Exception as exc:
+        print(f"Warning: PDF table extraction failed for {file_path}: {exc}")
+    return table_docs
+
+
 def load_pdf_source(file_path: str) -> List[Document]:
     pdf_loader_cls = _get_pdf_loader_cls()
     docs = pdf_loader_cls(file_path).load()
     for doc in docs:
         doc.metadata["source_type"] = "pdf"
-    return docs
+    return docs + load_pdf_table_source(file_path)
 
 
 def load_text_source(file_path: str) -> List[Document]:

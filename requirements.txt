@@ -19,6 +19,7 @@ pandas
 openpyxl
 tabulate
 python-docx
+pdfplumber
 
 # Optional evaluation dependencies (ALCE/NLI)
 # Install manually when needed:
