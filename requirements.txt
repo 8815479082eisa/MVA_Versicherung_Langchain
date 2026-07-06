@@ -15,6 +15,9 @@ uvicorn[standard]
 pydantic
 datasets
 nemoguardrails>=0.21,<0.22
+pandas
+openpyxl
+tabulate
 
 # Optional evaluation dependencies (ALCE/NLI)
 # Install manually when needed:

@@ -957,18 +957,62 @@ def load_text_source(file_path: str) -> List[Document]:
     ]
 
 
+def load_csv_source(file_path: str) -> List[Document]:
+    import pandas as pd
+
+    df = pd.read_csv(file_path)
+    content = df.to_markdown(index=False)
+    return [
+        Document(
+            page_content=content,
+            metadata={
+                "source": file_path,
+                "source_type": "table",
+                "table_format": "csv",
+                "row_count": len(df),
+            },
+        )
+    ]
+
+
+def load_excel_source(file_path: str) -> List[Document]:
+    import pandas as pd
+
+    docs: List[Document] = []
+    sheets = pd.read_excel(file_path, sheet_name=None)
+    for sheet_name, df in sheets.items():
+        content = df.to_markdown(index=False)
+        docs.append(
+            Document(
+                page_content=content,
+                metadata={
+                    "source": file_path,
+                    "source_type": "table",
+                    "table_format": "xlsx",
+                    "sheet": sheet_name,
+                    "row_count": len(df),
+                },
+            )
+        )
+    return docs
+
+
 def load_single_source(file_path: str) -> List[Document]:
     suffix = Path(file_path).suffix.lower()
     if suffix == ".pdf":
         return load_pdf_source(file_path)
     if suffix == ".txt":
         return load_text_source(file_path)
+    if suffix == ".csv":
+        return load_csv_source(file_path)
+    if suffix == ".xlsx":
+        return load_excel_source(file_path)
 
     print(f"Warning: unsupported source type skipped: {file_path}")
     return []
 
 
-def load_and_split_documents(pdf_files: List[str]) -> List[Document]:
+def load_and_split_documents(source_files: List[str]) -> List[Document]:
     splitter_cls = _get_text_splitter_cls()
     all_splits: List[Document] = []
     splitter = splitter_cls(
@@ -977,7 +1021,7 @@ def load_and_split_documents(pdf_files: List[str]) -> List[Document]:
         add_start_index=True,
     )
 
-    for file_path in pdf_files:
+    for file_path in source_files:
         try:
             docs = load_single_source(file_path)
             all_splits.extend(splitter.split_documents(docs))

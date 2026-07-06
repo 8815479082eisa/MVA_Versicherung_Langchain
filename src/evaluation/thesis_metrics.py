@@ -118,6 +118,13 @@ def _has_inline_citation(statement: str) -> bool:
     return bool(_GENERIC_CITATION_RE.search(statement or ""))
 
 
+def _has_terminal_citation(text: str) -> bool:
+    normalized = (text or "").strip()
+    if not normalized:
+        return False
+    return bool(re.search(r"(?:\s*\[[^\[\]\n]{1,80}\])+\s*$", normalized))
+
+
 def _content_tokens(text: str) -> set[str]:
     return {
         token
@@ -197,9 +204,8 @@ def build_qa_metric_row(
 
     statements = split_into_statements(prediction)
     inline_citation_count = sum(1 for statement in statements if _has_inline_citation(statement))
-    inline_citation_coverage = (
-        inline_citation_count / len(statements) if statements else 0.0
-    )
+    terminal_citation_present = _has_terminal_citation(prediction)
+    inline_citation_coverage = 1.0 if terminal_citation_present else 0.0
 
     statement_support_scores: List[float] = []
     for statement in statements:
@@ -241,6 +247,8 @@ def build_qa_metric_row(
             "supportive_context_doc_count": supportive_doc_count,
             "best_context_support_score": max(doc_support_scores) if doc_support_scores else 0.0,
             "statement_count": len(statements),
+            "inline_citation_count": inline_citation_count,
+            "terminal_citation_present": terminal_citation_present,
             "supported_statement_count": supported_statement_count,
             "best_statement_support_score": max(statement_support_scores)
             if statement_support_scores
