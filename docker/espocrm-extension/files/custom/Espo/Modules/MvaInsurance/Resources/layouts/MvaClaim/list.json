@@ -1,0 +1,21 @@
+[
+  {
+    "name": "claimNumber",
+    "link": true
+  },
+  {
+    "name": "customer"
+  },
+  {
+    "name": "policy"
+  },
+  {
+    "name": "damageType"
+  },
+  {
+    "name": "status"
+  },
+  {
+    "name": "claimDate"
+  }
+]

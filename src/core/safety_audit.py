@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any, Dict, List, Literal, Optional, Sequence, Tuple
 
 try:
@@ -37,7 +38,7 @@ class PIIItem:
 
 
 EMAIL_RE = re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECASE)
-PHONE_RE = re.compile(r"(?<!\w)(?:\+|00)?(?:\d[\d\s()./-]{5,}\d)(?!\w)")
+PHONE_RE = re.compile(r"(?<!\w)(?:\+|00)?(?:\d[\d \t()./-]{5,}\d)(?!\w)")
 IBAN_RE = re.compile(r"(?<![A-Z0-9])[A-Z]{2}\d{2}[A-Z0-9]{11,30}(?![A-Z0-9])", re.IGNORECASE)
 SSN_RE = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
 PAYMENT_CARD_RE = re.compile(r"(?<!\d)(?:\d[ -]?){13,19}(?!\d)")
@@ -70,9 +71,25 @@ FORMATTED_IDENTIFIER_RE = re.compile(
     """,
 )
 
+CONTRACT_IDENTIFIER_RE = re.compile(
+    r"""(?ix)
+    (?<!\w)
+    (?P<value>
+        (?:[A-Z0-9]{2,12}[-/])*
+        (?:CONTRACT|CTR|VTR|KFZ|PHV)
+        (?:[-/][A-Z0-9]{2,12}){1,4}
+    )
+    (?!\w)
+    """,
+)
+
+DATE_CANDIDATE_RE = re.compile(
+    r"(?<!\d)(?:\d{4}[./-]\d{1,2}[./-]\d{1,2}|\d{1,2}[./-]\d{1,2}[./-]\d{2,4})(?!\d)"
+)
+
 DOB_LABEL_RE = re.compile(
     r"""(?ix)
-    \b(?:date of birth|dob|birth date|born|geburtsdatum|geb\.?\s*datum)\b
+    \b(?:date\s+of\s+birth|dob|birth\s+date|born|geburtsdatum|geb\.?\s*datum)\b
     \s*[:#-]?\s*
     (?P<value>
         (?:\d{1,2}[./-]\d{1,2}[./-]\d{2,4})
@@ -368,6 +385,50 @@ SENSITIVE_DATA_REQUEST_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
     ),
 )
 
+SYSTEM_SECRET_REQUEST_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
+    (
+        "credential_request",
+        re.compile(
+            r"\b(?:show|print|return|output|dump|reveal|provide|give)\b"
+            r"[\s\S]{0,160}\b(?:passwords?|credentials?|api[ _-]?keys?|"
+            r"access[ _-]?tokens?|refresh[ _-]?tokens?|encryption[ _-]?keys?|"
+            r"database[ _-]?(?:password|credentials?)|openai[ _-]?keys?|"
+            r"crm[ _-]?api[ _-]?keys?)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "environment_request",
+        re.compile(
+            r"\b(?:show|print|return|output|dump|reveal|provide|give)\b"
+            r"[\s\S]{0,120}(?:\.env\b|environment variables?|hidden configuration)",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "system_prompt_request",
+        re.compile(
+            r"\b(?:show|print|return|output|dump|reveal|provide|give)\b"
+            r"[\s\S]{0,120}\b(?:system|developer|hidden|internal)\b"
+            r"[\s\S]{0,40}\b(?:prompt|instructions?|configuration)\b",
+            re.IGNORECASE,
+        ),
+    ),
+)
+
+SYSTEM_SECRET_VALUE_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
+    ("openai_key", re.compile(r"\bsk-[A-Za-z0-9_-]{16,}\b")),
+    ("bearer_token", re.compile(r"\bBearer\s+[A-Za-z0-9._~+/-]{16,}={0,2}\b", re.IGNORECASE)),
+    (
+        "credential_assignment",
+        re.compile(
+            r"(?im)^\s*(?:OPENAI_API_KEY|CRM_API_KEY|API_KEY|ACCESS_TOKEN|"
+            r"REFRESH_TOKEN|DATABASE_URL|DB_PASSWORD|PASSWORD|SECRET_KEY)\s*=\s*\S+"
+        ),
+    ),
+    ("private_key", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----")),
+)
+
 PII_PLACEHOLDERS = {
     "email": "[REDACTED_EMAIL]",
     "phone": "[REDACTED_PHONE]",
@@ -401,6 +462,14 @@ def detect_query_hard_injection_signals(text: str) -> List[str]:
 
 def detect_sensitive_data_request_signals(text: str) -> List[str]:
     return _find_matching_injection_patterns(text or "", SENSITIVE_DATA_REQUEST_PATTERNS)
+
+
+def detect_system_secret_request_signals(text: str) -> List[str]:
+    return _find_matching_injection_patterns(text or "", SYSTEM_SECRET_REQUEST_PATTERNS)
+
+
+def detect_system_secret_value_signals(text: str) -> List[str]:
+    return _find_matching_injection_patterns(text or "", SYSTEM_SECRET_VALUE_PATTERNS)
 
 
 def _config_values(config: Optional[SafetyConfig], attribute: str) -> Tuple[str, ...]:
@@ -504,6 +573,37 @@ def _is_valid_phone_match(value: str) -> bool:
     return False
 
 
+def _is_valid_calendar_date(value: str) -> bool:
+    candidate = (value or "").strip()
+    formats = (
+        "%d.%m.%Y",
+        "%d.%m.%y",
+        "%Y-%m-%d",
+        "%d-%m-%Y",
+        "%d-%m-%y",
+        "%Y/%m/%d",
+        "%d/%m/%Y",
+        "%m/%d/%Y",
+        "%d/%m/%y",
+        "%m/%d/%y",
+    )
+    for date_format in formats:
+        try:
+            datetime.strptime(candidate, date_format)
+            return True
+        except ValueError:
+            continue
+    return False
+
+
+def _valid_date_spans(text: str) -> List[Tuple[int, int]]:
+    return [
+        (match.start(), match.end())
+        for match in DATE_CANDIDATE_RE.finditer(text or "")
+        if _is_valid_calendar_date(match.group(0))
+    ]
+
+
 def _passes_luhn(number: str) -> bool:
     digits = [int(ch) for ch in number if ch.isdigit()]
     if len(digits) < 13 or len(digits) > 19:
@@ -564,8 +664,11 @@ def _detect_email_items(text: str, config: Optional[SafetyConfig]) -> List[PIIIt
 
 def _detect_phone_items(text: str, config: Optional[SafetyConfig]) -> List[PIIItem]:
     items: List[PIIItem] = []
+    date_spans = _valid_date_spans(text)
     for match in PHONE_RE.finditer(text):
         value = match.group(0).strip()
+        if any(match.start() < end and match.end() > start for start, end in date_spans):
+            continue
         # Avoid classifying SSN-formatted identifiers as phone numbers.
         if SSN_RE.fullmatch(value):
             continue
@@ -651,6 +754,7 @@ def _detect_identifier_items(text: str, config: Optional[SafetyConfig]) -> List[
         if not _looks_like_identifier_value(value):
             continue
         pii_type, placeholder = _classify_identifier(value, label)
+        allowed = pii_type == "contract_id"
         items.append(
             PIIItem(
                 pii_type=pii_type,
@@ -659,7 +763,27 @@ def _detect_identifier_items(text: str, config: Optional[SafetyConfig]) -> List[
                 end=match.end("value"),
                 source="identifier_label_regex",
                 placeholder=placeholder,
-                reason=f"identifier_label:{label.lower()}",
+                allowed=allowed,
+                reason=(
+                    "allowed_contract_id"
+                    if allowed
+                    else f"identifier_label:{label.lower()}"
+                ),
+            )
+        )
+
+    for match in CONTRACT_IDENTIFIER_RE.finditer(text):
+        value = match.group("value")
+        items.append(
+            PIIItem(
+                pii_type="contract_id",
+                value=value,
+                start=match.start("value"),
+                end=match.end("value"),
+                source="contract_identifier_format_regex",
+                placeholder=PII_PLACEHOLDERS["contract_id"],
+                allowed=True,
+                reason="allowed_contract_id",
             )
         )
 
@@ -754,6 +878,8 @@ def is_allowed_pii(item: PIIItem, config: Optional[SafetyConfig] = None) -> bool
         return _is_allowed_email(item.value, config)[0]
     if item.pii_type == "phone":
         return _is_allowed_phone(item.value, config)[0]
+    if item.pii_type == "contract_id":
+        return True
     return False
 
 

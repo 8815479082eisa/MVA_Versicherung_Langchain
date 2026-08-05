@@ -1,0 +1,79 @@
+{
+  "description": "Synthetic insurance CRM schema used by the MVA Agentic RAG prototype.",
+  "synthetic_data_only": true,
+  "entities": {
+    "Contact": {
+      "purpose": "Individual insurance customer",
+      "natural_key": "emailAddress",
+      "fields": [
+        "firstName",
+        "lastName",
+        "emailAddress"
+      ]
+    },
+    "MvaPolicy": {
+      "display_label": "Policy",
+      "natural_key": "policyNumber",
+      "fields": [
+        "name",
+        "policyNumber",
+        "productType",
+        "coverageType",
+        "status",
+        "startDate",
+        "endDate",
+        "deductible",
+        "annualPremium",
+        "currency",
+        "customer"
+      ]
+      ,
+      "enum_values": {
+        "productType": [
+          "Motor Insurance",
+          "Helvetia Motor Vehicle Insurance",
+          "Helvetia Household Contents Insurance",
+          "Helvetia Private Liability Insurance",
+          "Helvetia Legal Protection Insurance",
+          "Personal Liability",
+          "Household Insurance",
+          "Legal Protection"
+        ],
+        "coverageType": [
+          "Liability",
+          "Partial Coverage",
+          "Comprehensive Coverage",
+          "Third-Party Liability",
+          "Partially comprehensive cover",
+          "Fully comprehensive",
+          "Fully comprehensive PLUS",
+          "Household contents insurance",
+          "Private liability insurance",
+          "Legal protection insurance",
+          "Standard Coverage"
+        ]
+      }
+    },
+    "MvaClaim": {
+      "display_label": "Claim",
+      "natural_key": "claimNumber",
+      "fields": [
+        "name",
+        "claimNumber",
+        "claimDate",
+        "damageType",
+        "description",
+        "claimedAmount",
+        "currency",
+        "status",
+        "customer",
+        "policy"
+      ]
+    }
+  },
+  "relationships": [
+    "Contact 1 -> many MvaPolicy",
+    "Contact 1 -> many MvaClaim",
+    "MvaPolicy 1 -> many MvaClaim"
+  ]
+}

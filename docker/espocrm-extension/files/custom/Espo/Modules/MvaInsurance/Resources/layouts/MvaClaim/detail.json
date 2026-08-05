@@ -1,0 +1,53 @@
+[
+  {
+    "label": "Overview",
+    "style": "default",
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "claimNumber"
+        }
+      ],
+      [
+        {
+          "name": "customer"
+        },
+        {
+          "name": "policy"
+        }
+      ],
+      [
+        {
+          "name": "claimDate"
+        },
+        {
+          "name": "damageType"
+        }
+      ],
+      [
+        {
+          "name": "status"
+        },
+        {
+          "name": "claimedAmount"
+        }
+      ],
+      [
+        {
+          "name": "currency"
+        },
+        false
+      ],
+      [
+        {
+          "name": "description",
+          "fullWidth": true
+        },
+        false
+      ]
+    ]
+  }
+]

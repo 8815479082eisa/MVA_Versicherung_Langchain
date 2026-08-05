@@ -1,0 +1,10 @@
+{
+  "fields": {
+    "mvaPolicies": "Policies",
+    "mvaClaims": "Claims"
+  },
+  "links": {
+    "mvaPolicies": "Policies",
+    "mvaClaims": "Claims"
+  }
+}

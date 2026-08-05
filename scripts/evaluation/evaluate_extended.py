@@ -15,11 +15,19 @@ Calculates comprehensive evaluation metrics including:
 import json
 import os
 import statistics
+import sys
 from datetime import datetime
+from pathlib import Path
 from typing import List, Dict, Tuple, Optional
 from dotenv import load_dotenv
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.config.models import load_model_settings
 
 
 # Load environment variables
@@ -254,10 +262,16 @@ def main():
         return
     
     eval_model = os.getenv("EVAL_LLM_MODEL", "lfm2.5-thinking:1.2b")
+    settings = load_model_settings()
+    timeout_seconds = settings.llm_runtime.timeout_answer_seconds
     evaluator_llm = ChatOllama(
         model=eval_model,
         base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
         temperature=0.0,
+        num_predict=settings.llm_runtime.max_tokens_answer,
+        client_kwargs={"timeout": timeout_seconds},
+        async_client_kwargs={"timeout": timeout_seconds},
+        sync_client_kwargs={"timeout": timeout_seconds},
     )
     results = []
     

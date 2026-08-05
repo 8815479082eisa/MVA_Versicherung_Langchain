@@ -1,0 +1,21 @@
+[
+  {
+    "name": "policyNumber",
+    "link": true
+  },
+  {
+    "name": "customer"
+  },
+  {
+    "name": "productType"
+  },
+  {
+    "name": "coverageType"
+  },
+  {
+    "name": "status"
+  },
+  {
+    "name": "endDate"
+  }
+]

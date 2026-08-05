@@ -30,6 +30,7 @@ ENV/
 .env
 .env.local
 .env.*.local
+.env.crm
 
 # IDE
 .vscode/
@@ -67,7 +68,11 @@ Thumbs.db
 # Test caches
 .pytest_cache/
 
+# Generated EspoCRM extension packages
+docker/espocrm-extension/dist/
+
 # Data files (optional - uncomment if you don't want to track PDFs)
 # docs/*.pdf
 # !docs/example.pdf
 
+tmp/

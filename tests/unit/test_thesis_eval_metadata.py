@@ -25,6 +25,7 @@ def test_build_run_metadata_documents_model_and_safety_config() -> None:
     settings = config_models.load_model_settings()
     settings = replace(
         settings,
+        preferred_answer_model="qwen3.5:4b",
         roles=replace(settings.roles, answer="qwen3.5:4b", router="functiongemma:270m"),
         retrieval=replace(settings.retrieval, query_rewrite_enabled=False, query_rewrite_min_similarity=0.85),
         safety=replace(settings.safety, min_groundedness=0.35, nemo_enforce_output=False),
@@ -54,7 +55,8 @@ def test_build_run_metadata_documents_model_and_safety_config() -> None:
     assert metadata["safety_min_groundedness"] == 0.35
 
 
-def test_load_model_settings_keeps_answer_model_on_preferred_model(monkeypatch) -> None:
+def test_load_model_settings_keeps_answer_model_on_preferred_model(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(config_models, "_DOTENV_PATH", tmp_path / "missing.env")
     monkeypatch.setenv("OLLAMA_MODEL", "functiongemma:270m")
     monkeypatch.setenv("PREFERRED_ANSWER_MODEL", "qwen3.5:4b")
     monkeypatch.delenv("ANSWER_MODEL", raising=False)
@@ -64,6 +66,55 @@ def test_load_model_settings_keeps_answer_model_on_preferred_model(monkeypatch) 
 
     assert settings.roles.answer == "qwen3.5:4b"
     assert settings.roles.router == "functiongemma:270m"
+
+
+def test_openai_answer_provider_keeps_auxiliary_roles_on_ollama(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setattr(config_models, "_DOTENV_PATH", tmp_path / "missing.env")
+    monkeypatch.setenv("ANSWER_PROVIDER", "openai")
+    monkeypatch.setenv("OLLAMA_MODEL", "phi3:mini")
+    monkeypatch.delenv("ANSWER_MODEL", raising=False)
+    monkeypatch.delenv("PREFERRED_ANSWER_MODEL", raising=False)
+    monkeypatch.delenv("ROUTER_MODEL", raising=False)
+    monkeypatch.delenv("GUARDRAIL_MODEL", raising=False)
+    monkeypatch.delenv("SELF_CHECK_PROVIDER", raising=False)
+    monkeypatch.delenv("SELF_CHECK_MODEL", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+
+    settings = config_models.load_model_settings()
+    runtime = config_models.runtime_config_snapshot(settings)
+
+    assert settings.provider == "openai"
+    assert settings.roles.answer == "gpt-4o-mini"
+    assert settings.roles.router == "phi3:mini"
+    assert settings.roles.guardrail == "phi3:mini"
+    assert settings.openai_api_key_configured is False
+    assert runtime["openai_api_key_configured"] is False
+    assert "OPENAI_API_KEY" not in runtime["raw_env"]
+
+
+def test_openai_self_check_provider_is_explicit_and_isolated(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setattr(config_models, "_DOTENV_PATH", tmp_path / "missing.env")
+    monkeypatch.setenv("ANSWER_PROVIDER", "openai")
+    monkeypatch.setenv("SELF_CHECK_PROVIDER", "openai")
+    monkeypatch.setenv("SELF_CHECK_MODEL", "gpt-4o-mini")
+    monkeypatch.setenv("OLLAMA_MODEL", "phi3:mini")
+    monkeypatch.delenv("ROUTER_MODEL", raising=False)
+
+    settings = config_models.load_model_settings()
+    runtime = config_models.runtime_config_snapshot(settings)
+
+    assert settings.provider == "openai"
+    assert settings.retrieval.self_check_provider == "openai"
+    assert settings.roles.self_check == "gpt-4o-mini"
+    assert settings.roles.router == "phi3:mini"
+    assert runtime["self_check_provider"] == "openai"
+    assert runtime["self_check_model"] == "gpt-4o-mini"
 
 
 def test_shell_env_answer_model_overrides_dotenv(monkeypatch, tmp_path) -> None:
@@ -82,6 +133,22 @@ def test_shell_env_answer_model_overrides_dotenv(monkeypatch, tmp_path) -> None:
     assert settings.roles.answer == "qwen3.5:4b"
     assert runtime["configured_answer_model_source"] == "shell_env"
     assert runtime["dotenv_conflicts"]["ANSWER_MODEL"]["dotenv"] == "functiongemma:270m"
+
+
+def test_runtime_config_redacts_sensitive_dotenv_conflicts(monkeypatch, tmp_path) -> None:
+    dotenv_path = tmp_path / ".env"
+    dotenv_path.write_text("OPENAI_API_KEY=dotenv-secret\n", encoding="utf-8")
+    monkeypatch.setattr(config_models, "_DOTENV_PATH", dotenv_path)
+    monkeypatch.setenv("OPENAI_API_KEY", "shell-secret")
+
+    runtime = config_models.runtime_config_snapshot(
+        config_models.load_model_settings()
+    )
+
+    assert runtime["dotenv_conflicts"]["OPENAI_API_KEY"] == {
+        "shell_env": "<redacted>",
+        "dotenv": "<redacted>",
+    }
 
 
 def test_build_run_metadata_marks_answer_model_mismatch() -> None:

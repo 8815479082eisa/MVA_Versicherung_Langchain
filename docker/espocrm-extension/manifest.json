@@ -1,0 +1,13 @@
+{
+  "name": "MVA Insurance Data Model",
+  "version": "1.0.0",
+  "acceptableVersions": [
+    ">=10.0.0 <11.0.0"
+  ],
+  "php": [
+    ">=8.3"
+  ],
+  "releaseDate": "2026-07-25",
+  "author": "MVA Insurance RAG",
+  "description": "Minimal Policy and Claim entities for the synthetic insurance CRM integration."
+}

@@ -1,0 +1,23 @@
+{
+  "labels": {
+    "Create MvaPolicy": "Create Policy"
+  },
+  "fields": {
+    "name": "Name",
+    "policyNumber": "Policy Number",
+    "productType": "Product Type",
+    "coverageType": "Coverage Type",
+    "status": "Status",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "deductible": "Deductible",
+    "annualPremium": "Annual Premium",
+    "currency": "Currency",
+    "customer": "Customer",
+    "claims": "Claims"
+  },
+  "links": {
+    "customer": "Customer",
+    "claims": "Claims"
+  }
+}

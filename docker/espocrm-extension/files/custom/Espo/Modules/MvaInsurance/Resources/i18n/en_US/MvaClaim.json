@@ -1,0 +1,21 @@
+{
+  "labels": {
+    "Create MvaClaim": "Create Claim"
+  },
+  "fields": {
+    "name": "Name",
+    "claimNumber": "Claim Number",
+    "claimDate": "Claim Date",
+    "damageType": "Damage Type",
+    "description": "Description",
+    "claimedAmount": "Claimed Amount",
+    "currency": "Currency",
+    "status": "Status",
+    "customer": "Customer",
+    "policy": "Policy"
+  },
+  "links": {
+    "customer": "Customer",
+    "policy": "Policy"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "fields": {
+    "mvaPolicies": {
+      "type": "linkMultiple"
+    },
+    "mvaClaims": {
+      "type": "linkMultiple"
+    }
+  },
+  "links": {
+    "mvaPolicies": {
+      "type": "hasMany",
+      "entity": "MvaPolicy",
+      "foreign": "customer"
+    },
+    "mvaClaims": {
+      "type": "hasMany",
+      "entity": "MvaClaim",
+      "foreign": "customer"
+    }
+  }
+}

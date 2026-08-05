@@ -1,0 +1,2 @@
+﻿reports/e2e_mcp_pipeline_report_20260707_010119.md
+reports/e2e_mcp_pipeline_log_20260707_010119.txt

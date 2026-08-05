@@ -1,0 +1,125 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "maxLength": 150,
+      "required": true
+    },
+    "policyNumber": {
+      "type": "varchar",
+      "maxLength": 64,
+      "required": true,
+      "index": true
+    },
+    "productType": {
+      "type": "enum",
+      "required": true,
+      "options": [
+        "Motor Insurance",
+        "Helvetia Motor Vehicle Insurance",
+        "Helvetia Household Contents Insurance",
+        "Helvetia Private Liability Insurance",
+        "Helvetia Legal Protection Insurance",
+        "Personal Liability",
+        "Household Insurance",
+        "Legal Protection"
+      ]
+    },
+    "coverageType": {
+      "type": "enum",
+      "required": true,
+      "options": [
+        "Liability",
+        "Partial Coverage",
+        "Comprehensive Coverage",
+        "Third-Party Liability",
+        "Partially comprehensive cover",
+        "Fully comprehensive",
+        "Fully comprehensive PLUS",
+        "Household contents insurance",
+        "Private liability insurance",
+        "Legal protection insurance",
+        "Standard Coverage"
+      ]
+    },
+    "status": {
+      "type": "enum",
+      "required": true,
+      "default": "Active",
+      "options": [
+        "Active",
+        "Pending",
+        "Expired",
+        "Cancelled"
+      ]
+    },
+    "startDate": {
+      "type": "date",
+      "required": true
+    },
+    "endDate": {
+      "type": "date",
+      "required": true
+    },
+    "deductible": {
+      "type": "float",
+      "min": 0,
+      "required": true
+    },
+    "annualPremium": {
+      "type": "float",
+      "min": 0,
+      "required": true
+    },
+    "currency": {
+      "type": "enum",
+      "required": true,
+      "default": "EUR",
+      "options": [
+        "EUR",
+        "USD",
+        "GBP"
+      ]
+    },
+    "customer": {
+      "type": "link",
+      "required": true
+    },
+    "claims": {
+      "type": "linkMultiple"
+    }
+  },
+  "links": {
+    "customer": {
+      "type": "belongsTo",
+      "entity": "Contact",
+      "foreign": "mvaPolicies"
+    },
+    "claims": {
+      "type": "hasMany",
+      "entity": "MvaClaim",
+      "foreign": "policy"
+    }
+  },
+  "indexes": {
+    "policyNumberUnique": {
+      "columns": [
+        "policyNumber"
+      ],
+      "unique": true
+    },
+    "customerId": {
+      "columns": [
+        "customerId"
+      ]
+    }
+  },
+  "collection": {
+    "textFilterFields": [
+      "name",
+      "policyNumber"
+    ],
+    "orderBy": "startDate",
+    "order": "desc"
+  }
+}

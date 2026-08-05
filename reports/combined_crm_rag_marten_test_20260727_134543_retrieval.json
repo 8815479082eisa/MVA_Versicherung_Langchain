@@ -1,0 +1,153 @@
+{
+  "status": "PASS",
+  "query": "Under BaloiseDirect part comprehensive motor insurance, is damage to the insured vehicle caused by marten bites covered, and what general deductible rule applies to each claim?",
+  "generationUsed": false,
+  "allowReindex": false,
+  "configuredRetrievalTopK": 8,
+  "configuredRerankTopK": 5,
+  "retrievedCount": 6,
+  "rerankedCount": 5,
+  "retrieved": [
+    {
+      "rank": 1,
+      "filename": "240_1217_e.pdf",
+      "source": "data\\raw\\pdfs\\240_1217_e.pdf",
+      "pageMetadata": 14,
+      "pageHuman": 15,
+      "score": null,
+      "content": "analogously to damage to the vehicle. However, under \nthe comprehensive insurance, H7.2 applies to the policy-\nholder only. If an uninsured accident as defined in H7.2 is \ncaused by another driver, Baloise provides the full benefits \nto the policyholder, but in derogation of K2.3, is entitled to \nrecover this from the driver who caused the damage\nK5.2\nIn the case of bites by martens or other rodents, Baloise \nwill provide no additional benefits under K3.3\nK5.3\nPersonal effects carried in the vehicle and safety clothing \nin the case of motorcyclists.\nK5.4\nDowntime, reduction in the value or impairment in the \nperformance or usability of the vehicle\nK5.5\nWear and tear and operational damage\nK5.6\nDamage caused by low oil levels, freezing or absence of \ncoolant water, damage from scorching, damage to tyres,",
+      "characterCount": 814
+    },
+    {
+      "rank": 2,
+      "filename": "240_1217_e.pdf",
+      "source": "data\\raw\\pdfs\\240_1217_e.pdf",
+      "pageMetadata": 12,
+      "pageHuman": 13,
+      "score": null,
+      "content": "Terms and Conditions\nBaloiseDirect Motor Vehicle\n13/28\nComprehensive insurance\nFor damage to your own vehicle\nInsurance cover\nDepending on the terms agreed in the insurance policy, \nthe following are insured: \nCollision insurance\nKK1\nInsured events\nDamage to the insured motor vehicle as a result of \n(exhaustive listing):\nKK1.1\n • collision (a sudden, violent external impact), in par-\nticular, damage resulting from impacts, collisions, \nrollovers, falling, sinking in and submersion, even if \nit occurs subsequent to operational, breakage or \nwear and tear damage. Damage due to distortion \nand bending of the chassis and the loading bridge \nthat is caused by tilting or loading and unloading is \ndeemed equivalent to a collision even if there is no \nexternal impact.\nKK1.2\n • scratching of the vehicle.\nPart comprehensive insurance\nTK1\nInsured events\nDamage to the insured motor vehicle as a result of \n(exhaustive listing):\nTK1.1\n • loss, destruction of or damage to the vehicle as a",
+      "characterCount": 988
+    },
+    {
+      "rank": 3,
+      "filename": "240_1217_e.pdf",
+      "source": "data\\raw\\pdfs\\240_1217_e.pdf",
+      "pageMetadata": 4,
+      "pageHuman": 5,
+      "score": null,
+      "content": "for whom you are responsible. We cover the costs of \njustly asserted claims and defend you against unjustly \nasserted liability claims.\nComprehensive insurance\n • Collision insurance \nDamage from collision or scratching of the vehicle \n(part comprehensive insurance + collision insurance \n= fully comprehensive insurance).\n • Part comprehensive insurance \nWe indemnify you for damage to the insured vehicle \ncaused by fire, natural hazards, vandalism, marking \nor spraying, glass breakage, bites by martens or other \nrodents, collisions with animals or theft. If necessary, \nwe will also bear the cost of salvaging the vehicle in \nthese cases.\nSupplementary cover options\n • Damage while parked \nDamage caused by an unknown third party to your \ninsured vehicle while parked.\n • Lights and assistance systems \nDamage to headlights, tail lights and indicator lights, \nwing mirrors, sensors in driver assistance systems, \nand approved rotating warning lights (e. g. blue light).",
+      "characterCount": 975
+    },
+    {
+      "rank": 4,
+      "filename": "240_1217_e.pdf",
+      "source": "data\\raw\\pdfs\\240_1217_e.pdf",
+      "pageMetadata": 16,
+      "pageHuman": 17,
+      "score": null,
+      "content": "Terms and Conditions\nBaloiseDirect Motor Vehicle\n17/28\nSupplementary cover\nInsurance cover\nDepending on the terms agreed in the insurance policy, \nthe following are insured: \nZ1\nDamage while parked\nDamage caused by unknown third parties to an insured \nparked vehicle, provided that repairs are performed.\n • without a limit to the supplementary cover in addi-\ntion to the collision insurance\n • with a limit of at most CHF 2,000 per claim as sup-\nplementary cover in addition to part comprehensive \ncover\nA maximum of two claims are insured per calendar year. \nThe applicable date is the date of the claims notification.\nZ2 \nLights and assistance systems\nDamage to headlights, tail lights and indicator lights, \nwing mirrors, sensors in driver assistance systems, and \napproved rotating warning lights (e. g. blue light) is \ncovered, provided the repairs are carried out.\nZ3 \nPersonal effects carried in the vehicle\nIn the case of losses covered by part comprehensive or",
+      "characterCount": 970
+    },
+    {
+      "rank": 5,
+      "filename": "240_1217_e.pdf",
+      "source": "data\\raw\\pdfs\\240_1217_e.pdf",
+      "pageMetadata": 19,
+      "pageHuman": 20,
+      "score": null,
+      "content": "Terms and Conditions\nBaloiseDirect Motor Vehicle\n20/28\nZ9.2\nThe exclusions under K5.1–K5.11 also apply. The exclusion \nunder K5.3 applies only to damage to a parked vehicle in \naccordance with Z1 and first-party damage in accord-\nance with Z5.\nZ9.3\nLights and assistance systems\nDamage to headlights, tail lights and indicator lights, \nwing mirrors, sensors in driver assistance systems, \napproved rotating warning lights (e. g. blue light) and \ntheir electronics, provided the damage is attributable to \nan internal defect.\nZ9.4\n«Own damage» safety module\nDamage to the insured vehicle itself, to a trailer towed by \nthe vehicle and to items carried in the insured vehicle or \ntrailer.\nZ9.5\n«Carefree» safety module\nThe wavier of the right to recourse or the right to a reduc-\ntion does not apply if the damage was caused by the \ninsured while intoxicated or otherwise unfit to drive or \nwhile excessively speeding (as defined in Art. 90 (4) SVG).",
+      "characterCount": 948
+    },
+    {
+      "rank": 6,
+      "filename": "240_1184_e.pdf",
+      "source": "data\\raw\\pdfs\\240_1184_e.pdf",
+      "pageMetadata": 6,
+      "pageHuman": 7,
+      "score": null,
+      "content": "to the policyholder only. If an uninsured accident as defined in H7.2 is \ncaused by another driver, Baloise provides the full benefits to the pol -\nicyholder, but in derogation of K2.3, is entitled to recover this from the \ndriver who caused the damage\nK5.2\nIn the case of damage caused by martens, Baloise shall provide no addi -\ntional benefits under K4 – K4.7 \nK5.3\nPersonal effects carried in the vehicle and safety clothing in the case of \nmotorcyclists.\nK5.4\nDowntime, reduction in the value or impairment in the performance or \nusability of the vehicle\nK5.5\nWear and tear and operational damage\nK5.6\nDamage caused by low oil levels, freezing or absence of coolant water, \ndamage from scorching, damage to tyres, the battery, a built-in radio, \ntape, CD, DVD or MP3 player, two-way radio or telephone, unless such \ndamage occurs as a result of an insured event\nYear of service Indemnity Replacement at the \nvalue as new \n1st 100% 100%\n2nd 100% 100%\n3rd to 7th Current value + 20% 100%",
+      "characterCount": 990
+    }
+  ],
+  "reranked": [
+    {
+      "rank": 1,
+      "filename": "240_1217_e.pdf",
+      "source": "data\\raw\\pdfs\\240_1217_e.pdf",
+      "pageMetadata": 14,
+      "pageHuman": 15,
+      "score": null,
+      "content": "analogously to damage to the vehicle. However, under \nthe comprehensive insurance, H7.2 applies to the policy-\nholder only. If an uninsured accident as defined in H7.2 is \ncaused by another driver, Baloise provides the full benefits \nto the policyholder, but in derogation of K2.3, is entitled to \nrecover this from the driver who caused the damage\nK5.2\nIn the case of bites by martens or other rodents, Baloise \nwill provide no additional benefits under K3.3\nK5.3\nPersonal effects carried in the vehicle and safety clothing \nin the case of motorcyclists.\nK5.4\nDowntime, reduction in the value or impairment in the \nperformance or usability of the vehicle\nK5.5\nWear and tear and operational damage\nK5.6\nDamage caused by low oil levels, freezing or absence of \ncoolant water, damage from scorching, damage to tyres,",
+      "characterCount": 814
+    },
+    {
+      "rank": 2,
+      "filename": "240_1217_e.pdf",
+      "source": "data\\raw\\pdfs\\240_1217_e.pdf",
+      "pageMetadata": 12,
+      "pageHuman": 13,
+      "score": null,
+      "content": "Terms and Conditions\nBaloiseDirect Motor Vehicle\n13/28\nComprehensive insurance\nFor damage to your own vehicle\nInsurance cover\nDepending on the terms agreed in the insurance policy, \nthe following are insured: \nCollision insurance\nKK1\nInsured events\nDamage to the insured motor vehicle as a result of \n(exhaustive listing):\nKK1.1\n • collision (a sudden, violent external impact), in par-\nticular, damage resulting from impacts, collisions, \nrollovers, falling, sinking in and submersion, even if \nit occurs subsequent to operational, breakage or \nwear and tear damage. Damage due to distortion \nand bending of the chassis and the loading bridge \nthat is caused by tilting or loading and unloading is \ndeemed equivalent to a collision even if there is no \nexternal impact.\nKK1.2\n • scratching of the vehicle.\nPart comprehensive insurance\nTK1\nInsured events\nDamage to the insured motor vehicle as a result of \n(exhaustive listing):\nTK1.1\n • loss, destruction of or damage to the vehicle as a",
+      "characterCount": 988
+    },
+    {
+      "rank": 3,
+      "filename": "240_1217_e.pdf",
+      "source": "data\\raw\\pdfs\\240_1217_e.pdf",
+      "pageMetadata": 16,
+      "pageHuman": 17,
+      "score": null,
+      "content": "Terms and Conditions\nBaloiseDirect Motor Vehicle\n17/28\nSupplementary cover\nInsurance cover\nDepending on the terms agreed in the insurance policy, \nthe following are insured: \nZ1\nDamage while parked\nDamage caused by unknown third parties to an insured \nparked vehicle, provided that repairs are performed.\n • without a limit to the supplementary cover in addi-\ntion to the collision insurance\n • with a limit of at most CHF 2,000 per claim as sup-\nplementary cover in addition to part comprehensive \ncover\nA maximum of two claims are insured per calendar year. \nThe applicable date is the date of the claims notification.\nZ2 \nLights and assistance systems\nDamage to headlights, tail lights and indicator lights, \nwing mirrors, sensors in driver assistance systems, and \napproved rotating warning lights (e. g. blue light) is \ncovered, provided the repairs are carried out.\nZ3 \nPersonal effects carried in the vehicle\nIn the case of losses covered by part comprehensive or",
+      "characterCount": 970
+    },
+    {
+      "rank": 4,
+      "filename": "240_1217_e.pdf",
+      "source": "data\\raw\\pdfs\\240_1217_e.pdf",
+      "pageMetadata": 19,
+      "pageHuman": 20,
+      "score": null,
+      "content": "Terms and Conditions\nBaloiseDirect Motor Vehicle\n20/28\nZ9.2\nThe exclusions under K5.1–K5.11 also apply. The exclusion \nunder K5.3 applies only to damage to a parked vehicle in \naccordance with Z1 and first-party damage in accord-\nance with Z5.\nZ9.3\nLights and assistance systems\nDamage to headlights, tail lights and indicator lights, \nwing mirrors, sensors in driver assistance systems, \napproved rotating warning lights (e. g. blue light) and \ntheir electronics, provided the damage is attributable to \nan internal defect.\nZ9.4\n«Own damage» safety module\nDamage to the insured vehicle itself, to a trailer towed by \nthe vehicle and to items carried in the insured vehicle or \ntrailer.\nZ9.5\n«Carefree» safety module\nThe wavier of the right to recourse or the right to a reduc-\ntion does not apply if the damage was caused by the \ninsured while intoxicated or otherwise unfit to drive or \nwhile excessively speeding (as defined in Art. 90 (4) SVG).",
+      "characterCount": 948
+    },
+    {
+      "rank": 5,
+      "filename": "240_1184_e.pdf",
+      "source": "data\\raw\\pdfs\\240_1184_e.pdf",
+      "pageMetadata": 6,
+      "pageHuman": 7,
+      "score": null,
+      "content": "to the policyholder only. If an uninsured accident as defined in H7.2 is \ncaused by another driver, Baloise provides the full benefits to the pol -\nicyholder, but in derogation of K2.3, is entitled to recover this from the \ndriver who caused the damage\nK5.2\nIn the case of damage caused by martens, Baloise shall provide no addi -\ntional benefits under K4 – K4.7 \nK5.3\nPersonal effects carried in the vehicle and safety clothing in the case of \nmotorcyclists.\nK5.4\nDowntime, reduction in the value or impairment in the performance or \nusability of the vehicle\nK5.5\nWear and tear and operational damage\nK5.6\nDamage caused by low oil levels, freezing or absence of coolant water, \ndamage from scorching, damage to tyres, the battery, a built-in radio, \ntape, CD, DVD or MP3 player, two-way radio or telephone, unless such \ndamage occurs as a result of an insured event\nYear of service Indemnity Replacement at the \nvalue as new \n1st 100% 100%\n2nd 100% 100%\n3rd to 7th Current value + 20% 100%",
+      "characterCount": 990
+    }
+  ],
+  "wallLatencyMs": 52100.256,
+  "diagnostics": {
+    "requestId": "915d9d137d5242008e2d05c22cc52ab7",
+    "route": "pure-retrieval",
+    "stageTimings": {
+      "embeddingMs": 8550.925,
+      "lexicalRetrievalMs": 104.394,
+      "vectorRetrievalMs": 1000.034,
+      "hybridMergeMs": 0.04,
+      "retrievalMs": 1105.876,
+      "rerankingMs": 29319.975
+    },
+    "stageStatus": {
+      "embedding": "completed",
+      "retrieval": "completed",
+      "lexical_retrieval": "completed",
+      "vector_retrieval": "completed",
+      "hybrid_merge": "completed",
+      "reranker": "completed"
+    },
+    "timeoutStage": null,
+    "retries": {},
+    "status": "complete",
+    "partial": false,
+    "selfCheckEnabled": null,
+    "selfCheckSkipped": false,
+    "selfCheckSkipReason": null,
+    "totalMs": 52100.289
+  }
+}

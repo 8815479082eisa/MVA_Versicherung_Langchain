@@ -1,0 +1,54 @@
+[
+  {
+    "label": "Overview",
+    "style": "default",
+    "rows": [
+      [
+        {
+          "name": "name"
+        },
+        {
+          "name": "policyNumber"
+        }
+      ],
+      [
+        {
+          "name": "customer"
+        },
+        {
+          "name": "status"
+        }
+      ],
+      [
+        {
+          "name": "productType"
+        },
+        {
+          "name": "coverageType"
+        }
+      ],
+      [
+        {
+          "name": "startDate"
+        },
+        {
+          "name": "endDate"
+        }
+      ],
+      [
+        {
+          "name": "deductible"
+        },
+        {
+          "name": "annualPremium"
+        }
+      ],
+      [
+        {
+          "name": "currency"
+        },
+        false
+      ]
+    ]
+  }
+]

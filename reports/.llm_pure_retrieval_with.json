@@ -1,0 +1,71 @@
+{
+  "status": "PASSED",
+  "query": "What does partial coverage generally cover?",
+  "retrievalMode": "hybrid_with_existing_reranker",
+  "generationUsed": false,
+  "rerankerUsed": true,
+  "documentCount": 5,
+  "documents": [
+    {
+      "rank": 1,
+      "filename": "10050-medicare-and-you.pdf",
+      "source": "data\\raw\\pdfs\\10050-medicare-and-you.pdf",
+      "page": 93,
+      "score": null
+    },
+    {
+      "rank": 2,
+      "filename": "10050-medicare-and-you.pdf",
+      "source": "data\\raw\\pdfs\\10050-medicare-and-you.pdf",
+      "page": 29,
+      "score": null
+    },
+    {
+      "rank": 3,
+      "filename": "10050-medicare-and-you.pdf",
+      "source": "data\\raw\\pdfs\\10050-medicare-and-you.pdf",
+      "page": 24,
+      "score": null
+    },
+    {
+      "rank": 4,
+      "filename": "publication-aut-pp-consumer-auto.pdf",
+      "source": "data\\raw\\pdfs\\publication-aut-pp-consumer-auto.pdf",
+      "page": 11,
+      "score": null
+    },
+    {
+      "rank": 5,
+      "filename": "publication-hoi-pp-consumer-homeowners.pdf",
+      "source": "data\\raw\\pdfs\\publication-hoi-pp-consumer-homeowners.pdf",
+      "page": 14,
+      "score": null
+    }
+  ],
+  "diagnostics": {
+    "requestId": "e9e4fd6f26424772ba9c6e4932e7681d",
+    "route": "pure-retrieval",
+    "stageTimings": {
+      "embeddingMs": 12527.04,
+      "lexicalRetrievalMs": 30.332,
+      "vectorRetrievalMs": 519.921,
+      "hybridMergeMs": 0.033,
+      "retrievalMs": 552.679,
+      "rerankingMs": 24371.171
+    },
+    "stageStatus": {
+      "embedding": "completed",
+      "retrieval": "completed",
+      "lexical_retrieval": "completed",
+      "vector_retrieval": "completed",
+      "hybrid_merge": "completed",
+      "reranker": "completed"
+    },
+    "timeoutStage": null,
+    "retries": {},
+    "status": "complete",
+    "partial": false,
+    "totalMs": 83450.051
+  },
+  "warnings": []
+}

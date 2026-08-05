@@ -293,7 +293,7 @@ def build_insuranceqa_index(
     )
 
 
-def get_insuranceqa_retriever():
+def get_insuranceqa_retriever(embeddings=None):
     """
     Load the InsuranceQA collection and return a retriever.
     """
@@ -302,7 +302,7 @@ def get_insuranceqa_retriever():
     _require(chromadb, "chromadb")
     _require(Chroma, "langchain-chroma")
     try:
-        embeddings = rag_service.initialize_embeddings()
+        embeddings = embeddings or rag_service.initialize_embeddings()
     except Exception as exc:
         raise RuntimeError(
             "Failed to initialize embeddings for InsuranceQA retriever. "

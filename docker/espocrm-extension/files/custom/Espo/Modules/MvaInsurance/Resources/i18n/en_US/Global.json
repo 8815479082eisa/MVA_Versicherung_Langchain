@@ -1,0 +1,10 @@
+{
+  "scopeNames": {
+    "MvaPolicy": "Policy",
+    "MvaClaim": "Claim"
+  },
+  "scopeNamesPlural": {
+    "MvaPolicy": "Policies",
+    "MvaClaim": "Claims"
+  }
+}

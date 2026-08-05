@@ -1,0 +1,599 @@
+{
+  "schema_version": 1,
+  "description": "Normalized copy of existing synthetic fixture labels with scores recomputed by the unchanged deterministic production groundedness function. Human-label provenance, error categories and criticality require review.",
+  "source_dataset": "tests/fixtures/groundedness_calibration_cases.json",
+  "source_sha256": "cf92177df13ffd58289cfca9f541c02c2b55af55e026b718edbab5063b210edb",
+  "algorithm_version": "fact_aware_claim_support_v4",
+  "score_generation": "deterministic_single_run",
+  "cases": [
+    {
+      "case_id": "supported_motor_full_answer",
+      "question": "Is windshield damage covered, what deductible applies, and which motor contract is relevant?",
+      "context": [
+        "Motor insurance contract TEST-KFZ-2026-1001 covers windshield glass damage under partial comprehensive insurance. A deductible of EUR 150 applies per claim."
+      ],
+      "generated_answer": "Windshield glass damage is covered under partial comprehensive insurance. The deductible is EUR 150 per claim under motor contract TEST-KFZ-2026-1001.",
+      "human_label": "PASS",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 1.0,
+      "score_runs": [
+        1.0
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: human annotation provenance is undocumented"
+    },
+    {
+      "case_id": "supported_motor_paraphrase",
+      "question": "Does the policy pay for windscreen glass damage?",
+      "context": [
+        "The motor policy provides partial comprehensive coverage for windshield glass damage. The policyholder pays EUR 150 per claim."
+      ],
+      "generated_answer": "The partial comprehensive cover includes damage to the windscreen, subject to a 150 euro deductible for each claim.",
+      "human_label": "PASS",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.814545,
+      "score_runs": [
+        0.814545
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: human annotation provenance is undocumented"
+    },
+    {
+      "case_id": "supported_contract_identifier",
+      "question": "Which contract applies?",
+      "context": [
+        "Applicable motor insurance contract number: TEST-KFZ-2026-1001."
+      ],
+      "generated_answer": "The applicable contract number is TEST-KFZ-2026-1001.",
+      "human_label": "PASS",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 1.0,
+      "score_runs": [
+        1.0
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: human annotation provenance is undocumented"
+    },
+    {
+      "case_id": "supported_deductible",
+      "question": "What is the glass deductible?",
+      "context": [
+        "For insured glass damage, the deductible is 150 euros for each claim."
+      ],
+      "generated_answer": "A deductible of EUR 150 applies per glass claim.",
+      "human_label": "PASS",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.886667,
+      "score_runs": [
+        0.886667
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: human annotation provenance is undocumented"
+    },
+    {
+      "case_id": "supported_exclusion",
+      "question": "Is intentional vehicle damage covered?",
+      "context": [
+        "Intentional damage to the insured vehicle is excluded and is not covered by the policy."
+      ],
+      "generated_answer": "No. Intentionally caused vehicle damage is not covered.",
+      "human_label": "PASS",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.8,
+      "score_runs": [
+        0.8
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: human annotation provenance is undocumented"
+    },
+    {
+      "case_id": "supported_liability",
+      "question": "What does personal liability cover?",
+      "context": [
+        "Personal liability contract TEST-PHV-2026-2001 covers valid claims for damage caused to third parties."
+      ],
+      "generated_answer": "Personal liability insurance covers valid third-party damage claims.",
+      "human_label": "PASS",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.848889,
+      "score_runs": [
+        0.848889
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: human annotation provenance is undocumented"
+    },
+    {
+      "case_id": "supported_coverage_dates",
+      "question": "When is the motor policy active?",
+      "context": [
+        "Motor policy period: 2026-01-01 to 2026-12-31. Status: active."
+      ],
+      "generated_answer": "The policy is active from 2026-01-01 through 2026-12-31.",
+      "human_label": "PASS",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.902857,
+      "score_runs": [
+        0.902857
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: human annotation provenance is undocumented"
+    },
+    {
+      "case_id": "supported_home_deductible",
+      "question": "What applies to insured water damage?",
+      "context": [
+        "Home insurance covers escape-of-water damage with a deductible of EUR 500 per claim."
+      ],
+      "generated_answer": "Insured water damage has a EUR 500 deductible per claim.",
+      "human_label": "PASS",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 1.0,
+      "score_runs": [
+        1.0
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: human annotation provenance is undocumented"
+    },
+    {
+      "case_id": "supported_travel_limit",
+      "question": "What is the baggage limit?",
+      "context": [
+        "The travel policy covers lost baggage up to a maximum of EUR 2,000."
+      ],
+      "generated_answer": "Travel baggage is covered up to EUR 2,000.",
+      "human_label": "PASS",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 1.0,
+      "score_runs": [
+        1.0
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: human annotation provenance is undocumented"
+    },
+    {
+      "case_id": "supported_dental_percentage",
+      "question": "How much dental treatment is reimbursed?",
+      "context": [
+        "Eligible dental treatment costs are reimbursed at 80 percent under the health plan."
+      ],
+      "generated_answer": "The plan reimburses 80 percent of eligible dental treatment costs.",
+      "human_label": "PASS",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 1.0,
+      "score_runs": [
+        1.0
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: human annotation provenance is undocumented"
+    },
+    {
+      "case_id": "supported_two_claims_with_citation",
+      "question": "Summarize the motor glass benefit.",
+      "context": [
+        "Partial comprehensive motor insurance covers glass damage. The deductible for each glass claim is EUR 150."
+      ],
+      "generated_answer": "Glass damage is covered by partial comprehensive insurance [motor_policy:1]. The deductible is EUR 150 per claim [motor_policy:1].",
+      "human_label": "PASS",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 1.0,
+      "score_runs": [
+        1.0
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: human annotation provenance is undocumented"
+    },
+    {
+      "case_id": "supported_short_numeric_answer",
+      "question": "How much is the deductible per claim?",
+      "context": [
+        "Deductible: EUR 150 per claim."
+      ],
+      "generated_answer": "EUR 150 per claim.",
+      "human_label": "PASS",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 1.0,
+      "score_runs": [
+        1.0
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: human annotation provenance is undocumented"
+    },
+    {
+      "case_id": "unsupported_wrong_motor_deductible",
+      "question": "What is the glass deductible?",
+      "context": [
+        "The motor glass deductible is EUR 150 per claim."
+      ],
+      "generated_answer": "The glass deductible is EUR 500 per claim.",
+      "human_label": "FAIL",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.141667,
+      "score_runs": [
+        0.141667
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: error_category and criticality are absent from source fixture"
+    },
+    {
+      "case_id": "unsupported_wrong_contract_identifier",
+      "question": "Which motor contract applies?",
+      "context": [
+        "The applicable motor contract is TEST-KFZ-2026-1001."
+      ],
+      "generated_answer": "The applicable motor contract is TEST-KFZ-2026-9999.",
+      "human_label": "FAIL",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.145714,
+      "score_runs": [
+        0.145714
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: error_category and criticality are absent from source fixture"
+    },
+    {
+      "case_id": "unsupported_wrong_coverage_type",
+      "question": "Which coverage includes windshield damage?",
+      "context": [
+        "Windshield damage is covered under partial comprehensive insurance."
+      ],
+      "generated_answer": "Windshield damage is covered under fully comprehensive insurance.",
+      "human_label": "FAIL",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.141667,
+      "score_runs": [
+        0.141667
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: error_category and criticality are absent from source fixture"
+    },
+    {
+      "case_id": "unsupported_reversed_coverage",
+      "question": "Is windshield glass damage covered?",
+      "context": [
+        "The motor policy covers windshield glass damage under partial comprehensive coverage."
+      ],
+      "generated_answer": "Windshield glass damage is not covered by the motor policy.",
+      "human_label": "FAIL",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.15,
+      "score_runs": [
+        0.15
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: error_category and criticality are absent from source fixture"
+    },
+    {
+      "case_id": "unsupported_zero_deductible",
+      "question": "Does a deductible apply?",
+      "context": [
+        "A deductible of EUR 150 applies to every insured glass claim."
+      ],
+      "generated_answer": "No deductible applies to a glass claim.",
+      "human_label": "FAIL",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.1275,
+      "score_runs": [
+        0.1275
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: error_category and criticality are absent from source fixture"
+    },
+    {
+      "case_id": "unsupported_rental_car_extension",
+      "question": "Summarize the glass benefit.",
+      "context": [
+        "Partial comprehensive insurance covers windshield glass damage with a EUR 150 deductible."
+      ],
+      "generated_answer": "Glass damage is covered and a free rental car is provided for fourteen days.",
+      "human_label": "FAIL",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.333333,
+      "score_runs": [
+        0.333333
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: error_category and criticality are absent from source fixture"
+    },
+    {
+      "case_id": "unsupported_wrong_policy_dates",
+      "question": "When is the policy active?",
+      "context": [
+        "The policy is active from 2026-01-01 through 2026-12-31."
+      ],
+      "generated_answer": "The policy is active from 2025-01-01 through 2025-12-31.",
+      "human_label": "FAIL",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.145714,
+      "score_runs": [
+        0.145714
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: error_category and criticality are absent from source fixture"
+    },
+    {
+      "case_id": "unsupported_wrong_home_deductible",
+      "question": "What is the water damage deductible?",
+      "context": [
+        "The water damage deductible is EUR 500 per claim."
+      ],
+      "generated_answer": "The water damage deductible is EUR 250 per claim.",
+      "human_label": "FAIL",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.145714,
+      "score_runs": [
+        0.145714
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: error_category and criticality are absent from source fixture"
+    },
+    {
+      "case_id": "unsupported_wrong_baggage_limit",
+      "question": "What is the baggage limit?",
+      "context": [
+        "Baggage is covered up to EUR 2,000 under the travel policy."
+      ],
+      "generated_answer": "Baggage is covered up to EUR 5,000.",
+      "human_label": "FAIL",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.141667,
+      "score_runs": [
+        0.141667
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: error_category and criticality are absent from source fixture"
+    },
+    {
+      "case_id": "unsupported_wrong_dental_percentage",
+      "question": "How much dental treatment is reimbursed?",
+      "context": [
+        "The plan reimburses 80 percent of eligible dental treatment costs."
+      ],
+      "generated_answer": "The plan reimburses 100 percent of dental treatment costs.",
+      "human_label": "FAIL",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.145714,
+      "score_runs": [
+        0.145714
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: error_category and criticality are absent from source fixture"
+    },
+    {
+      "case_id": "unsupported_mixed_extra_claim",
+      "question": "Summarize the motor glass benefit.",
+      "context": [
+        "The motor policy covers windshield glass damage under partial comprehensive coverage."
+      ],
+      "generated_answer": "Windshield glass damage is covered. The policy also provides unlimited towing anywhere in Europe.",
+      "human_label": "FAIL",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.5,
+      "score_runs": [
+        0.5
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: error_category and criticality are absent from source fixture"
+    },
+    {
+      "case_id": "unsupported_cancellation_claim",
+      "question": "What is the status of the contract?",
+      "context": [
+        "Contract TEST-KFZ-2026-1001 is active from 2026-01-01 through 2026-12-31."
+      ],
+      "generated_answer": "Contract TEST-KFZ-2026-1001 was cancelled on 2026-06-30.",
+      "human_label": "FAIL",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.277875,
+      "score_runs": [
+        0.277875
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: error_category and criticality are absent from source fixture"
+    },
+    {
+      "case_id": "supported_customer_association",
+      "question": "Whose insured vehicle has glass coverage?",
+      "context": [
+        "Insured person: Lara Neumann. Her insured vehicle has windshield glass coverage."
+      ],
+      "generated_answer": "The covered insured vehicle belongs to Lara Neumann.",
+      "human_label": "PASS",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.583333,
+      "score_runs": [
+        0.583333
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: human annotation provenance is undocumented"
+    },
+    {
+      "case_id": "supported_concise_coverage",
+      "question": "Is the windshield covered?",
+      "context": [
+        "Windshield glass damage is covered by the motor policy."
+      ],
+      "generated_answer": "Yes, windshield glass damage is covered.",
+      "human_label": "PASS",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 1.0,
+      "score_runs": [
+        1.0
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: human annotation provenance is undocumented"
+    },
+    {
+      "case_id": "unsupported_liability_distractor_answer",
+      "question": "Which motor coverage and contract cover windshield damage?",
+      "context": [
+        "Motor contract TEST-KFZ-2026-1001 covers windshield damage under partial comprehensive insurance with a EUR 150 deductible.",
+        "Personal liability contract TEST-PHV-2026-2001 does not cover windshield damage to the insured person's own vehicle and has no general deductible."
+      ],
+      "generated_answer": "Personal liability contract TEST-PHV-2026-2001 covers the windshield damage with no deductible.",
+      "human_label": "FAIL",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.141135,
+      "score_runs": [
+        0.141135
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: error_category and criticality are absent from source fixture"
+    },
+    {
+      "case_id": "unsupported_information_missing",
+      "question": "Is windshield damage covered and what deductible applies?",
+      "context": [
+        "Windshield glass damage is covered under partial comprehensive insurance. The deductible is EUR 150 per claim."
+      ],
+      "generated_answer": "The available documents do not state whether windshield damage is covered or whether a deductible applies.",
+      "human_label": "FAIL",
+      "label_source": "existing_boolean_fixture_label",
+      "human_annotation_provenance_verified": false,
+      "groundedness_score": 0.075556,
+      "score_runs": [
+        0.075556
+      ],
+      "score_standard_deviation": 0.0,
+      "score_range": 0.0,
+      "score_deterministic": true,
+      "error_category": null,
+      "critical": null,
+      "metadata_review_status": "REVIEW_REQUIRED: error_category and criticality are absent from source fixture"
+    }
+  ]
+}

@@ -1,0 +1,210 @@
+{
+  "generatedAt": "2026-08-05T11:24:04+02:00",
+  "configurationChanged": false,
+  "clientPayloadCorrected": true,
+  "payload": {
+    "topLevelKeys": ["question"],
+    "hasQuestion": true,
+    "hasQuery": false,
+    "exactQuestionVerified": true
+  },
+  "configuration": {
+    "crmEnabled": true,
+    "selfCheckEnabled": false,
+    "pipelineAuthenticated": false,
+    "groundednessAlgorithm": "fact_aware_claim_support_v5",
+    "groundednessThreshold": 0.7888,
+    "groundednessThresholdSource": "calibration_file",
+    "safetyEnabled": true,
+    "safetyMode": "enforce",
+    "reranker": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+    "answerProvider": "openai",
+    "answerModel": "gpt-4o-mini",
+    "pdfsHaveChanged": false,
+    "embeddingModelHasChanged": false,
+    "reindexPerformed": false,
+    "crmReseeded": false
+  },
+  "request": {
+    "question": "Noah Weber reports the theft of his car. Is this loss generally covered by his current motor insurance, and which documented conditions apply?\n\nPlease provide the relevant active policy number, coverage type, individual deductible and annual premium. Clearly distinguish the general insurance terms from Noah's individual contract data, and do not make a final claim decision.",
+    "clientRequestCount": 1,
+    "clientRetryOccurred": false,
+    "httpStatus": 206,
+    "apiStatus": "partial",
+    "requestId": "05027d5c31d34e9282fdc245044d9107",
+    "route": "combined",
+    "pipelineEntered": true,
+    "timeoutStage": null
+  },
+  "crm": {
+    "selectedPolicy": "TEST-KFZ-2026-1701",
+    "customer": "Noah Weber",
+    "policyDocumentId": "espocrm:6a65e0b9a9eb98639",
+    "coverageType": "Partially comprehensive cover",
+    "deductible": "300 EUR",
+    "annualPremium": "735 EUR",
+    "status": "Active",
+    "term": "2026-05-01 to 2027-04-30",
+    "incorrectPolicySelected": false,
+    "inactivePolicySelected": false,
+    "otherCandidate": {
+      "policyNumber": "TEST-RS-2026-1702",
+      "status": "Active",
+      "selected": false,
+      "reason": "conflicting non-motor product domain"
+    }
+  },
+  "generationContextChunks": [
+    {
+      "rank": 1,
+      "filename": "motor-vehicle-insurance-sti.pdf",
+      "page": 13,
+      "chunkId": "dfa04e4f-b781-40d9-baa2-eac6f7a2ed58",
+      "rerankerScore": 2.59433007,
+      "description": "K2.1.4 theft/misappropriation/robbery scope, involuntary damage, family exclusion"
+    },
+    {
+      "rank": 2,
+      "filename": "motor-vehicle-insurance-sti.pdf",
+      "page": 13,
+      "chunkId": "f78066a2-fb42-404e-b1bb-1bd7ee8b8312",
+      "rerankerScore": -1.96668172,
+      "description": "neighboring fire and natural-forces text; not classified as a theft requirement"
+    },
+    {
+      "rank": 3,
+      "filename": "motor-vehicle-insurance-sti.pdf",
+      "page": 17,
+      "chunkId": "768239c2-f3ef-4806-9b99-41ed105144d3",
+      "rerankerScore": 2.17699337,
+      "description": "K5.4 immediate police report and recovery or known-location insurer notification"
+    },
+    {
+      "rank": 4,
+      "filename": "motor-vehicle-insurance-product-sheet.pdf",
+      "page": 3,
+      "chunkId": "f69012fa-1c36-4fbb-9e71-f92bb1188b11",
+      "rerankerScore": 4.4769516,
+      "description": "theft listed under partially comprehensive insured benefits"
+    },
+    {
+      "rank": 5,
+      "filename": "motor-vehicle-insurance-sti.pdf",
+      "page": 16,
+      "chunkId": "7c0096a6-e783-4c1a-976e-0360b31d8ed3",
+      "rerankerScore": 0.17321973,
+      "description": "neighboring comprehensive exclusions and operation damage"
+    }
+  ],
+  "page17DutiesReachedGenerationContext": true,
+  "completenessRequirements": [
+    {"id":"theft_partial_comprehensive_coverage","concept":"theft generally covered under partially comprehensive insurance","sourceLabel":"[motor-vehicle-insurance-product-sheet.pdf, page 3]","sourceFile":"motor-vehicle-insurance-product-sheet.pdf","page":3,"chunkId":"f69012fa-1c36-4fbb-9e71-f92bb1188b11","type":"general_insurance_terms"},
+    {"id":"theft_loss_scope","concept":"loss, disappearance, destruction or damage through theft, misappropriation or robbery","sourceLabel":"[motor-vehicle-insurance-sti.pdf, page 13]","sourceFile":"motor-vehicle-insurance-sti.pdf","page":13,"chunkId":"dfa04e4f-b781-40d9-baa2-eac6f7a2ed58","type":"general_insurance_terms"},
+    {"id":"theft_involuntary_damage","concept":"damage must occur involuntarily","sourceLabel":"[motor-vehicle-insurance-sti.pdf, page 13]","sourceFile":"motor-vehicle-insurance-sti.pdf","page":13,"chunkId":"dfa04e4f-b781-40d9-baa2-eac6f7a2ed58","type":"general_insurance_terms"},
+    {"id":"theft_family_exclusion","concept":"no compensation for acts by family members","sourceLabel":"[motor-vehicle-insurance-sti.pdf, page 13]","sourceFile":"motor-vehicle-insurance-sti.pdf","page":13,"chunkId":"dfa04e4f-b781-40d9-baa2-eac6f7a2ed58","type":"general_insurance_terms"},
+    {"id":"theft_police_reporting","concept":"notify responsible police without delay","sourceLabel":"[motor-vehicle-insurance-sti.pdf, page 17]","sourceFile":"motor-vehicle-insurance-sti.pdf","page":17,"chunkId":"768239c2-f3ef-4806-9b99-41ed105144d3","type":"general_insurance_terms"},
+    {"id":"theft_recovery_notification","concept":"inform insurer immediately on recovery or known location","sourceLabel":"[motor-vehicle-insurance-sti.pdf, page 17]","sourceFile":"motor-vehicle-insurance-sti.pdf","page":17,"chunkId":"768239c2-f3ef-4806-9b99-41ed105144d3","type":"general_insurance_terms"},
+    {"id":"crm_policy_number","concept":"active policy TEST-KFZ-2026-1701","sourceLabel":"[CRM: TEST-KFZ-2026-1701]","sourceFile":"espocrm:6a65e0b9a9eb98639","page":null,"chunkId":null,"type":"individual_crm_data"},
+    {"id":"crm_coverage_type","concept":"Partially comprehensive cover","sourceLabel":"[CRM: TEST-KFZ-2026-1701]","sourceFile":"espocrm:6a65e0b9a9eb98639","page":null,"chunkId":null,"type":"individual_crm_data"},
+    {"id":"crm_deductible","concept":"300 EUR deductible","sourceLabel":"[CRM: TEST-KFZ-2026-1701]","sourceFile":"espocrm:6a65e0b9a9eb98639","page":null,"chunkId":null,"type":"individual_crm_data"},
+    {"id":"crm_annual_premium","concept":"735 EUR annual premium","sourceLabel":"[CRM: TEST-KFZ-2026-1701]","sourceFile":"espocrm:6a65e0b9a9eb98639","page":null,"chunkId":null,"type":"individual_crm_data"}
+  ],
+  "abroadRequirementInstantiated": false,
+  "generation": {
+    "rawFirstAnswer": "Yes, the loss of Noah Weber's car due to theft is generally covered under his current motor insurance, which is a partially comprehensive cover. The relevant conditions that apply are as follows:\n\n1. **Coverage for Theft**: The insurance covers loss, disappearance, destruction, or damage caused by theft, misappropriation, or robbery, provided that the damage occurred involuntarily. However, no compensation is paid if the act was committed by family members. \n   - Evidence: [motor-vehicle-insurance-sti.pdf, page 13]\n\n2. **Police Reporting**: The theft must be reported to the responsible police without delay. If the theft occurs abroad, it must also be reported to the police station at his Swiss place of residence.\n   - Evidence: [motor-vehicle-insurance-sti.pdf, page 17]\n\n3. **Notification of Recovery**: If the vehicle is found or if anything is learned regarding its whereabouts, the insurer must be informed without delay.\n   - Evidence: [motor-vehicle-insurance-sti.pdf, page 17]\n\nNow, regarding Noah's individual contract data:\n\n- **Active Policy Number**: TEST-KFZ-2026-1701\n  - Evidence: [CRM: TEST-KFZ-2026-1701]\n\n- **Coverage Type**: Partially comprehensive cover\n  - Evidence: [CRM: TEST-KFZ-2026-1701]\n\n- **Individual Deductible**: 300 EUR\n  - Evidence: [CRM: TEST-KFZ-2026-1701]\n\n- **Annual Premium**: 735 EUR\n  - Evidence: [CRM: TEST-KFZ-2026-1701]\n\nThis information provides a general overview of the coverage for theft under Noah's policy, along with his specific contract details. Please note that this is not a final claim decision.",
+    "presentBeforeRetry": ["theft_loss_scope","theft_involuntary_damage","theft_family_exclusion","theft_police_reporting","theft_recovery_notification","crm_policy_number","crm_coverage_type","crm_deductible","crm_annual_premium"],
+    "missingBeforeRetry": ["theft_partial_comprehensive_coverage"],
+    "completenessRetryPerformed": true,
+    "applicationCallCount": 2,
+    "regeneratedAnswerWasIdentical": true,
+    "missingAfterRetry": ["theft_partial_comprehensive_coverage"],
+    "completenessPass": false
+  },
+  "finalAnswer": "I could not generate an answer that is sufficiently supported by the available documents.",
+  "answerChecks": {
+    "preFallbackGeneralAssessmentOnly": true,
+    "preFallbackNoFinalClaimDecision": true,
+    "preFallbackSeparatesGeneralAndCRM": true,
+    "preFallbackCorrectCRMValues": true,
+    "preFallbackPoliceDutyPresent": true,
+    "preFallbackRecoveryDutyPresent": true,
+    "preFallbackFireClausePresent": false,
+    "preFallbackNaturalForcesClausePresent": false,
+    "preFallbackUnnecessaryAbroadClausePresent": true,
+    "separateExtractedConditionsBlockPresent": false,
+    "legacyMaterialQualifierUsed": false
+  },
+  "citations": {
+    "preFallbackInline": [
+      "[motor-vehicle-insurance-sti.pdf, page 13]",
+      "[motor-vehicle-insurance-sti.pdf, page 17]",
+      "[motor-vehicle-insurance-sti.pdf, page 17]",
+      "[CRM: TEST-KFZ-2026-1701]",
+      "[CRM: TEST-KFZ-2026-1701]",
+      "[CRM: TEST-KFZ-2026-1701]",
+      "[CRM: TEST-KFZ-2026-1701]"
+    ],
+    "missingRequired": "[motor-vehicle-insurance-product-sheet.pdf, page 3]",
+    "finalInline": [],
+    "citationPresence": "FAIL",
+    "citationSupportNamedResult": null,
+    "groundednessCitationMismatches": [],
+    "page17AppropriatelyCitedBeforeFallback": true
+  },
+  "groundedness": {
+    "algorithm": "fact_aware_claim_support_v5",
+    "implementationVersion": "fact_aware_claim_support_v5_experimental",
+    "threshold": 0.7888,
+    "thresholdSource": "calibration_file",
+    "baseV4Score": 0.75744,
+    "minimumClaimSupport": 0.8,
+    "averageClaimSupport": 0.886294,
+    "score": 0.38,
+    "passed": false,
+    "unsupportedAtomicFacts": ["number:3"],
+    "appliedCaps": ["unsupported_numeric_fact_cap_0.38"],
+    "coverageTypeMismatches": [],
+    "policyNumberMismatches": [],
+    "citationMismatches": [],
+    "structuredMismatches": [],
+    "polarityMismatches": []
+  },
+  "safety": {
+    "coverageConsistency": "PASS_NO_RECORDED_COVERAGE_OR_POLICY_MISMATCH",
+    "preAction": "allow",
+    "contextAction": "redact",
+    "postAction": "fallback",
+    "decision": "post_fallback",
+    "fallback": true,
+    "fallbackReason": "low_groundedness",
+    "piiResult": "CRM email redacted; allowed business contact recognized",
+    "http206Triggered": true,
+    "http206WarningCode": "ANSWER_INCOMPLETE",
+    "http206MissingItems": ["theft_partial_comprehensive_coverage"]
+  },
+  "latenciesMs": {
+    "routePlanning": 3.382,
+    "crm": 700.042,
+    "guardrail": 2893.237,
+    "lexicalRetrieval": 28.13,
+    "vectorRetrieval": 2609.921,
+    "hybridMerge": 261.05,
+    "retrievalTotal": 2900.596,
+    "reranking": 10831.538,
+    "answerGenerationAggregate": 15017.375,
+    "firstGeneration": null,
+    "completenessEvaluation": null,
+    "regeneration": null,
+    "groundedness": 2764.747,
+    "safetyPostProcessing": null,
+    "serverTotal": 35537.383,
+    "clientObserved": 35721
+  },
+  "finalStatus": "FAIL",
+  "failureStages": ["completeness", "groundedness", "safety_fallback", "final_citation_presence"],
+  "exactFailureCause": "After the single allowed regeneration, theft_partial_comprehensive_coverage remained missing because the generated answer did not cite the required product-sheet page 3. Groundedness also capped the score at 0.38 for unsupported atomic fact number:3, causing the enforced low-groundedness safety fallback. The API returned HTTP 206 with ANSWER_INCOMPLETE.",
+  "reportPaths": {
+    "markdown": "reports/combined_noah_theft_corrected_payload_20260805_112404.md",
+    "json": "reports/combined_noah_theft_corrected_payload_20260805_112404.json"
+  }
+}

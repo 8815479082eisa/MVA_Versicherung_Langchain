@@ -1,0 +1,521 @@
+{
+  "schema_version": "2.0",
+  "report_id": "combined_crm_rag_windscreen_e2e_fixed_20260729T102604Z",
+  "executed_at_utc": "2026-07-29T10:26:04.168Z",
+  "overall_result": "FULL_PASS",
+  "full_pass": true,
+  "exact_question": "Lara Neumann reports damage to the windscreen of her car. Is this damage\ngenerally covered by her current motor insurance, and would she still have to\npay her individual deductible if the windscreen can be repaired instead of\nreplaced?\n\nPlease provide the relevant active policy number, coverage type, individual\ndeductible and annual premium. Clearly distinguish the general insurance terms\nfrom Lara's individual contract data, and do not make a final claim decision.",
+  "execution_constraints": {
+    "question_used_verbatim": true,
+    "manual_source_filter": false,
+    "manual_chunk_selection": false,
+    "pdf_reload_or_split": false,
+    "reindex": false,
+    "crm_write": false,
+    "mocks": false,
+    "existing_chroma_chunks_only": true,
+    "crm_read_only": true,
+    "openai_live": true,
+    "self_check_enabled": false,
+    "identical_final_live_runs": 3,
+    "preflight_runs_excluded_from_stability_series": 7
+  },
+  "configuration": {
+    "endpoint": "POST http://localhost:8000/api/ask",
+    "answer_provider": "openai",
+    "answer_model": "gpt-4o-mini",
+    "answer_model_ready": true,
+    "self_check_enabled": false,
+    "self_check_skip_reason": "disabled_by_configuration",
+    "force_retrieval": true,
+    "retrieval_top_k": 8,
+    "bm25_candidate_k": 8,
+    "vector_candidate_k": 8,
+    "merged_target_k": 8,
+    "reranker_top_k": 5,
+    "context_compression_enabled": false,
+    "safety_enabled": true,
+    "safety_mode": "enforce",
+    "safety_backend": "nemo",
+    "groundedness_threshold": 0.51,
+    "groundedness_threshold_source": "config/groundedness_calibration.json"
+  },
+  "root_causes_and_fixes": [
+    {
+      "problem": "The negative instruction 'do not make a final claim decision' triggered claim retrieval, and generic damage/loss tokens were treated as claim requests.",
+      "root_cause": "Over-broad lexical claim intent detection.",
+      "fix": "Removed generic damage/loss triggers, added negative claim-decision handling, and kept explicit claim/status intents.",
+      "files": [
+        "src/core/insurance_tool_routing.py",
+        "tests/unit/test_insurance_tool_routing.py"
+      ]
+    },
+    {
+      "problem": "Both active motor policies 1001 and 1003 reached answer generation.",
+      "root_cause": "CRM context selection used token relevance and retained ties without temporal/domain resolution.",
+      "fix": "Added deterministic structured policy ranking: explicit number, product/domain match, active status, temporal validity, then latest effective start date. Exactly one policy is selected.",
+      "files": [
+        "src/core/crm_orchestration.py",
+        "src/main.py",
+        "tests/unit/test_crm_orchestration.py",
+        "tests/integration/test_crm_api_routing.py"
+      ]
+    },
+    {
+      "problem": "The correct Baloise chunks were present in Chroma but disappeared before generation.",
+      "root_cause": "BM25-first concatenation filled the merged top-k before lower-ranked semantic candidates, and the reranker did not preserve adjacent evidence needed for glass coverage plus repair-waiver conditions.",
+      "fix": "Added balanced reciprocal-rank fusion with a semantic quota, query-scored adjacent source expansion, insurance-evidence scoring, and preservation of high-value adjacent chunks.",
+      "files": [
+        "src/api/rag_service.py",
+        "src/core/insurance_tool_routing.py",
+        "tests/unit/test_retrieval_service.py"
+      ]
+    },
+    {
+      "problem": "The answer emitted [Doc-ID:page], zero-based page values and internal paths.",
+      "root_cause": "The prompt requested a placeholder format and source conversion exposed metadata pages directly.",
+      "fix": "Citations now use basename plus physical page metadata+1, legacy placeholders are normalized/removed, and API sources contain no internal paths.",
+      "files": [
+        "src/api/rag_service.py",
+        "tests/unit/test_retrieval_service.py"
+      ]
+    },
+    {
+      "problem": "gpt-4o-mini probabilistically omitted material eligibility conditions although the selected chunk contained them.",
+      "root_cause": "Lossy summarization of a long conditional sentence.",
+      "fix": "Added general qualifier detection/dehyphenation, mandatory prompt treatment and a deterministic post-generation completeness guard that copies only missing conditions from already selected final context. It does not make another LLM call.",
+      "files": [
+        "src/api/rag_service.py",
+        "tests/unit/test_retrieval_service.py"
+      ]
+    },
+    {
+      "problem": "The old audit did not expose channel candidates, final reranking evidence, groundedness timing or the request ID in one place.",
+      "root_cause": "Insufficient runtime diagnostics.",
+      "fix": "Recorded query decomposition, CRM selection signals, BM25/vector/merge/neighbor/reranker evidence, generation context, answer-call count, groundedness and safety.",
+      "files": [
+        "src/core/runtime_diagnostics.py",
+        "src/main.py",
+        "src/api/rag_service.py"
+      ]
+    }
+  ],
+  "tests": {
+    "command": ".\\.venv\\Scripts\\python.exe -m pytest tests/unit/test_insurance_tool_routing.py tests/unit/test_crm_orchestration.py tests/unit/test_retrieval_service.py tests/integration/test_crm_api_routing.py -q",
+    "result": "PASS",
+    "passed": 34,
+    "failed": 0,
+    "warnings": 22,
+    "compile_check": "PASS"
+  },
+  "decomposition": {
+    "route": "combined",
+    "reason": "The question needs both customer-specific CRM facts and document evidence.",
+    "crm_subquery": {
+      "customer_name": "Lara Neumann",
+      "customer_email": null,
+      "policy_number": null,
+      "claim_number": null,
+      "needs_policies": true,
+      "needs_claims": false
+    },
+    "knowledge_subquery": "reports damage to the windscreen of her car. Is this damage generally covered by her current motor insurance would she still have to pay her individual deductible if the windscreen can be repaired instead of replaced?",
+    "effective_retrieval_query": "reports damage to the windscreen of her car. Is this damage generally covered by her current motor insurance would she still have to pay her individual deductible if the windscreen can be repaired instead of replaced? BaloiseDirect Motor Vehicle 2026 Motor Insurance Partial Coverage glass breakage part comprehensive windscreen damage repaired rather than replaced deductible not applied partner repair service customer service notification",
+    "requested_pdf_filename": null
+  },
+  "crm_selection": {
+    "contact": {
+      "id": "6a65e0b6babe7371d",
+      "display_name": "Lara Neumann",
+      "email_hint": "l***@example.test"
+    },
+    "selected_policy_numbers": [
+      "TEST-KFZ-2026-1003"
+    ],
+    "generation_context_policy_numbers": [
+      "TEST-KFZ-2026-1003"
+    ],
+    "candidates": [
+      {
+        "policy_number": "TEST-KFZ-2026-1003",
+        "score": 460,
+        "product_domain": "motor",
+        "product_domain_match": true,
+        "active": true,
+        "temporally_valid": true,
+        "start_date": "2026-07-01",
+        "end_date": "2027-06-30",
+        "selected": true
+      },
+      {
+        "policy_number": "TEST-PHV-2026-1002",
+        "score": 96,
+        "product_domain": "liability",
+        "product_domain_match": false,
+        "conflicting_domain": true,
+        "active": true,
+        "temporally_valid": true,
+        "start_date": "2026-01-01",
+        "end_date": "2026-12-31",
+        "selected": false
+      },
+      {
+        "policy_number": "TEST-KFZ-2026-1001",
+        "score": 460,
+        "product_domain": "motor",
+        "product_domain_match": true,
+        "active": true,
+        "temporally_valid": true,
+        "start_date": "2026-01-01",
+        "end_date": "2026-12-31",
+        "selected": false,
+        "tie_break": "Older effective start date than 1003"
+      }
+    ],
+    "selected_policy": {
+      "policy_number": "TEST-KFZ-2026-1003",
+      "name": "Lara Neumann BaloiseDirect Motor Vehicle 2026",
+      "product_type": "Motor Insurance",
+      "coverage_type": "Partial Coverage",
+      "status": "Active",
+      "deductible": {
+        "amount": 300,
+        "currency": "EUR",
+        "semantic_type": "individual deductible",
+        "is_coverage_limit": false
+      },
+      "annual_premium": {
+        "amount": 720,
+        "currency": "EUR"
+      },
+      "start_date": "2026-07-01",
+      "end_date": "2027-06-30"
+    },
+    "claims_retrieved_by_final_runs": false
+  },
+  "retrieval_evidence": {
+    "merge_strategy": "balanced reciprocal-rank fusion with a semantic candidate quota, followed by query-scored adjacent source context",
+    "bm25_candidates": [
+      {"rank": 1, "file": "geschaeftsbericht-bg-2024-e.pdf", "chunk_id": "7cef78e0-e884-4378-b17a-2867d05021f5", "metadata_page": 30, "physical_page": 31, "start_index": 2424},
+      {"rank": 2, "file": "240_1184_e.pdf", "chunk_id": "f32b359f-94a8-4b92-9ea1-c30d873a4fb9", "metadata_page": 6, "physical_page": 7, "start_index": 3108},
+      {"rank": 3, "file": "geschaeftsbericht-bg-2024-e.pdf", "chunk_id": "a0a86914-d65e-4274-aef0-649ad34f0e3d", "metadata_page": 31, "physical_page": 32, "start_index": 0},
+      {"rank": 4, "file": "240_1217_e.pdf", "chunk_id": "b674b3de-f709-42cb-b2e5-4f91da01cf4b", "metadata_page": 13, "physical_page": 14, "start_index": 2399},
+      {"rank": 5, "file": "geschaeftsbericht-bg-2024-e.pdf", "chunk_id": "a56ae3f7-66a1-4f44-b7b8-97e2513fd3ec", "metadata_page": 30, "physical_page": 31, "start_index": 4809},
+      {"rank": 6, "file": "240_1217_e.pdf", "chunk_id": "d2310aa7-996b-4bdd-8cea-ddcf3128d9a3", "metadata_page": 12, "physical_page": 13, "start_index": 0},
+      {"rank": 7, "file": "240_1217_e.pdf", "chunk_id": "bdb98dcc-ad5f-4858-ac51-f2d5fa058406", "metadata_page": 13, "physical_page": 14, "start_index": 1584},
+      {"rank": 8, "file": "240_1217_e.pdf", "chunk_id": "aeb1e4fd-9101-4fb3-b9d1-fbdcae846f86", "metadata_page": 14, "physical_page": 15, "start_index": 0}
+    ],
+    "vector_candidates": [
+      {"rank": 1, "file": "Insurance_Handbook_20103.pdf", "chunk_id": "7c7cd57f-deba-49c6-ac21-36e446ebf40a", "metadata_page": 10, "physical_page": 11, "start_index": 799},
+      {"rank": 2, "file": "240_1217_e.pdf", "chunk_id": "d2310aa7-996b-4bdd-8cea-ddcf3128d9a3", "metadata_page": 12, "physical_page": 13, "start_index": 0},
+      {"rank": 3, "file": "publication-aut-pp-consumer-auto.pdf", "chunk_id": "5598e720-b611-48a7-8fcf-96f46e4364f7", "metadata_page": 7, "physical_page": 8, "start_index": 791},
+      {"rank": 4, "file": "240_1217_e.pdf", "chunk_id": "9ab13c53-9d0a-47a0-b3da-c0caf826709b", "metadata_page": 16, "physical_page": 17, "start_index": 0},
+      {"rank": 5, "file": "240_1184_e.pdf", "chunk_id": "f32b359f-94a8-4b92-9ea1-c30d873a4fb9", "metadata_page": 6, "physical_page": 7, "start_index": 3108},
+      {"rank": 6, "file": "240_1217_e.pdf", "chunk_id": "2c80860b-adf4-4b1c-bbf1-61b48cd68858", "metadata_page": 26, "physical_page": 27, "start_index": 0},
+      {"rank": 7, "file": "Insurance_Handbook_20103.pdf", "chunk_id": "c49628bb-a733-4281-8009-6c58660c4adb", "metadata_page": 10, "physical_page": 11, "start_index": 0},
+      {"rank": 8, "file": "consumer-auto-shopping-tool.pdf", "chunk_id": "78d804fc-b84b-4fc5-8ca2-2f08e646bcc5", "metadata_page": 10, "physical_page": 11, "start_index": 769}
+    ],
+    "merged_before_neighbor_expansion": [
+      {"rank": 1, "file": "240_1184_e.pdf", "chunk_id": "f32b359f-94a8-4b92-9ea1-c30d873a4fb9", "physical_page": 7},
+      {"rank": 2, "file": "240_1217_e.pdf", "chunk_id": "d2310aa7-996b-4bdd-8cea-ddcf3128d9a3", "physical_page": 13},
+      {"rank": 3, "file": "Insurance_Handbook_20103.pdf", "chunk_id": "7c7cd57f-deba-49c6-ac21-36e446ebf40a", "physical_page": 11},
+      {"rank": 4, "file": "geschaeftsbericht-bg-2024-e.pdf", "chunk_id": "7cef78e0-e884-4378-b17a-2867d05021f5", "physical_page": 31},
+      {"rank": 5, "file": "geschaeftsbericht-bg-2024-e.pdf", "chunk_id": "a0a86914-d65e-4274-aef0-649ad34f0e3d", "physical_page": 32},
+      {"rank": 6, "file": "publication-aut-pp-consumer-auto.pdf", "chunk_id": "5598e720-b611-48a7-8fcf-96f46e4364f7", "physical_page": 8},
+      {"rank": 7, "file": "240_1217_e.pdf", "chunk_id": "b674b3de-f709-42cb-b2e5-4f91da01cf4b", "physical_page": 14},
+      {"rank": 8, "file": "240_1217_e.pdf", "chunk_id": "9ab13c53-9d0a-47a0-b3da-c0caf826709b", "physical_page": 17}
+    ],
+    "neighbor_expansion": [
+      {"rank": 9, "anchor_chunk_id": "f32b359f-94a8-4b92-9ea1-c30d873a4fb9", "added_chunk_id": "7c6e0e44-843b-4d44-b34e-6b18cce1b6ad", "file": "240_1184_e.pdf", "physical_page": 6, "score": 39.0, "fact": "TK1.4 windscreen glass breakage is insured when repaired"},
+      {"rank": 10, "anchor_chunk_id": "d2310aa7-996b-4bdd-8cea-ddcf3128d9a3", "added_chunk_id": "bdb98dcc-ad5f-4858-ac51-f2d5fa058406", "file": "240_1217_e.pdf", "physical_page": 14, "score": 29.0},
+      {"rank": 11, "anchor_chunk_id": "f32b359f-94a8-4b92-9ea1-c30d873a4fb9", "added_chunk_id": "60b10844-8813-4f69-bf4b-627e3d352aa3", "file": "240_1184_e.pdf", "physical_page": 6, "score": 20.0, "fact": "Part comprehensive insurance heading and insured-events context"}
+    ],
+    "merged_after_dedup_and_neighbor_expansion_chunk_ids": [
+      "f32b359f-94a8-4b92-9ea1-c30d873a4fb9",
+      "d2310aa7-996b-4bdd-8cea-ddcf3128d9a3",
+      "7c7cd57f-deba-49c6-ac21-36e446ebf40a",
+      "7cef78e0-e884-4378-b17a-2867d05021f5",
+      "a0a86914-d65e-4274-aef0-649ad34f0e3d",
+      "5598e720-b611-48a7-8fcf-96f46e4364f7",
+      "b674b3de-f709-42cb-b2e5-4f91da01cf4b",
+      "9ab13c53-9d0a-47a0-b3da-c0caf826709b",
+      "7c6e0e44-843b-4d44-b34e-6b18cce1b6ad",
+      "bdb98dcc-ad5f-4858-ac51-f2d5fa058406",
+      "60b10844-8813-4f69-bf4b-627e3d352aa3"
+    ],
+    "reranker_input": [
+      {"rank": 1, "chunk_id": "f32b359f-94a8-4b92-9ea1-c30d873a4fb9", "file": "240_1184_e.pdf", "physical_page": 7, "score": 1.75934958},
+      {"rank": 2, "chunk_id": "d2310aa7-996b-4bdd-8cea-ddcf3128d9a3", "file": "240_1217_e.pdf", "physical_page": 13, "score": -2.66913939},
+      {"rank": 3, "chunk_id": "7c7cd57f-deba-49c6-ac21-36e446ebf40a", "file": "Insurance_Handbook_20103.pdf", "physical_page": 11, "score": -2.28422594},
+      {"rank": 4, "chunk_id": "7cef78e0-e884-4378-b17a-2867d05021f5", "file": "geschaeftsbericht-bg-2024-e.pdf", "physical_page": 31, "score": -0.4822391},
+      {"rank": 5, "chunk_id": "a0a86914-d65e-4274-aef0-649ad34f0e3d", "file": "geschaeftsbericht-bg-2024-e.pdf", "physical_page": 32, "score": -3.23713207},
+      {"rank": 6, "chunk_id": "5598e720-b611-48a7-8fcf-96f46e4364f7", "file": "publication-aut-pp-consumer-auto.pdf", "physical_page": 8, "score": -0.49153796},
+      {"rank": 7, "chunk_id": "b674b3de-f709-42cb-b2e5-4f91da01cf4b", "file": "240_1217_e.pdf", "physical_page": 14, "score": -2.69016314},
+      {"rank": 8, "chunk_id": "9ab13c53-9d0a-47a0-b3da-c0caf826709b", "file": "240_1217_e.pdf", "physical_page": 17, "score": -2.3424201},
+      {"rank": 9, "chunk_id": "7c6e0e44-843b-4d44-b34e-6b18cce1b6ad", "file": "240_1184_e.pdf", "physical_page": 6, "score": -1.70926535},
+      {"rank": 10, "chunk_id": "bdb98dcc-ad5f-4858-ac51-f2d5fa058406", "file": "240_1217_e.pdf", "physical_page": 14, "score": -4.18457317},
+      {"rank": 11, "chunk_id": "60b10844-8813-4f69-bf4b-627e3d352aa3", "file": "240_1184_e.pdf", "physical_page": 6, "score": -3.16872931}
+    ],
+    "reranker_final": [
+      {"rank": 1, "file": "240_1184_e.pdf", "chunk_id": "f32b359f-94a8-4b92-9ea1-c30d873a4fb9", "metadata_page": 6, "physical_page": 7, "start_index": 3108, "score": 1.75934958, "contains": ["deductible waiver for repair", "Customer Service notification", "Baloise partner", "no full-service leasing"]},
+      {"rank": 2, "file": "240_1184_e.pdf", "chunk_id": "7c6e0e44-843b-4d44-b34e-6b18cce1b6ad", "metadata_page": 5, "physical_page": 6, "start_index": 1684, "score": -1.70926535, "contains": ["TK1.4 windscreen glass breakage"]},
+      {"rank": 3, "file": "240_1184_e.pdf", "chunk_id": "60b10844-8813-4f69-bf4b-627e3d352aa3", "metadata_page": 5, "physical_page": 6, "start_index": 823, "score": -3.16872931, "contains": ["Part comprehensive insurance heading"]},
+      {"rank": 4, "file": "geschaeftsbericht-bg-2024-e.pdf", "chunk_id": "7cef78e0-e884-4378-b17a-2867d05021f5", "metadata_page": 30, "physical_page": 31, "start_index": 2424, "score": -0.4822391},
+      {"rank": 5, "file": "publication-aut-pp-consumer-auto.pdf", "chunk_id": "5598e720-b611-48a7-8fcf-96f46e4364f7", "metadata_page": 7, "physical_page": 8, "start_index": 791, "score": -0.49153796}
+    ],
+    "required_baloise_evidence_in_final_context": {
+      "glass_breakage": true,
+      "repair_deductible_waiver": true,
+      "customer_service_notification": true,
+      "baloise_partner_arrangement": true,
+      "no_full_service_leasing": true
+    }
+  },
+  "generation_context": {
+    "pdf_count": 5,
+    "crm_count": 2,
+    "total_count": 7,
+    "answer_generation_calls_per_run": 1,
+    "documents": [
+      {"rank": 1, "type": "pdf", "file": "240_1184_e.pdf", "chunk_id": "f32b359f-94a8-4b92-9ea1-c30d873a4fb9", "metadata_page": 6, "physical_page": 7},
+      {"rank": 2, "type": "pdf", "file": "240_1184_e.pdf", "chunk_id": "7c6e0e44-843b-4d44-b34e-6b18cce1b6ad", "metadata_page": 5, "physical_page": 6},
+      {"rank": 3, "type": "pdf", "file": "240_1184_e.pdf", "chunk_id": "60b10844-8813-4f69-bf4b-627e3d352aa3", "metadata_page": 5, "physical_page": 6},
+      {"rank": 4, "type": "pdf", "file": "geschaeftsbericht-bg-2024-e.pdf", "chunk_id": "7cef78e0-e884-4378-b17a-2867d05021f5", "metadata_page": 30, "physical_page": 31},
+      {"rank": 5, "type": "pdf", "file": "publication-aut-pp-consumer-auto.pdf", "chunk_id": "5598e720-b611-48a7-8fcf-96f46e4364f7", "metadata_page": 7, "physical_page": 8},
+      {"rank": 6, "type": "crm", "section": "Lara Neumann", "document_id": "espocrm:6a65e0b6babe7371d"},
+      {"rank": 7, "type": "crm", "section": "TEST-KFZ-2026-1003", "document_id": "espocrm:6a673465b147398ce"}
+    ],
+    "excluded_crm_records": [
+      "TEST-KFZ-2026-1001",
+      "TEST-PHV-2026-1002",
+      "TEST-CLM-2026-2001"
+    ]
+  },
+  "runs": [
+    {
+      "run": 1,
+      "http_status": 200,
+      "api_status": "complete",
+      "semantic_status": "PASS",
+      "route": "combined",
+      "audit_request_id": "ddff845b6dcc45d9b9bd00bc1960a15e",
+      "audit_timestamp": "2026-07-29T10:21:44.152533",
+      "openai_answer_generation_calls": 1,
+      "answer_generation_retries": 0,
+      "generation_context": {"pdf_count": 5, "crm_count": 2, "total_count": 7},
+      "groundedness": {"score": 0.627558, "threshold": 0.51, "passed": true},
+      "safety": {"pre_action": "allow", "context_action": "redact", "post_action": "allow", "decision": "context_redact", "final_answer_allowed": true},
+      "latency_ms": {
+        "client_end_to_end": 41977.169,
+        "backend_end_to_end": 41889.372,
+        "route": 1.941,
+        "crm": 97.063,
+        "retrieval": 1279.959,
+        "lexical": 219.28,
+        "vector": 1045.566,
+        "merge": 14.209,
+        "reranking": 29619.699,
+        "openai_answer_generation": 5253.239,
+        "groundedness": 556.256,
+        "guardrail_total": 626.629
+      },
+      "answer": "Lara Neumann's current motor insurance includes coverage for damage to the windscreen. Specifically, if the damaged windscreen is repaired rather than replaced, the deductible will not be applied.\n\n### Policy Information\n- **Policy Number:** TEST-KFZ-2026-1003\n- **Coverage Type:** Partial Coverage\n- **Individual Deductible:** 300 EUR\n- **Annual Premium:** 720 EUR\n\n### General Insurance Terms\n- Damage to the windscreen is covered if it is repaired instead of replaced, and in such cases, the deductible is waived.\n\n### Conditions\n- The waiver of the deductible applies only if the windscreen is repaired rather than replaced.\n\nThis information provides a general overview of coverage and conditions, but it does not constitute a final claim decision.\n\nSource:\n[240_1184_e.pdf, page 6]\n\nMaterial documented conditions [240_1184_e.pdf, page 7]:\n- only provided if Baloise Customer Service was notified in the event of a claim and arranged the above services through a Baloise partner, and provided that there is no maintenance and service contract with a leasing company (full service leasing) for the vehicle concerned.\n\nMaterial documented conditions [240_1184_e.pdf, page 6]:\n- provided that the item is repaired.",
+      "citation_assessment": {"valid_pdf_citations": 3, "valid_crm_citations": 0, "invalid_citations": 0, "physical_page_mapping_valid": true, "internal_path_exposed": false, "citation_validity": 1.0}
+    },
+    {
+      "run": 2,
+      "http_status": 200,
+      "api_status": "complete",
+      "semantic_status": "PASS",
+      "route": "combined",
+      "audit_request_id": "2f0b64d338ba40c3939bf214160d4acd",
+      "audit_timestamp": "2026-07-29T10:22:23.158743",
+      "openai_answer_generation_calls": 1,
+      "answer_generation_retries": 0,
+      "generation_context": {"pdf_count": 5, "crm_count": 2, "total_count": 7},
+      "groundedness": {"score": 0.678068, "threshold": 0.51, "passed": true},
+      "safety": {"pre_action": "allow", "context_action": "redact", "post_action": "allow", "decision": "context_redact", "final_answer_allowed": true},
+      "latency_ms": {
+        "client_end_to_end": 21831.995,
+        "backend_end_to_end": 21696.847,
+        "route": 0.809,
+        "crm": 88.231,
+        "retrieval": 786.193,
+        "lexical": 181.68,
+        "vector": 589.004,
+        "merge": 14.507,
+        "reranking": 12900.376,
+        "openai_answer_generation": 3943.701,
+        "groundedness": 121.671,
+        "guardrail_total": 180.486
+      },
+      "answer": "Yes, damage to the windscreen is generally covered by comprehensive motor insurance. Specifically, if the damaged windscreen is repaired instead of being replaced, the deductible will not be applied.\n\n### Policy Information\n- **Policy Number**: TEST-KFZ-2026-1003\n- **Coverage Type**: Partial Coverage\n- **Individual Deductible**: 300 EUR\n- **Annual Premium**: 720 EUR\n\n### Conditions\n- The deductible will not be applied if the damaged windscreen is repaired rather than replaced.\n- Coverage is conditional upon notifying Baloise Customer Service in the event of a claim and arranging services through a Baloise partner.\n\nThis information is general and does not constitute a final claim decision.\n\n**Source:**\n[240_1184_e.pdf, page 6]  \n[CRM: TEST-KFZ-2026-1003]\n\nMaterial documented conditions [240_1184_e.pdf, page 7]:\n- only provided if Baloise Customer Service was notified in the event of a claim and arranged the above services through a Baloise partner, and provided that there is no maintenance and service contract with a leasing company (full service leasing) for the vehicle concerned.\n\nMaterial documented conditions [240_1184_e.pdf, page 6]:\n- provided that the item is repaired.",
+      "citation_assessment": {"valid_pdf_citations": 3, "valid_crm_citations": 1, "invalid_citations": 0, "physical_page_mapping_valid": true, "internal_path_exposed": false, "citation_validity": 1.0}
+    },
+    {
+      "run": 3,
+      "http_status": 200,
+      "api_status": "complete",
+      "semantic_status": "PASS",
+      "route": "combined",
+      "audit_request_id": "fea6efb90a6f48ba8c6db512812d7d07",
+      "audit_timestamp": "2026-07-29T10:22:56.787659",
+      "openai_answer_generation_calls": 1,
+      "answer_generation_retries": 0,
+      "generation_context": {"pdf_count": 5, "crm_count": 2, "total_count": 7},
+      "groundedness": {"score": 0.680607, "threshold": 0.51, "passed": true},
+      "safety": {"pre_action": "allow", "context_action": "redact", "post_action": "allow", "decision": "context_redact", "final_answer_allowed": true},
+      "latency_ms": {
+        "client_end_to_end": 21922.377,
+        "backend_end_to_end": 21851.133,
+        "route": 0.45,
+        "crm": 70.556,
+        "retrieval": 775.859,
+        "lexical": 170.982,
+        "vector": 587.929,
+        "merge": 15.989,
+        "reranking": 13310.581,
+        "openai_answer_generation": 3640.36,
+        "groundedness": 128.352,
+        "guardrail_total": 189.29
+      },
+      "answer": "Yes, damage to the windscreen is generally covered under comprehensive insurance, specifically if the damaged windscreen is repaired instead of being replaced. If the windscreen is repaired, the deductible will not be applied.\n\n### Policy Information for Lara Neumann:\n- **Policy Number**: TEST-KFZ-2026-1003\n- **Coverage Type**: Partial Coverage\n- **Individual Deductible**: 300 EUR\n- **Annual Premium**: 720 EUR\n\n### Conditions\n- The deductible will not be applied if a damaged windscreen is repaired rather than replaced.\n- The repair must be arranged through a Baloise partner and Baloise Customer Service must be notified in the event of a claim.\n\nThis information is general and does not constitute a final claim decision.\n\nSource:\n[240_1184_e.pdf, page 6]  \n[CRM: TEST-KFZ-2026-1003]\n\nMaterial documented conditions [240_1184_e.pdf, page 7]:\n- only provided if Baloise Customer Service was notified in the event of a claim and arranged the above services through a Baloise partner, and provided that there is no maintenance and service contract with a leasing company (full service leasing) for the vehicle concerned.\n\nMaterial documented conditions [240_1184_e.pdf, page 6]:\n- provided that the item is repaired.",
+      "citation_assessment": {"valid_pdf_citations": 3, "valid_crm_citations": 1, "invalid_citations": 0, "physical_page_mapping_valid": true, "internal_path_exposed": false, "citation_validity": 1.0}
+    }
+  ],
+  "stability": {
+    "all_three_http_200": true,
+    "all_three_api_complete": true,
+    "all_three_semantic_pass": true,
+    "all_three_route_combined": true,
+    "all_three_only_policy_1003": true,
+    "all_three_single_answer_generation_call": true,
+    "client_end_to_end_ms": {
+      "values": [41977.169, 21831.995, 21922.377],
+      "minimum": 21831.995,
+      "maximum": 41977.169,
+      "mean": 28577.18
+    },
+    "backend_end_to_end_ms": {
+      "values": [41889.372, 21696.847, 21851.133],
+      "minimum": 21696.847,
+      "maximum": 41889.372,
+      "mean": 28479.117
+    },
+    "groundedness_values": [0.627558, 0.678068, 0.680607],
+    "groundedness_minimum": 0.627558,
+    "groundedness_maximum": 0.680607,
+    "groundedness_mean": 0.662078
+  },
+  "latency_aggregate_ms": {
+    "route": {"min": 0.45, "max": 1.941, "mean": 1.067},
+    "crm": {"min": 70.556, "max": 97.063, "mean": 85.283},
+    "retrieval": {"min": 775.859, "max": 1279.959, "mean": 947.337},
+    "lexical": {"min": 170.982, "max": 219.28, "mean": 190.647},
+    "vector": {"min": 587.929, "max": 1045.566, "mean": 740.833},
+    "merge": {"min": 14.209, "max": 15.989, "mean": 14.902},
+    "reranking": {"min": 12900.376, "max": 29619.699, "mean": 18610.219},
+    "openai_answer_generation": {"min": 3640.36, "max": 5253.239, "mean": 4279.1},
+    "groundedness": {"min": 121.671, "max": 556.256, "mean": 268.76},
+    "guardrail_total": {"min": 180.486, "max": 626.629, "mean": 332.135}
+  },
+  "quality_metrics": {
+    "answer_correctness": {"score": 1.0, "method": "12 required facts checked per run"},
+    "required_fact_completeness": {"score": 1.0, "facts_present": 12, "facts_required": 12},
+    "hallucination_rate": 0.0,
+    "source_completeness": 1.0,
+    "citation_validity": 1.0,
+    "required_facts": [
+      "Lara Neumann",
+      "TEST-KFZ-2026-1003",
+      "Active policy",
+      "Partial Coverage",
+      "300 EUR individual deductible",
+      "720 EUR annual premium",
+      "windscreen glass breakage generally insured",
+      "deductible can be waived for repair rather than replacement",
+      "Baloise Customer Service notification",
+      "service arranged through a Baloise partner",
+      "no maintenance/service contract with a leasing company (full-service leasing)",
+      "no final claim decision"
+    ],
+    "all_required_facts_present_in_all_runs": true,
+    "deductible_misrepresented_as_coverage_limit": false,
+    "unsupported_final_claim_decision": false
+  },
+  "sources": {
+    "pdf_answer_sources": [
+      {"file": "240_1184_e.pdf", "metadata_page": 5, "physical_page": 6, "facts": ["Part comprehensive", "TK1.4 windscreen breakage"]},
+      {"file": "240_1184_e.pdf", "metadata_page": 6, "physical_page": 7, "facts": ["repair waiver", "Customer Service", "Baloise partner", "no full-service leasing"]}
+    ],
+    "crm_answer_sources": [
+      {"document_id": "espocrm:6a65e0b6babe7371d", "section": "Lara Neumann"},
+      {"document_id": "espocrm:6a673465b147398ce", "section": "TEST-KFZ-2026-1003"}
+    ],
+    "citation_page_mapping_rule": "physical_page = zero_based_metadata_page + 1",
+    "citation_page_mapping_valid": true,
+    "internal_paths_in_answers": false,
+    "placeholder_citations_in_answers": false
+  },
+  "integrity": {
+    "chroma": {
+      "before": {
+        "collection": "insurance_rag_collection",
+        "count": 8551,
+        "logical_sha256": "734e1970e72f96aa7323797302e9eaee633b629743a1e3752320d447ad152143",
+        "file_count": 46,
+        "total_bytes": 289108612,
+        "file_manifest_sha256": "9acb727e3f65dc7e3e9378c091dab45befb8070a27f493a10f109c8f0c4dd161",
+        "pdf_hash_cache_sha256": "0b9c6b9791f1fa505407c33d969d5c1d61df177c4811563b97be8e1fb6237dcd"
+      },
+      "after": {
+        "collection": "insurance_rag_collection",
+        "count": 8551,
+        "logical_sha256": "734e1970e72f96aa7323797302e9eaee633b629743a1e3752320d447ad152143",
+        "file_count": 46,
+        "total_bytes": 289108612,
+        "file_manifest_sha256": "3d29867230f4be5928c8894f0ccb59400da694081ae8ec9b7daaeab601527670",
+        "pdf_hash_cache_sha256": "0b9c6b9791f1fa505407c33d969d5c1d61df177c4811563b97be8e1fb6237dcd"
+      },
+      "logical_integrity_pass": true,
+      "physical_manifest_identical": false,
+      "physical_manifest_note": "The byte-level tree hash changed during live read queries, while collection count, complete canonical document/metadata digest, file count, total bytes and PDF hash cache remained identical. No Chroma add/upsert/delete or reindex was executed."
+    },
+    "crm": {
+      "normalized_projection_sha256_before": "ade9a4dbbf6cb1225d914bd359023901aec4cf05e2459e29d6736554e7991c42",
+      "normalized_projection_sha256_after": "ade9a4dbbf6cb1225d914bd359023901aec4cf05e2459e29d6736554e7991c42",
+      "field_by_field_integrity_pass": true,
+      "test_window_http_methods": {"GET": 6, "POST": 0, "PUT": 0, "PATCH": 0, "DELETE": 0},
+      "crm_write_performed": false
+    },
+    "audit_log": {
+      "before_line_count": 1073,
+      "after_line_count": 1076,
+      "appended_rows": 3,
+      "before_bytes": 66326111,
+      "after_bytes": 66929404,
+      "before_sha256": "0dafb3f41ea66746c50ca79b56a42e003371b496a0883a549c0596a3ad401152",
+      "after_sha256": "91532ac37814cf74afb146f1b3d15143cd4573b0dd1b0ec57b5fc1c85707d6be"
+    },
+    "reindex_performed": false,
+    "crm_write_performed": false
+  },
+  "full_pass_criteria": {
+    "route_combined": true,
+    "only_policy_1003_in_generation_context": true,
+    "required_pdf_passages_in_final_context": true,
+    "glass_breakage_explained_correctly": true,
+    "repair_rule_explained_conditionally": true,
+    "deductible_not_a_coverage_limit": true,
+    "crm_and_document_statements_distinguished": true,
+    "valid_pdf_citation": true,
+    "groundedness_above_threshold_all_runs": true,
+    "no_unsupported_statement_or_final_claim_decision": true,
+    "three_live_runs_complete_and_safe": true
+  },
+  "instrumentation_notes": [
+    "The audit row is written inside the synchronous RAG worker before the API layer marks RequestDiagnostics complete, so its embedded diagnostics status is 'running'. The HTTP response diagnostics and API status for all three final requests are 'complete'; all stages in the audit are completed.",
+    "Context safety redacted address-like text found in an unrelated PDF context chunk; permitted business contact and contract identifiers remained available. Post-generation action was allow in all runs.",
+    "Seven development preflight requests were executed before the fixed final baseline. They are not included in the three-run stability metrics and are disclosed rather than hidden."
+  ]
+}

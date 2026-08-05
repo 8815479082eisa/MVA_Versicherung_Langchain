@@ -1,0 +1,103 @@
+{
+  "fields": {
+    "name": {
+      "type": "varchar",
+      "maxLength": 150,
+      "required": true
+    },
+    "claimNumber": {
+      "type": "varchar",
+      "maxLength": 64,
+      "required": true,
+      "index": true
+    },
+    "claimDate": {
+      "type": "date",
+      "required": true
+    },
+    "damageType": {
+      "type": "varchar",
+      "maxLength": 100,
+      "required": true
+    },
+    "description": {
+      "type": "text",
+      "required": true
+    },
+    "claimedAmount": {
+      "type": "float",
+      "min": 0,
+      "required": true
+    },
+    "currency": {
+      "type": "enum",
+      "required": true,
+      "default": "EUR",
+      "options": [
+        "EUR",
+        "USD",
+        "GBP"
+      ]
+    },
+    "status": {
+      "type": "enum",
+      "required": true,
+      "default": "Open",
+      "options": [
+        "Open",
+        "Under Review",
+        "Approved",
+        "Rejected",
+        "Paid",
+        "Closed"
+      ]
+    },
+    "customer": {
+      "type": "link",
+      "required": true
+    },
+    "policy": {
+      "type": "link",
+      "required": true
+    }
+  },
+  "links": {
+    "customer": {
+      "type": "belongsTo",
+      "entity": "Contact",
+      "foreign": "mvaClaims"
+    },
+    "policy": {
+      "type": "belongsTo",
+      "entity": "MvaPolicy",
+      "foreign": "claims"
+    }
+  },
+  "indexes": {
+    "claimNumberUnique": {
+      "columns": [
+        "claimNumber"
+      ],
+      "unique": true
+    },
+    "customerId": {
+      "columns": [
+        "customerId"
+      ]
+    },
+    "policyId": {
+      "columns": [
+        "policyId"
+      ]
+    }
+  },
+  "collection": {
+    "textFilterFields": [
+      "name",
+      "claimNumber",
+      "damageType"
+    ],
+    "orderBy": "claimDate",
+    "order": "desc"
+  }
+}

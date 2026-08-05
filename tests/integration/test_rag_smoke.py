@@ -8,6 +8,29 @@ from src.api import rag_service
 
 class RagSmokeTest(unittest.TestCase):
     def test_run_rag_with_small_local_corpus(self):
+        class AllowAllSafetyChecker:
+            is_active = False
+
+            @staticmethod
+            def check_query_safety(query, chat_history):
+                del query, chat_history
+                return rag_service._default_allow_safety_result("pre_query")
+
+            @staticmethod
+            def check_context_safety(documents):
+                del documents
+                return rag_service._default_allow_safety_result("context")
+
+            @staticmethod
+            def check_answer_safety(query, documents, answer):
+                del query, documents, answer
+                return rag_service._default_allow_safety_result("post_generation")
+
+            @staticmethod
+            def apply_safety_action(result, answer):
+                del result
+                return answer
+
         corpus = [
             Document(page_content="Die Deckungssumme fuer Personenschaeden betraegt 100 Mio EUR.", metadata={"source": "policy.pdf", "page": 12}),
             Document(page_content="Selbstbeteiligung bei Diebstahl: 300 EUR.", metadata={"source": "policy.pdf", "page": 20}),
@@ -28,8 +51,14 @@ class RagSmokeTest(unittest.TestCase):
             "query_rewrite_llm": object(),
             "generation_chain": object(),
         }
+        retrieval_service = rag_service.RetrievalService(rag_service.SETTINGS)
+        retrieval_service.components = components
+        components["retrieval_service"] = retrieval_service
 
-        with patch.object(rag_service.RAGPipeline, "initialize", return_value=components), patch(
+        with patch(
+            "src.api.rag_service.create_safety_checker",
+            return_value=AllowAllSafetyChecker(),
+        ), patch.object(rag_service.RAGPipeline, "initialize", return_value=components), patch(
             "src.api.rag_service.perform_self_check", side_effect=lambda *args, **kwargs: (args[2], args[3])
         ), patch(
             "src.api.rag_service.generate_answer", return_value="Die Deckungssumme betraegt 100 Mio EUR."

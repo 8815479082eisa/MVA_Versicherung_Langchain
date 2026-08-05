@@ -5,9 +5,17 @@ Calculates three key metrics for RAG system evaluation
 
 import json
 import os
+import sys
+from pathlib import Path
 from typing import List, Dict, Tuple
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.config.models import load_model_settings
 
 
 def load_audit_logs(file_path: str = "data/processed/logs/audit.log") -> List[Dict]:
@@ -129,10 +137,16 @@ def main():
         print("No valid log entries found.")
         return
     
+    settings = load_model_settings()
+    timeout_seconds = settings.llm_runtime.timeout_answer_seconds
     evaluator_llm = ChatOllama(
         model=os.getenv("EVAL_LLM_MODEL", "lfm2.5-thinking:1.2b"),
         base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
         temperature=0.0,
+        num_predict=settings.llm_runtime.max_tokens_answer,
+        client_kwargs={"timeout": timeout_seconds},
+        async_client_kwargs={"timeout": timeout_seconds},
+        sync_client_kwargs={"timeout": timeout_seconds},
     )
     results = []
     

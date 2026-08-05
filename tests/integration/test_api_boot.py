@@ -24,9 +24,17 @@ class ApiBootTest(unittest.TestCase):
         self.assertIn("configured_answer_model", body)
         self.assertIn("preferred_answer_model", body)
         self.assertIn("answer_model_matches_preference", body)
+        self.assertIn("selfCheckEnabled", body)
         self.assertIn("query_rewrite_enabled", body)
         self.assertIn("nemo_enforce_output", body)
         self.assertIn("safety_backend", body)
+        self.assertIn("ollamaReachable", body)
+        self.assertIn("llmReady", body)
+        self.assertIn("llmError", body)
+        self.assertIn("answerModelReady", body)
+        self.assertIn("guardrailModelReady", body)
+        self.assertIn("embeddingReady", body)
+        self.assertIn("retrievalReady", body)
 
     def test_ask_endpoint_schema(self):
         mocked = AnswerResult(

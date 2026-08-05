@@ -1,0 +1,137 @@
+{
+  "generated_at": "2026-07-26T12:32:21.133924+00:00",
+  "policy_number": "TEST-KFZ-2026-1001",
+  "warmup_calls": 5,
+  "microbenchmark_calls": 50,
+  "end_to_end_calls": 1,
+  "end_to_end_timeout_seconds": 30.0,
+  "crm_microbenchmarks": {
+    "status": "completed",
+    "direct_rest_cold_ms": 71.436,
+    "direct_rest_warm": {
+      "requested_calls": 50,
+      "successful_calls": 50,
+      "success_rate": 1.0,
+      "timeout_count": 0,
+      "failure_types": [],
+      "minimum_ms": 27.734,
+      "p50_ms": 31.587,
+      "p95_ms": 37.806,
+      "maximum_ms": 42.573,
+      "mean_ms": 32.381
+    },
+    "mcp_process_startup_ms": 4890.353,
+    "mcp_cold_call_ms": 103.463,
+    "mcp_warm": {
+      "requested_calls": 50,
+      "successful_calls": 50,
+      "success_rate": 1.0,
+      "timeout_count": 0,
+      "failure_types": [],
+      "minimum_ms": 53.885,
+      "p50_ms": 67.748,
+      "p95_ms": 102.335,
+      "maximum_ms": 138.824,
+      "mean_ms": 72.309
+    },
+    "mcp_overhead": {
+      "p50_ms": 36.161,
+      "p95_ms": 64.529,
+      "mean_ms": 39.928
+    }
+  },
+  "end_to_end": {
+    "status": "partial_failure",
+    "backend_health": {
+      "status": "ok",
+      "message": "Backend laeuft",
+      "pipelineReady": true,
+      "pipelineInitializing": false,
+      "pipelineInitError": null,
+      "crmEnabled": true,
+      "crmReady": true,
+      "crmError": null,
+      "insuranceqaExactMatchShortcut": false,
+      "safetyEnabled": true,
+      "safetyMode": "enforce",
+      "configured_answer_model": "qwen2.5:7b-instruct",
+      "preferred_answer_model": "qwen2.5:7b-instruct",
+      "answer_model_matches_preference": true,
+      "configured_answer_model_source": "dotenv",
+      "query_rewrite_enabled": false,
+      "nemo_enforce_output": true,
+      "safety_backend": "nemo"
+    },
+    "retrieval_only_before_integration": {
+      "status": "not_reproducible",
+      "reason": "No controlled pre-integration server is available."
+    },
+    "crm_only": {
+      "requested_calls": 1,
+      "successful_calls": 1,
+      "success_rate": 1.0,
+      "timeout_count": 0,
+      "failure_types": [],
+      "minimum_ms": 85.707,
+      "p50_ms": 85.707,
+      "p95_ms": 85.707,
+      "maximum_ms": 85.707,
+      "mean_ms": 85.707
+    },
+    "retrieval_only_after_integration": {
+      "status": "failed",
+      "error_type": "HTTPStatusError",
+      "http_status": 500,
+      "timeout": false
+    },
+    "combined": {
+      "status": "failed",
+      "error_type": "HTTPStatusError",
+      "http_status": 500,
+      "timeout": false
+    }
+  },
+  "docker_stats": {
+    "status": "completed",
+    "containers": [
+      {
+        "BlockIO": "0B / 0B",
+        "CPUPerc": "67.37%",
+        "Container": "mva-backend",
+        "ID": "bf7175d47955",
+        "MemPerc": "0.85%",
+        "MemUsage": "83.75MiB / 9.59GiB",
+        "Name": "mva-backend",
+        "NetIO": "26.6MB / 840kB",
+        "PIDs": "4"
+      },
+      {
+        "BlockIO": "0B / 0B",
+        "CPUPerc": "0.00%",
+        "Container": "mva-espocrm",
+        "ID": "0c9b8ffdea0b",
+        "MemPerc": "1.28%",
+        "MemUsage": "125.6MiB / 9.59GiB",
+        "Name": "mva-espocrm",
+        "NetIO": "10MB / 19MB",
+        "PIDs": "11"
+      },
+      {
+        "BlockIO": "0B / 0B",
+        "CPUPerc": "0.02%",
+        "Container": "mva-espocrm-db",
+        "ID": "5d34c0709d2a",
+        "MemPerc": "1.62%",
+        "MemUsage": "159.2MiB / 9.59GiB",
+        "Name": "mva-espocrm-db",
+        "NetIO": "10.2MB / 8.7MB",
+        "PIDs": "17"
+      }
+    ]
+  },
+  "targets": {
+    "direct_rest_p95_ms": 500,
+    "additional_mcp_overhead_p95_ms": "100-200",
+    "additional_warm_crm_e2e_ms": 1000
+  }
+}

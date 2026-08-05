@@ -20,6 +20,16 @@ export interface AnswerResponse {
   answer: string;
   sources: Source[];
   latencyMs?: number;
+  status?: "complete" | "partial";
+  route?: "crm-only" | "retrieval-only" | "combined";
+  warning?: {
+    errorCode: string;
+    message: string;
+    stage?: string;
+  };
+  crmResult?: unknown;
+  knowledgeResult?: unknown;
+  diagnostics?: Record<string, unknown>;
 }
 
 export interface AskQuestionPayload {
@@ -92,7 +102,9 @@ export async function askQuestion(
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       const errorMessage =
-        errorData.detail ||
+        (typeof errorData.detail === "object"
+          ? errorData.detail?.message
+          : errorData.detail) ||
         `API-Fehler (${response.status}): ${response.statusText}`;
       throw new Error(errorMessage);
     }

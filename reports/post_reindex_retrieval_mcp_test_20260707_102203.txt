@@ -1,0 +1,207 @@
+REPORT: C:\Users\mirae\MVA_Versicherung_Langchain_main\reports\post_reindex_retrieval_mcp_test_20260707_102203.md
+LOG: C:\Users\mirae\MVA_Versicherung_Langchain_main\reports\post_reindex_retrieval_mcp_test_20260707_102203.txt
+
+===== git status --short =====
+COMMAND: git status --short
+ M requirements.txt
+ M src/api/rag_service.py
+?? reports/.latest_e2e_mcp_paths.txt
+?? reports/.latest_e2e_state.json
+?? reports/e2e_mcp_pipeline_log_20260707_010119.txt
+?? reports/e2e_mcp_pipeline_report_20260707_010119.md
+?? reports/post_reindex_retrieval_mcp_test_20260707_102203.md
+?? reports/post_reindex_retrieval_mcp_test_20260707_102203.txt
+?? scripts/reindex_insurance_rag_with_progress.py
+?? scripts/test_mcp_retrieval_client.py
+?? src/mcp_servers/
+EXIT_CODE: 0
+ELAPSED_SECONDS: 0.1
+
+===== Collection counts =====
+COMMAND: C:\Users\mirae\MVA_Versicherung_Langchain_main\.venv\Scripts\python.exe -c 
+import json
+import chromadb
+client = chromadb.PersistentClient(path='data/processed/vectorstores/chroma_db')
+out = {}
+for name in ['insurance_rag_collection','insuranceqa_collection']:
+    try:
+        out[name] = client.get_collection(name).count()
+    except Exception as exc:
+        out[name] = f'ERROR {type(exc).__name__}: {exc}'
+print(json.dumps(out, sort_keys=True))
+
+{"insurance_rag_collection": 8551, "insuranceqa_collection": 1248}
+EXIT_CODE: 0
+ELAPSED_SECONDS: 4.4
+
+===== Source file and temp-file status =====
+COMMAND: C:\Users\mirae\MVA_Versicherung_Langchain_main\.venv\Scripts\python.exe -c 
+from pathlib import Path
+from collections import Counter
+from src.api.rag_service import PDF_DIRECTORY, get_source_files
+files = get_source_files(PDF_DIRECTORY)
+temps = sorted(str(p) for p in Path(PDF_DIRECTORY).glob('test_multisource_*'))
+print('PDF_DIRECTORY', PDF_DIRECTORY)
+print('SOURCE_FILE_COUNT', len(files))
+print('EXTENSIONS', dict(sorted(Counter(Path(f).suffix.lower() for f in files).items())))
+print('TEMP_MULTISOURCE_FILES', temps)
+
+PDF_DIRECTORY data\raw\pdfs
+SOURCE_FILE_COUNT 28
+EXTENSIONS {'.pdf': 28}
+TEMP_MULTISOURCE_FILES []
+EXIT_CODE: 0
+ELAPSED_SECONDS: 40.0
+
+===== Direct retrieve_documents_for_tool annuity top_k=3 =====
+COMMAND: C:\Users\mirae\MVA_Versicherung_Langchain_main\.venv\Scripts\python.exe -c 
+import json, time
+from src.api.rag_service import retrieve_documents_for_tool
+question = 'What should a consumer know before buying an annuity?'
+start = time.perf_counter()
+result = retrieve_documents_for_tool(question=question, top_k=3)
+result['_elapsed_seconds'] = round(time.perf_counter() - start, 1)
+print('RESULT_JSON_START')
+print(json.dumps(result, ensure_ascii=False))
+print('RESULT_JSON_END')
+
+RESULT_JSON_START
+{"query": "What should a consumer know before buying an annuity?", "top_k": 3, "document_count": 3, "documents": [{"rank": 1, "content": "• How much liability coverage should I buy? \n• Should I buy flood insurance or earthquake coverage? Your homeowners insurance policy doesn’t \ncover either. \n• What types of water damage are not covered? Is mold damage covered? \n \nIf you’re thinking of buying a home, you can ask an agent to estimate the cost of insurance.", "metadata": {"producer": "Adobe PDF Library 22.2.223", "creator": "Acrobat PDFMaker 22 for Word", "creationdate": "2022-08-23T14:51:43-05:00", "author": "NAIC", "company": "", "created": "D:20100314", "lastsaved": "D:20220516", "moddate": "2022-08-23T14:51:49-05:00", "sourcemodified": "D:20220823195052", "subject": "HOI-PP", "title": "A Consumer's Guide to Home Insurance", "source": "data\\raw\\pdfs\\publication-hoi-pp-consumer-homeowners.pdf", "total_pages": 19, "page": 14, "page_label": "15", "source_type": "pdf", "start_index": 2317}, "source": {"source": "data\\raw\\pdfs\\publication-hoi-pp-consumer-homeowners.pdf", "source_type": "pdf", "page": 14, "sheet": null, "table_format": null, "row_count": null, "table_index": null}}, {"rank": 2, "content": "insurance company.\nA Shopping Tool for AuT o inSurAnce  1\n• What policy should I buy?\n• What are the different types of auto \ncoverages?\n• How much liability coverage should I \nbuy?\n• What information will I be asked for?\n• What questions should I ask?\n• How do insurers determine auto \npremiums?\n• What should I look for when I \ncomparison shop?\n• What is a declarations page?\n• What should I know if I am changing \ninsurance companies?\n• What is the difference between \ncancellation and non-renewal?\n• What if I cannot find auto insurance?\n• Where can I get more information?", "metadata": {"producer": "Adobe PDF Library 17.0", "creator": "Adobe InDesign 18.0 (Macintosh)", "creationdate": "2023-12-12T12:22:21-05:00", "moddate": "2023-12-12T12:22:22-05:00", "trapped": "/False", "source": "data\\raw\\pdfs\\consumer-auto-shopping-tool.pdf", "total_pages": 17, "page": 2, "page_label": "1", "source_type": "pdf", "start_index": 1618}, "source": {"source": "data\\raw\\pdfs\\consumer-auto-shopping-tool.pdf", "source_type": "pdf", "page": 2, "sheet": null, "table_format": null, "row_count": null, "table_index": null}}, {"rank": 3, "content": "Section 5: Medicare Supplement Insurance (Medigap) \n77\nWhat else should I know about Medigap? \nBefore you can buy Medicare Supplement Insurance (Medigap), you must \ngenerally have Part A and Part B. With Medigap, you pay a monthly premium \nto a private insurance company in addition to the monthly Part B premium \nyou pay to Medicare. If you're thinking about buying Medigap, be sure to \ncompare plans. The costs can vary between plans offered by different \ncompanies for exactly the same coverage, and may go up as you get older. \nSome states limit Medigap premium costs. A Medigap policy only covers one \nperson. Spouses must buy separate coverage. \nNote: In some states, you may be able to buy another type of Medigap policy \ncalled Medicare SELECT. It requires you to use hospitals and, in some cases, \ndoctors within its network to be eligible for full insurance benefits (except in \nan emergency). If you buy Medicare SELECT, you have rights to change your", "metadata": {"producer": "Adobe PDF Library 18.0", "creator": "Adobe InDesign 21.1 (Macintosh)", "creationdate": "2026-02-04T16:55:01-05:00", "author": "Centers for Medicare and Medicaid Services", "keywords": "Medicare and You Handbook 2026", "moddate": "2026-02-06T13:54:40-05:00", "subject": "Medicare and You Handbook 2026", "title": "Medicare and You Handbook 2026", "trapped": "/False", "source": "data\\raw\\pdfs\\10050-medicare-and-you.pdf", "total_pages": 128, "page": 76, "page_label": "77", "source_type": "pdf", "start_index": 0}, "source": {"source": "data\\raw\\pdfs\\10050-medicare-and-you.pdf", "source_type": "pdf", "page": 76, "sheet": null, "table_format": null, "row_count": null, "table_index": null}}], "_elapsed_seconds": 447.4}
+RESULT_JSON_END
+C:\Users\mirae\MVA_Versicherung_Langchain_main\src\api\rag_service.py:1122: LangChainDeprecationWarning: The class `HuggingFaceEmbeddings` was deprecated in LangChain 0.2.2 and will be removed in 1.0. An updated version of the class exists in the `langchain-huggingface package and should be used instead. To use it run `pip install -U `langchain-huggingface` and import as `from `langchain_huggingface import HuggingFaceEmbeddings``.
+  return embeddings_cls(
+You're using a XLMRobertaTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+EXIT_CODE: 0
+ELAPSED_SECONDS: 463.8
+
+===== Direct PDF-table retrieval top_k=5 =====
+COMMAND: C:\Users\mirae\MVA_Versicherung_Langchain_main\.venv\Scripts\python.exe -c 
+import json, time
+from src.api.rag_service import retrieve_documents_for_tool
+question = 'According to the table in 240_1217_e, what is the notice period for termination for convenience once three insurance years have passed?'
+start = time.perf_counter()
+result = retrieve_documents_for_tool(question=question, top_k=5)
+result['_elapsed_seconds'] = round(time.perf_counter() - start, 1)
+print('RESULT_JSON_START')
+print(json.dumps(result, ensure_ascii=False))
+print('RESULT_JSON_END')
+
+RESULT_JSON_START
+{"query": "According to the table in 240_1217_e, what is the notice period for termination for convenience once three insurance years have passed?", "top_k": 5, "document_count": 5, "documents": [{"rank": 1, "content": "8/28\n11. End of insurance cover\nThe insurance contract may end as the result of a notice \nof termination or for reasons specified by law or under \nthe terms of the contract.\nParty giving notice Grounds for termination Notice period for termination Termination date\nBoth contracting parties End of the minimum term stipu-\nlated in the insurance contract\n3 months Expiry of contract\nTermination for convenience once \nthree insurance years have passed\n3 months End of the third insurance year\nInsured claim for which a benefit \nwas claimed\nInsurer:  \nAt the latest upon payout\n30 days after the policyholder \nreceives the notice of termination\nPolicyholder:  \nNo later than 14 days after learn-\ning of the payout\n14 days after the insurer receives the \nnotice of termination\nPolicyholder Increase in the pre mium and \ndeductible, e. g. due to amend-\nments to the tariff\nBefore the amendments Date on which the amendments  \ntake effect\nIncrease in premium due to signifi-\ncant increase in risk", "metadata": {"producer": "Adobe PDF Library 17.0", "creator": "Adobe InDesign 20.2 (Macintosh)", "creationdate": "2025-08-27T17:25:40+02:00", "author": "Baloise Insurance Ltd", "moddate": "2025-08-27T17:28:14+02:00", "subject": "Product Information and Terms and Conditions", "title": "BaloiseDirect Motor Vehicle", "trapped": "/False", "source": "data\\raw\\pdfs\\240_1217_e.pdf", "total_pages": 28, "page": 7, "page_label": "8", "source_type": "pdf", "start_index": 0}, "source": {"source": "data\\raw\\pdfs\\240_1217_e.pdf", "source_type": "pdf", "page": 7, "sheet": null, "table_format": null, "row_count": null, "table_index": null}}, {"rank": 2, "content": "8/55\n11. End of insurance cover\nThe insurance contract may end as the result of a notice \nof termination or for reasons specified by law or under \nthe terms of the contract.\nParty giving notice Grounds for termination Notice period/date of notification Termination date\nBoth contracting parties End of the minimum term stipu-\nlated in the insurance contract\n3 months Expiry of contract\nTermination for convenience once \nthree insurance years have passed\n3 months End of the third insurance year\nInsured claim for which a benefit \nwas claimed\nInsurer:  \nat the latest upon payout\n30 days after the policyholder \nreceives the notice of termination\nPolicyholder:  \nno later than 14 days after learning \nof the payout\n14 days after the insurer receives the \nnotice of termination\nPolicyholder Increase in the premium and \ndeductible, e. g. due to amend-\nments to the tariff (excluding \nautomatic adjustment of the \nsum insured in relation to home \ncontents/mobile home/caravan", "metadata": {"producer": "Adobe PDF Library 17.0", "creator": "Adobe InDesign 20.3 (Macintosh)", "creationdate": "2025-06-12T12:49:50+02:00", "author": "Baloise Insurance Ltd", "moddate": "2025-06-18T10:57:04+02:00", "subject": "Product Information and Terms and Conditions", "title": "BaloiseCombi Household", "trapped": "/False", "source": "data\\raw\\pdfs\\140_1261_e.pdf", "total_pages": 55, "page": 7, "page_label": "8", "source_type": "pdf", "start_index": 0}, "source": {"source": "data\\raw\\pdfs\\140_1261_e.pdf", "source_type": "pdf", "page": 7, "sheet": null, "table_format": null, "row_count": null, "table_index": null}}, {"rank": 3, "content": "| End of the minimum term stipu-     | 3 months                             |\n| lated in the insurance contract    |                                      |\n|:-----------------------------------|:-------------------------------------|\n| Termination for convenience once   | 3 months                             |\n| three insurance years have passed  |                                      |\n| Insured claim for which a benefit  | Insurer:                             |\n| was claimed                        | at the latest upon payout            |\n|                                    | Policyholder:                        |\n|                                    | no later than 14 days after learning |\n|                                    | of the payout                        |\n| Increase in the premium and        | Before the end of the current insur- |\n| deductible, e. g. due to amend-    | ance year                            |", "metadata": {"source": "data\\raw\\pdfs\\140_1261_e.pdf", "source_type": "pdf_table", "table_format": "pdf", "page": 8, "table_index": 1, "start_index": 0}, "source": {"source": "data\\raw\\pdfs\\140_1261_e.pdf", "source_type": "pdf_table", "page": 8, "sheet": null, "table_format": "pdf", "row_count": null, "table_index": 1}}, {"rank": 4, "content": "| End of the minimum term stipu-      | 3 months                               |\n| lated in the insurance contract     |                                        |\n|:------------------------------------|:---------------------------------------|\n| Termination for convenience once    | 3 months                               |\n| three insurance years have passed   |                                        |\n| Insured claim for which a benefit   | Insurer:                               |\n| was claimed                         | At the latest upon payout              |\n|                                     | Policyholder:                          |\n|                                     | No later than 14 days after learn-     |\n|                                     | ing of the payout                      |\n| Increase in the pre mium and        | Before the amendments                  |\n| deductible, e. g. due to amend-     |                                        |", "metadata": {"source": "data\\raw\\pdfs\\240_1217_e.pdf", "source_type": "pdf_table", "table_format": "pdf", "page": 8, "table_index": 1, "start_index": 0}, "source": {"source": "data\\raw\\pdfs\\240_1217_e.pdf", "source_type": "pdf_table", "page": 8, "sheet": null, "table_format": "pdf", "row_count": null, "table_index": 1}}, {"rank": 5, "content": "policy period, the renewal is void insofar as it refers to a period of more than one year. \n(2) Where an insurance agreement is concluded for an unlimited period, both contracting \nparties may only terminate the agreement as per the end of the current period of insurance. \nThey may agree to waive the right of termination for no more than two years. \n(3) The period of notice must be the same for both contracting parties; it may not be less \nthan one month, and no more than three months. \n(4) A policyholder may terminate a contract of insurance concluded for a period of more than \nthree years to the end of the third or each successive year, subject to a notice period of three \nmonths. \nSection 12 \nPeriod of insurance \nThe period of insurance is one year unless the insurance premium is determined for shorter \nperiods. \nSection 13 \nChange of address and name \n(1) If the policyholder has not informed the insurer of a change of address, the dispatch of a", "metadata": {"producer": "Microsoft® Word 2016", "creator": "Microsoft® Word 2016", "creationdate": "2025-12-16T14:17:18+01:00", "title": "VVG - englisch", "author": "-", "moddate": "2025-12-16T14:17:18+01:00", "source": "data\\raw\\pdfs\\englisch_vvg.pdf", "total_pages": 68, "page": 9, "page_label": "10", "source_type": "pdf", "start_index": 814}, "source": {"source": "data\\raw\\pdfs\\englisch_vvg.pdf", "source_type": "pdf", "page": 9, "sheet": null, "table_format": null, "row_count": null, "table_index": null}}], "_elapsed_seconds": 325.2}
+RESULT_JSON_END
+C:\Users\mirae\MVA_Versicherung_Langchain_main\src\api\rag_service.py:1122: LangChainDeprecationWarning: The class `HuggingFaceEmbeddings` was deprecated in LangChain 0.2.2 and will be removed in 1.0. An updated version of the class exists in the `langchain-huggingface package and should be used instead. To use it run `pip install -U `langchain-huggingface` and import as `from `langchain_huggingface import HuggingFaceEmbeddings``.
+  return embeddings_cls(
+You're using a XLMRobertaTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+EXIT_CODE: 0
+ELAPSED_SECONDS: 337.7
+
+===== MCP client test script =====
+COMMAND: C:\Users\mirae\MVA_Versicherung_Langchain_main\.venv\Scripts\python.exe scripts/test_mcp_retrieval_client.py
+TOOLS_FOUND:
+[
+  "retrieve_documents"
+]
+TOOL_CALL_TIMEOUT: retrieve_documents exceeded 570 seconds
+
+
++-----------------------------------------------------------------------------+
+|                                                                             |
+|                                                                             |
+|                        \u2584\u2580\u2580 \u2584\u2580\u2588 \u2588\u2580\u2580 \u2580\u2588\u2580 \u2588\u2580\u2584\u2580\u2588 \u2588\u2580\u2580 \u2588\u2580\u2588                        |
+|                        \u2588\u2580  \u2588\u2580\u2588 \u2584\u2584\u2588  \u2588  \u2588 \u2580 \u2588 \u2588\u2584\u2584 \u2588\u2580\u2580                        |
+|                                                                             |
+|                                                                             |
+|                                FastMCP 3.4.0                                |
+|                            https://gofastmcp.com                            |
+|                                                                             |
+|                 \U0001f5a5  Server:      Insurance Retrieval, 3.4.0                  |
+|                 \U0001f680 Deploy free: https://horizon.prefect.io                  |
+|                                                                             |
++-----------------------------------------------------------------------------+
++-----------------------------------------------------------------------------+
+|                         \U0001f389 Update available: 3.4.3                          |
+|                     Run: pip install --upgrade fastmcp                      |
++-----------------------------------------------------------------------------+
+
+
+[07/07/26 10:36:23] INFO     Starting MCP server 'Insurance    transport.py:210
+                             Retrieval' with transport 'stdio'                 
+
+
++-----------------------------------------------------------------------------+
+|                                                                             |
+|                                                                             |
+|                        \u2584\u2580\u2580 \u2584\u2580\u2588 \u2588\u2580\u2580 \u2580\u2588\u2580 \u2588\u2580\u2584\u2580\u2588 \u2588\u2580\u2580 \u2588\u2580\u2588                        |
+|                        \u2588\u2580  \u2588\u2580\u2588 \u2584\u2584\u2588  \u2588  \u2588 \u2580 \u2588 \u2588\u2584\u2584 \u2588\u2580\u2580                        |
+|                                                                             |
+|                                                                             |
+|                                FastMCP 3.4.0                                |
+|                            https://gofastmcp.com                            |
+|                                                                             |
+|                 \U0001f5a5  Server:      Insurance Retrieval, 3.4.0                  |
+|                 \U0001f680 Deploy free: https://horizon.prefect.io                  |
+|                                                                             |
++-----------------------------------------------------------------------------+
++-----------------------------------------------------------------------------+
+|                         \U0001f389 Update available: 3.4.3                          |
+|                     Run: pip install --upgrade fastmcp                      |
++-----------------------------------------------------------------------------+
+
+
+[07/07/26 10:36:33] INFO     Starting MCP server 'Insurance    transport.py:210
+                             Retrieval' with transport 'stdio'                 
+
+
++-----------------------------------------------------------------------------+
+|                                                                             |
+|                                                                             |
+|                        \u2584\u2580\u2580 \u2584\u2580\u2588 \u2588\u2580\u2580 \u2580\u2588\u2580 \u2588\u2580\u2584\u2580\u2588 \u2588\u2580\u2580 \u2588\u2580\u2588                        |
+|                        \u2588\u2580  \u2588\u2580\u2588 \u2584\u2584\u2588  \u2588  \u2588 \u2580 \u2588 \u2588\u2584\u2584 \u2588\u2580\u2580                        |
+|                                                                             |
+|                                                                             |
+|                                FastMCP 3.4.0                                |
+|                            https://gofastmcp.com                            |
+|                                                                             |
+|                 \U0001f5a5  Server:      Insurance Retrieval, 3.4.0                  |
+|                 \U0001f680 Deploy free: https://horizon.prefect.io                  |
+|                                                                             |
++-----------------------------------------------------------------------------+
++-----------------------------------------------------------------------------+
+|                         \U0001f389 Update available: 3.4.3                          |
+|                     Run: pip install --upgrade fastmcp                      |
++-----------------------------------------------------------------------------+
+
+
+[07/07/26 10:36:42] INFO     Starting MCP server 'Insurance    transport.py:210
+                             Retrieval' with transport 'stdio'
+EXIT_CODE: 1
+ELAPSED_SECONDS: 584.9
+
+===== Collection counts =====
+COMMAND: C:\Users\mirae\MVA_Versicherung_Langchain_main\.venv\Scripts\python.exe -c 
+import json
+import chromadb
+client = chromadb.PersistentClient(path='data/processed/vectorstores/chroma_db')
+out = {}
+for name in ['insurance_rag_collection','insuranceqa_collection']:
+    try:
+        out[name] = client.get_collection(name).count()
+    except Exception as exc:
+        out[name] = f'ERROR {type(exc).__name__}: {exc}'
+print(json.dumps(out, sort_keys=True))
+
+{"insurance_rag_collection": 8551, "insuranceqa_collection": 1248}
+EXIT_CODE: 0
+ELAPSED_SECONDS: 3.3
+
+===== FINAL =====
+Report: C:\Users\mirae\MVA_Versicherung_Langchain_main\reports\post_reindex_retrieval_mcp_test_20260707_102203.md
+Log: C:\Users\mirae\MVA_Versicherung_Langchain_main\reports\post_reindex_retrieval_mcp_test_20260707_102203.txt
+Direct Retrieval: PASS
+PDF Table Retrieval: PASS
+MCP Tool Discovery: FAIL
+MCP Tool Call: FAIL
+run_rag: SKIPPED
+Counts after: {'insurance_rag_collection': 8551, 'insuranceqa_collection': 1248}
+
+CORRECTION: MCP Tool Discovery: PASS (retrieve_documents was visible). MCP Tool Call: FAIL (retrieve_documents exceeded 570 seconds).

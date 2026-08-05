@@ -2,6 +2,8 @@
 
 from typing import Any, List, Literal, Optional, Protocol, Tuple
 
+from src.core.llm_runtime import RuntimeExecutionError
+
 try:
     from config.models import SafetyConfig
     from core.safety_audit import SafetyAction, SafetyResult
@@ -172,6 +174,8 @@ class NemoSafetyChecker:
             return None, reason
         try:
             return self._runtime.run_pre_query(query=query, chat_history=chat_history), None
+        except RuntimeExecutionError:
+            raise
         except Exception as exc:
             error = f"{type(exc).__name__}: {exc}"
             self._runtime_error = error
@@ -183,6 +187,8 @@ class NemoSafetyChecker:
             return None, reason
         try:
             return self._runtime.run_context(query="", docs=docs), None
+        except RuntimeExecutionError:
+            raise
         except Exception as exc:
             error = f"{type(exc).__name__}: {exc}"
             self._runtime_error = error
@@ -199,6 +205,8 @@ class NemoSafetyChecker:
             return None, reason
         try:
             return self._runtime.run_post_generation(query=query, answer=answer, docs=docs), None
+        except RuntimeExecutionError:
+            raise
         except Exception as exc:
             error = f"{type(exc).__name__}: {exc}"
             self._runtime_error = error
@@ -246,6 +254,10 @@ class NemoSafetyChecker:
         }
         if "sanitized_docs" in stage_result.details:
             details["sanitized_docs"] = stage_result.details.get("sanitized_docs")
+        if "groundedness" in stage_result.details:
+            details["groundedness"] = dict(
+                stage_result.details.get("groundedness") or {}
+            )
 
         action = self._to_safety_action(stage_result.action)
         provisional_result = SafetyResult(

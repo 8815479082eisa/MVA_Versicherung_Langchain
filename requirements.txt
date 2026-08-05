@@ -7,19 +7,27 @@ rank-bm25
 chromadb
 python-dotenv
 sentence-transformers
+transformers<5
 FlagEmbedding
 llmlingua
 reportlab
 fastapi
 uvicorn[standard]
 pydantic
+httpx>=0.27,<1
+pytest>=8,<10
 datasets
 nemoguardrails>=0.21,<0.22
+dataclasses-json>=0.6,<0.7
 pandas
 openpyxl
 tabulate
 python-docx
 pdfplumber
+pypdf
+fastmcp
+langchain-mcp-adapters
+openai>=1.68,<3
 
 # Optional evaluation dependencies (ALCE/NLI)
 # Install manually when needed:

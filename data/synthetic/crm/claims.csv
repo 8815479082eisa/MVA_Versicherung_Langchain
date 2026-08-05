@@ -1,0 +1,9 @@
+name,claimNumber,claimDate,damageType,description,claimedAmount,currency,status,customerEmail,policyNumber
+Lara Neumann Glass Damage,TEST-CLM-2026-2001,2026-07-10,Glass Damage,Synthetic windshield stone-chip claim,780,EUR,Under Review,lara.neumann@example.test,TEST-KFZ-2026-1001
+Oliver Brandt Parking Damage,TEST-CLM-2026-2101,2026-06-12,Parking Damage,Synthetic parking collision claim,2350,EUR,Approved,oliver.brandt@example.test,TEST-KFZ-2026-1101
+Sophie Keller Water Damage,TEST-CLM-2026-2201,2026-05-03,Water Damage,Synthetic household water damage claim,1800,EUR,Paid,sophie.keller@example.test,TEST-HH-2026-1201
+Hannah Vogel Third-Party Damage,TEST-CLM-2026-2301,2026-04-19,Liability Damage,Synthetic third-party vehicle damage claim,4100,EUR,Open,hannah.vogel@example.test,TEST-KFZ-2026-1401
+Amira Hoffmann Bicycle Damage,TEST-CLM-2026-2401,2026-06-23,Personal Liability,Synthetic accidental bicycle damage claim,640,EUR,Rejected,amira.hoffmann@example.test,TEST-PHV-2026-1601
+Noah Weber Theft Damage,TEST-CLM-2026-2501,2026-07-02,Theft,Synthetic vehicle theft claim,9200,EUR,Under Review,noah.weber@example.test,TEST-KFZ-2026-1701
+Leon Becker Collision Damage,TEST-CLM-2026-2601,2026-06-18,Collision,Synthetic comprehensive collision claim,6700,EUR,Approved,leon.becker@example.test,TEST-KFZ-2026-1901
+Leon Becker Property Damage,TEST-CLM-2026-2602,2026-07-08,Property Damage,Synthetic personal liability property claim,950,EUR,Closed,leon.becker@example.test,TEST-PHV-2026-1902

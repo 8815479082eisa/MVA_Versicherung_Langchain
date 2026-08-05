@@ -1,0 +1,455 @@
+{
+  "test_run_id": "synthetic_customer_scenario_001",
+  "document_id": "TEST-CUSTOMER-PDF-001",
+  "customer_id": "TEST-KD-2026-0001",
+  "timestamp": "2026-07-11T19:02:50.076604+02:00",
+  "environment": {
+    "production_chroma_path": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\data\\processed\\vectorstores\\chroma_db",
+    "processes_before": [
+      {
+        "ProcessId": 11948,
+        "ParentProcessId": 10480,
+        "CreationDate": "/Date(1783778310121)/",
+        "Name": "ollama app.exe",
+        "CommandLine": "\"C:\\Users\\mirae\\AppData\\Local\\Programs\\Ollama\\ollama app.exe\"  --hide --fast-startup"
+      },
+      {
+        "ProcessId": 13872,
+        "ParentProcessId": 11948,
+        "CreationDate": "/Date(1783778311299)/",
+        "Name": "ollama.exe",
+        "CommandLine": "C:\\Users\\mirae\\AppData\\Local\\Programs\\Ollama\\ollama.exe serve"
+      }
+    ],
+    "ollama_url": "http://127.0.0.1:11434",
+    "answer_model": "qwen2.5:7b-instruct",
+    "self_check_model": "phi3:mini",
+    "router_model": "phi3:mini",
+    "rewrite_model": "phi3:mini",
+    "compression_model": "phi3:mini",
+    "embedding_model": "BAAI/bge-m3",
+    "reranker_model": "BAAI/bge-reranker-base",
+    "force_retrieval": true,
+    "rewrite_enabled": false,
+    "compression_enabled": false,
+    "safety_enabled": true,
+    "safety_mode": "enforce",
+    "safety_backend": "nemo",
+    "temporary_chroma_path": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\tmp\\synthetic_customer_scenario_001_20260711_190250\\chroma",
+    "temporary_collection": "synthetic_customer_scenario_001_collection",
+    "backend_url": "http://127.0.0.1:6023",
+    "backend_pid": 13140
+  },
+  "pdf": {
+    "path": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\tests\\fixtures\\synthetic_customer_insurance_lara_neumann.pdf",
+    "created": true,
+    "valid": true,
+    "parsed": true,
+    "size_bytes": 77355,
+    "valid_signature": true,
+    "opened": true,
+    "pages": 3,
+    "metadata": {
+      "/Author": "MVA Insurance RAG synthetic test harness",
+      "/CreationDate": "D:20260711190254+02'00'",
+      "/Creator": "(unspecified)",
+      "/Keywords": "synthetic,synthetic_customer_scenario_001,TEST-CUSTOMER-PDF-001,TEST-KD-2026-0001",
+      "/ModDate": "D:20260711190254+02'00'",
+      "/Producer": "ReportLab PDF Library - www.reportlab.com",
+      "/Subject": "SYNTHETIC TEST DATA – NOT A REAL PERSON; SYNTHETISCHE TESTDATEN – KEINE ECHTE PERSON",
+      "/Title": "Synthetic customer insurance test - Lara Neumann",
+      "/Trapped": "/False"
+    },
+    "synthetic_data_confirmed": true,
+    "render": {
+      "command": [
+        "C:\\Users\\mirae\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin\\pdftoppm.exe",
+        "-png",
+        "-r",
+        "130",
+        "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\tests\\fixtures\\synthetic_customer_insurance_lara_neumann.pdf",
+        "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\tmp\\synthetic_customer_scenario_001_20260711_190250\\rendered\\synthetic_customer"
+      ],
+      "return_code": 0,
+      "duration_seconds": 1.1879392000846565,
+      "stdout": "",
+      "stderr": "",
+      "images": [
+        "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\tmp\\synthetic_customer_scenario_001_20260711_190250\\rendered\\synthetic_customer-1.png",
+        "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\tmp\\synthetic_customer_scenario_001_20260711_190250\\rendered\\synthetic_customer-2.png",
+        "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\tmp\\synthetic_customer_scenario_001_20260711_190250\\rendered\\synthetic_customer-3.png"
+      ],
+      "successful": true
+    },
+    "loader": "api.rag_service.load_pdf_source -> PyPDFLoader",
+    "extracted_page_count": 3,
+    "required_phrases_found": {
+      "Lara Neumann": true,
+      "TEST-KD-2026-0001": true,
+      "TEST-KFZ-2026-1001": true,
+      "TEST-PHV-2026-2001": true,
+      "Windschutzscheibe": true,
+      "Teilkaskoversicherung": true,
+      "Selbstbeteiligung von 150 Euro": true,
+      "Volkswagen Golf": true,
+      "TEST-LN-2026": true
+    },
+    "required_text_extracted": true,
+    "page_metadata_preserved": true,
+    "loader_warnings": []
+  },
+  "ingestion": {
+    "method": "production functions via test-only adapter",
+    "temporary_collection": true,
+    "chunks_created": 3,
+    "chunk_metadata": [
+      {
+        "id": "ddfc6255-8c65-4df9-a4fb-6768c53a3e63",
+        "metadata": {
+          "start_index": 0,
+          "keywords": "synthetic,synthetic_customer_scenario_001,TEST-CUSTOMER-PDF-001,TEST-KD-2026-0001",
+          "source_type": "pdf",
+          "insurance_type": "customer_profile",
+          "source_filename": "synthetic_customer_insurance_lara_neumann.pdf",
+          "test_run_id": "synthetic_customer_scenario_001",
+          "document_type": "synthetic_customer_test",
+          "source": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\tmp\\synthetic_customer_scenario_001_20260711_190250\\pdfs\\synthetic_customer_insurance_lara_neumann.pdf",
+          "synthetic": true,
+          "producer": "ReportLab PDF Library - www.reportlab.com",
+          "total_pages": 3,
+          "creationdate": "2026-07-11T19:02:54+02:00",
+          "page_human": 1,
+          "creator": "(unspecified)",
+          "author": "MVA Insurance RAG synthetic test harness",
+          "chunk_id": "TEST-CUSTOMER-PDF-001-P1-C001",
+          "customer_id": "TEST-KD-2026-0001",
+          "page_label": "1",
+          "moddate": "2026-07-11T19:02:54+02:00",
+          "trapped": "/False",
+          "contract_number": "multiple",
+          "page": 0,
+          "title": "Synthetic customer insurance test - Lara Neumann",
+          "subject": "SYNTHETIC TEST DATA – NOT A REAL PERSON; SYNTHETISCHE TESTDATEN – KEINE ECHTE PERSON",
+          "document_id": "TEST-CUSTOMER-PDF-001"
+        },
+        "text_preview": "TEST-CUSTOMER-PDF-001 | synthetic_customer_scenario_001\nSeite 1\n SYNTHETIC TEST DATA – NOT A REAL PERSON\n SYNTHETISCHE TESTDATEN – KEINE ECHTE PERSON\nKundenprofil\nName: Lara Neumann\nKundennummer: TEST-KD-2026-0001\nAdresse: Musterstraße 17, 00000 Teststadt\nGeburtsdatum: 14.05.1988\nAktive Versicherungsverträge:\n1. Kfz-Versicherung\nVertragsnummer: TEST-KFZ-2026-1001\nStatus: Aktiv\nVersicherungsbeginn: 01.01.2026\nVersicherungsende: 31.12.2026\n2. Privathaftpflichtversicherung\nVertragsnummer: TEST-PHV-2026-2001\nStatus: Aktiv\nVersicherungsbeginn: 01.01.2026\nVersicherungsende: 31.12.2026",
+        "text_sha256": "8e3a3e43dcd7a57c470f8e3b9c4490c412553184189283a1e237969bc2ff77c9"
+      },
+      {
+        "id": "ac84abaa-1d23-473a-8be8-6db02f3ae7e1",
+        "metadata": {
+          "insurance_type": "motor_insurance",
+          "subject": "SYNTHETIC TEST DATA – NOT A REAL PERSON; SYNTHETISCHE TESTDATEN – KEINE ECHTE PERSON",
+          "page": 1,
+          "customer_id": "TEST-KD-2026-0001",
+          "document_id": "TEST-CUSTOMER-PDF-001",
+          "chunk_id": "TEST-CUSTOMER-PDF-001-P2-C002",
+          "title": "Synthetic customer insurance test - Lara Neumann",
+          "author": "MVA Insurance RAG synthetic test harness",
+          "total_pages": 3,
+          "synthetic": true,
+          "document_type": "synthetic_customer_test",
+          "moddate": "2026-07-11T19:02:54+02:00",
+          "source_type": "pdf",
+          "source": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\tmp\\synthetic_customer_scenario_001_20260711_190250\\pdfs\\synthetic_customer_insurance_lara_neumann.pdf",
+          "keywords": "synthetic,synthetic_customer_scenario_001,TEST-CUSTOMER-PDF-001,TEST-KD-2026-0001",
+          "start_index": 0,
+          "creator": "(unspecified)",
+          "producer": "ReportLab PDF Library - www.reportlab.com",
+          "page_human": 2,
+          "contract_number": "TEST-KFZ-2026-1001",
+          "trapped": "/False",
+          "creationdate": "2026-07-11T19:02:54+02:00",
+          "page_label": "2",
+          "test_run_id": "synthetic_customer_scenario_001",
+          "source_filename": "synthetic_customer_insurance_lara_neumann.pdf"
+        },
+        "text_preview": "TEST-CUSTOMER-PDF-001 | synthetic_customer_scenario_001\nSeite 2\nKfz-Versicherung – Vertragsdetails\nVersicherte Person: Lara Neumann\nVertragsnummer: TEST-KFZ-2026-1001\nVersicherungsart: Kfz-Haftpflicht mit Teilkasko\nVersichertes Fahrzeug: Volkswagen Golf\nKennzeichen: TEST-LN-2026\nVersicherte Leistungen:\n- Schäden an der Windschutzscheibe und anderen Fahrzeugverglasungen sind im Rahmen der\nTeilkaskoversicherung versichert.\n- Bei einem versicherten Glasschaden gilt eine Selbstbeteiligung von 150 Euro je Schadenfall.\n- Reparaturkosten oberhalb der Selbstbeteiligung werden entsprechend den Vertragsbedingungen\nübernommen.\nNicht versichert:\n- Vorsätzlich verursachte Schäden\n- Normale Abnutzung\n- Sc",
+        "text_sha256": "5f9555af06211562fcc4068664afa0f310441d718d07b6c20f5330711bfda643"
+      },
+      {
+        "id": "e9da42a4-e94b-492a-b189-dad07ca22a80",
+        "metadata": {
+          "trapped": "/False",
+          "source_filename": "synthetic_customer_insurance_lara_neumann.pdf",
+          "total_pages": 3,
+          "title": "Synthetic customer insurance test - Lara Neumann",
+          "chunk_id": "TEST-CUSTOMER-PDF-001-P3-C003",
+          "page_label": "3",
+          "source_type": "pdf",
+          "author": "MVA Insurance RAG synthetic test harness",
+          "document_type": "synthetic_customer_test",
+          "page_human": 3,
+          "moddate": "2026-07-11T19:02:54+02:00",
+          "producer": "ReportLab PDF Library - www.reportlab.com",
+          "creationdate": "2026-07-11T19:02:54+02:00",
+          "insurance_type": "personal_liability",
+          "start_index": 0,
+          "customer_id": "TEST-KD-2026-0001",
+          "source": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\tmp\\synthetic_customer_scenario_001_20260711_190250\\pdfs\\synthetic_customer_insurance_lara_neumann.pdf",
+          "creator": "(unspecified)",
+          "keywords": "synthetic,synthetic_customer_scenario_001,TEST-CUSTOMER-PDF-001,TEST-KD-2026-0001",
+          "contract_number": "TEST-PHV-2026-2001",
+          "page": 2,
+          "document_id": "TEST-CUSTOMER-PDF-001",
+          "synthetic": true,
+          "subject": "SYNTHETIC TEST DATA – NOT A REAL PERSON; SYNTHETISCHE TESTDATEN – KEINE ECHTE PERSON",
+          "test_run_id": "synthetic_customer_scenario_001"
+        },
+        "text_preview": "TEST-CUSTOMER-PDF-001 | synthetic_customer_scenario_001\nSeite 3\nPrivathaftpflichtversicherung – Vertragsdetails\nVersicherte Person: Lara Neumann\nVertragsnummer: TEST-PHV-2026-2001\nDie Privathaftpflichtversicherung deckt berechtigte Schadenersatzansprüche Dritter.\nFür diesen Vertrag gilt keine allgemeine Selbstbeteiligung.\nSchäden an der Windschutzscheibe des eigenen Fahrzeugs gehören nicht zum\nVersicherungsschutz der Privathaftpflichtversicherung.",
+        "text_sha256": "410b4596793bee16988c981c5cced246a440110c3530e85c60a2ff61d1027a0c"
+      }
+    ],
+    "successful": true,
+    "isolation_method": "isolated temporary Chroma directory and collection",
+    "collection_name": "synthetic_customer_scenario_001_collection",
+    "chroma_path": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\tmp\\synthetic_customer_scenario_001_20260711_190250\\chroma",
+    "ingestion_pdf_path": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\tmp\\synthetic_customer_scenario_001_20260711_190250\\pdfs\\synthetic_customer_insurance_lara_neumann.pdf",
+    "pages": 3,
+    "chunk_ids": [
+      "ddfc6255-8c65-4df9-a4fb-6768c53a3e63",
+      "ac84abaa-1d23-473a-8be8-6db02f3ae7e1",
+      "e9da42a4-e94b-492a-b189-dad07ca22a80"
+    ],
+    "collection_count_before_ingestion": 0,
+    "collection_count_after_ingestion": 3,
+    "page2_evidence_exists": true,
+    "page3_distractor_exists": true,
+    "duplicates_detected": false,
+    "production_functions": [
+      "api.rag_service.load_pdf_source",
+      "api.rag_service.load_and_split_documents",
+      "api.rag_service.initialize_embeddings",
+      "api.rag_service.build_vectorstore",
+      "api.rag_service.build_retriever",
+      "api.rag_service.rerank_documents"
+    ],
+    "test_only_adapter": "Adds exact synthetic metadata before production embedding/insertion and redirects storage paths in the test process."
+  },
+  "preflight": {
+    "backend_running": true,
+    "backend_url": "http://127.0.0.1:6023",
+    "backend_pid": 13140,
+    "backend_health": {
+      "status": "ok",
+      "message": "Backend laeuft",
+      "pipelineReady": true,
+      "pipelineInitializing": false,
+      "pipelineInitError": null,
+      "insuranceqaExactMatchShortcut": false,
+      "safetyEnabled": true,
+      "safetyMode": "enforce",
+      "configured_answer_model": "qwen2.5:7b-instruct",
+      "preferred_answer_model": "qwen2.5:7b-instruct",
+      "answer_model_matches_preference": true,
+      "configured_answer_model_source": "shell_env",
+      "query_rewrite_enabled": false,
+      "nemo_enforce_output": true,
+      "safety_backend": "nemo"
+    },
+    "ollama_reachable": true,
+    "ollama_url": "http://127.0.0.1:11434",
+    "model_inventory": [
+      "codellama:latest",
+      "phi3:mini",
+      "qwen2.5:7b-instruct",
+      "qwen2.5:7b",
+      "glm-4.7:cloud",
+      "llama3:latest"
+    ],
+    "required_models_installed": true,
+    "models_callable": true,
+    "retrieval_service_ready": true,
+    "pipeline_ready": true,
+    "pipeline_initialization_error": null,
+    "force_retrieval": true,
+    "rewrite_disabled": true,
+    "compression_disabled": true,
+    "safety_enabled": true,
+    "safety_rule_based_without_llm": true,
+    "synthetic_document_indexed": true,
+    "production_counts": {
+      "insurance_rag_collection": 8551,
+      "insuranceqa_collection": 1248
+    },
+    "models_warm": [
+      {
+        "raw": "NAME                   ID              SIZE      PROCESSOR    CONTEXT    UNTIL"
+      },
+      {
+        "raw": "qwen2.5:7b-instruct    845dbda0ea48    4.6 GB    100% CPU     4096       29 minutes from now"
+      }
+    ],
+    "processes_at_preflight": [
+      {
+        "ProcessId": 11948,
+        "ParentProcessId": 10480,
+        "CreationDate": "/Date(1783778310121)/",
+        "Name": "ollama app.exe",
+        "CommandLine": "\"C:\\Users\\mirae\\AppData\\Local\\Programs\\Ollama\\ollama app.exe\"  --hide --fast-startup"
+      },
+      {
+        "ProcessId": 13872,
+        "ParentProcessId": 11948,
+        "CreationDate": "/Date(1783778311299)/",
+        "Name": "ollama.exe",
+        "CommandLine": "C:\\Users\\mirae\\AppData\\Local\\Programs\\Ollama\\ollama.exe serve"
+      },
+      {
+        "ProcessId": 25052,
+        "ParentProcessId": 13872,
+        "CreationDate": "/Date(1783789418656)/",
+        "Name": "ollama.exe",
+        "CommandLine": "C:\\Users\\mirae\\AppData\\Local\\Programs\\Ollama\\ollama.exe runner --model C:\\Users\\mirae\\.ollama\\models\\blobs\\sha256-2bada8a7450677000f678be90653b85d364de7db25eb5ea54136ada5f3933730 --port 5900"
+      }
+    ],
+    "stale_backend_or_mcp_detected": false
+  },
+  "warmup": {
+    "query": "Reply only OK.",
+    "type": "direct Ollama one-token model warm-up (not the main scenario)",
+    "duration_seconds": 24.07197370007634,
+    "results": [
+      {
+        "model": "phi3:mini",
+        "http_status": 200,
+        "duration_seconds": 6.122381299966946,
+        "response": "OK",
+        "done": true,
+        "total_duration_ns": 6119322900,
+        "load_duration_ns": 4770949700,
+        "prompt_eval_count": 14,
+        "eval_count": 1,
+        "successful": true
+      },
+      {
+        "model": "qwen2.5:7b-instruct",
+        "http_status": 200,
+        "duration_seconds": 17.948759800055996,
+        "response": "OK",
+        "done": true,
+        "total_duration_ns": 17943569200,
+        "load_duration_ns": 11344069800,
+        "prompt_eval_count": 33,
+        "eval_count": 1,
+        "successful": true
+      }
+    ],
+    "successful": true,
+    "models_loaded_after": [
+      {
+        "raw": "NAME                   ID              SIZE      PROCESSOR    CONTEXT    UNTIL"
+      },
+      {
+        "raw": "qwen2.5:7b-instruct    845dbda0ea48    4.6 GB    100% CPU     4096       29 minutes from now"
+      }
+    ]
+  },
+  "query": {
+    "text": "Ist ein Glasschaden an der Windschutzscheibe von Lara Neumanns versichertem Fahrzeug gedeckt, und welche Selbstbeteiligung gilt?",
+    "execution_path": "POST /api/ask",
+    "status": "NOT_EXECUTED",
+    "timeout": false,
+    "full_pipeline_executed": false
+  },
+  "retrieval": {
+    "attempts": 0,
+    "documents": [],
+    "correct_source_retrieved": false,
+    "correct_page_retrieved": false,
+    "status": "FAIL"
+  },
+  "reranking": {
+    "status": "FAIL"
+  },
+  "self_check": {
+    "raw_output": "not_available",
+    "parsed_decision": "not_available",
+    "duration_seconds": "not_available",
+    "status": "FAIL"
+  },
+  "answer": {
+    "text": "",
+    "contradictions": []
+  },
+  "citations": {
+    "count": 0,
+    "items": [],
+    "valid": false,
+    "status": "FAIL"
+  },
+  "safety": {},
+  "audit": {
+    "enabled": true,
+    "entry_found": false,
+    "status": "FAIL"
+  },
+  "cleanup": {
+    "executed": true,
+    "successful": false,
+    "temporary_collection_deleted": true,
+    "temporary_directory_deleted": false,
+    "synthetic_chunks_remaining": 0,
+    "production_documents_modified": false
+  },
+  "collection_counts": {
+    "before": {
+      "insurance_rag_collection": 8551,
+      "insuranceqa_collection": 1248
+    },
+    "after_ingestion": {
+      "insurance_rag_collection": 8551,
+      "insuranceqa_collection": 1248
+    },
+    "after_execution": {},
+    "after_cleanup": {
+      "insurance_rag_collection": 8551,
+      "insuranceqa_collection": 1248
+    }
+  },
+  "collection_integrity": {
+    "expected": {
+      "insurance_rag_collection": 8551,
+      "insuranceqa_collection": 1248
+    },
+    "actual": {
+      "insurance_rag_collection": 8551,
+      "insuranceqa_collection": 1248
+    },
+    "differences": {
+      "insurance_rag_collection": 0,
+      "insuranceqa_collection": 0
+    },
+    "no_complete_reindex": true,
+    "no_production_collection_deletion": true,
+    "no_production_collection_recreation": true,
+    "no_unrelated_insert_or_delete": true,
+    "status": "PASS"
+  },
+  "timings": {
+    "pdf_creation_seconds": 0.13119740004185587,
+    "pdf_extraction_seconds": 8.517460500006564,
+    "ingestion_seconds": 14.906154199969023,
+    "warmup_seconds": 24.07197370007634,
+    "retrieval_service_initialization_seconds": 18.35338089999277,
+    "cleanup_seconds": 19.92289719998371
+  },
+  "results": {
+    "functional": "FAIL",
+    "quality": "FAIL",
+    "performance": "FAIL",
+    "overall": "NOT EXECUTED"
+  },
+  "failure_stage": "Cleanup",
+  "failure_reason": "Cleanup or production collection integrity verification failed",
+  "remaining_limitations": "Request ID and audit ID are not emitted by the current public API and are recorded as not_available. PDF page metadata is zero-based in PyPDFLoader; human page 2 is metadata page 1.",
+  "recommended_next_action": "Review the exact failing stage in this report.",
+  "main_bottleneck": "not_available",
+  "artifacts": {
+    "pdf": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\tests\\fixtures\\synthetic_customer_insurance_lara_neumann.pdf",
+    "json": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\reports\\synthetic_customer_scenario_20260711_190250.json",
+    "markdown": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\reports\\synthetic_customer_scenario_20260711_190250.md",
+    "log": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\reports\\synthetic_customer_scenario_20260711_190250.log"
+  },
+  "exception_traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\.venv\\Lib\\site-packages\\urllib3\\connectionpool.py\", line 787, in urlopen\n    response = self._make_request(\n               ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\.venv\\Lib\\site-packages\\urllib3\\connectionpool.py\", line 534, in _make_request\n    response = conn.getresponse()\n               ^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\.venv\\Lib\\site-packages\\urllib3\\connection.py\", line 516, in getresponse\n    httplib_response = super().getresponse()\n                       ^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python312\\Lib\\http\\client.py\", line 1423, in getresponse\n    response.begin()\n  File \"C:\\Python312\\Lib\\http\\client.py\", line 331, in begin\n    version, status, reason = self._read_status()\n                              ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python312\\Lib\\http\\client.py\", line 292, in _read_status\n    line = str(self.fp.readline(_MAXLINE + 1), \"iso-8859-1\")\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python312\\Lib\\socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\.venv\\Lib\\site-packages\\requests\\adapters.py\", line 644, in send\n    resp = conn.urlopen(\n           ^^^^^^^^^^^^^\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\.venv\\Lib\\site-packages\\urllib3\\connectionpool.py\", line 841, in urlopen\n    retries = retries.increment(\n              ^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\.venv\\Lib\\site-packages\\urllib3\\util\\retry.py\", line 474, in increment\n    raise reraise(type(error), error, _stacktrace)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\.venv\\Lib\\site-packages\\urllib3\\util\\util.py\", line 38, in reraise\n    raise value.with_traceback(tb)\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\.venv\\Lib\\site-packages\\urllib3\\connectionpool.py\", line 787, in urlopen\n    response = self._make_request(\n               ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\.venv\\Lib\\site-packages\\urllib3\\connectionpool.py\", line 534, in _make_request\n    response = conn.getresponse()\n               ^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\.venv\\Lib\\site-packages\\urllib3\\connection.py\", line 516, in getresponse\n    httplib_response = super().getresponse()\n                       ^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python312\\Lib\\http\\client.py\", line 1423, in getresponse\n    response.begin()\n  File \"C:\\Python312\\Lib\\http\\client.py\", line 331, in begin\n    version, status, reason = self._read_status()\n                              ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python312\\Lib\\http\\client.py\", line 292, in _read_status\n    line = str(self.fp.readline(_MAXLINE + 1), \"iso-8859-1\")\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python312\\Lib\\socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nurllib3.exceptions.ProtocolError: ('Connection aborted.', ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None))\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\scripts\\test_synthetic_customer_scenario.py\", line 1475, in execute\n    response = requests.post(\n               ^^^^^^^^^^^^^^\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\.venv\\Lib\\site-packages\\requests\\api.py\", line 115, in post\n    return request(\"post\", url, data=data, json=json, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\.venv\\Lib\\site-packages\\requests\\api.py\", line 59, in request\n    return session.request(method=method, url=url, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\.venv\\Lib\\site-packages\\requests\\sessions.py\", line 589, in request\n    resp = self.send(prep, **send_kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\.venv\\Lib\\site-packages\\requests\\sessions.py\", line 703, in send\n    r = adapter.send(request, **kwargs)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\.venv\\Lib\\site-packages\\requests\\adapters.py\", line 659, in send\n    raise ConnectionError(err, request=request)\nrequests.exceptions.ConnectionError: ('Connection aborted.', ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None))\n"
+}

@@ -13,16 +13,24 @@ from typing import Dict, List, Tuple
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 
+from src.config.models import load_model_settings
+
 
 class EvaluationMetricsCalculator:
     """Calculates evaluation metrics for RAG system responses."""
 
     def __init__(self, audit_log_file: str = "data/processed/logs/audit.log"):
         self.audit_log_file = audit_log_file
+        settings = load_model_settings()
+        timeout_seconds = settings.llm_runtime.timeout_answer_seconds
         self.evaluator_llm = ChatOllama(
             model=os.getenv("EVAL_LLM_MODEL", "lfm2.5-thinking:1.2b"),
             base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
             temperature=0.0,
+            num_predict=settings.llm_runtime.max_tokens_answer,
+            client_kwargs={"timeout": timeout_seconds},
+            async_client_kwargs={"timeout": timeout_seconds},
+            sync_client_kwargs={"timeout": timeout_seconds},
         )
 
     def load_audit_logs(self) -> List[Dict]:

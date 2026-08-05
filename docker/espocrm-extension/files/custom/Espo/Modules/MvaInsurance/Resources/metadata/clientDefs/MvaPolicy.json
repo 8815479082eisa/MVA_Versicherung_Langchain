@@ -1,0 +1,5 @@
+{
+  "controller": "controllers/record",
+  "iconClass": "fas fa-file-contract",
+  "color": "#3B82F6"
+}

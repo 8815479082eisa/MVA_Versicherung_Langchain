@@ -1,0 +1,353 @@
+{
+  "schema_version": 1,
+  "language": "en",
+  "candidate_count_per_query": 8,
+  "relevance_scale": {
+    "0": "irrelevant or hard negative",
+    "1": "supporting but insufficient context",
+    "3": "exact answer-bearing chunk"
+  },
+  "provenance": [
+    "data/synthetic/crm/policies.csv",
+    "tests/unit/test_crm_orchestration.py::test_current_motor_query_selects_latest_effective_active_policy_only",
+    "tests/integration/test_crm_api_routing.py::test_windscreen_query_sends_only_latest_relevant_motor_policy"
+  ],
+  "cases": [
+    {
+      "id": "lara_current_motor_policy",
+      "mandatory_rank1": true,
+      "query": "What are the coverage type, deductible and annual premium of Lara Neumann's current motor insurance policy?",
+      "correct_candidate_id": "lara_motor_1003_current",
+      "candidates": [
+        {
+          "id": "lara_motor_1003_current",
+          "relevance": 3,
+          "label": "exact current policy",
+          "document": "Current CRM policy record as of 2026-08-01. Customer: Lara Neumann. Policy TEST-KFZ-2026-1003, Motor Insurance, Partial Coverage, Active. Term: 2026-07-01 to 2027-06-30. Deductible: 300 EUR. Annual premium: 720 EUR."
+        },
+        {
+          "id": "lara_motor_1001_old",
+          "relevance": 0,
+          "label": "mandatory older-policy hard negative",
+          "document": "Earlier CRM policy record. Customer: Lara Neumann. Policy TEST-KFZ-2026-1001, Motor Insurance, Partial Coverage, Active. Term: 2026-01-01 to 2026-12-31. Deductible: 150 EUR. Annual premium: 684 EUR."
+        },
+        {
+          "id": "lara_liability_1002",
+          "relevance": 0,
+          "label": "same-customer wrong-product hard negative",
+          "document": "Customer: Lara Neumann. Policy TEST-PHV-2026-1002, Personal Liability Insurance, Liability Coverage, Active. Term: 2026-01-01 to 2026-12-31. Deductible: 0 EUR. Annual premium: 96 EUR."
+        },
+        {
+          "id": "lara_customer_summary",
+          "relevance": 1,
+          "label": "supporting but incomplete",
+          "document": "CRM customer summary: Lara Neumann has multiple active policies. Her newest motor insurance policy began on 2026-07-01; an earlier motor policy began on 2026-01-01. Consult the individual policy record for coverage, deductible and premium."
+        },
+        {
+          "id": "noah_motor_1701",
+          "relevance": 0,
+          "label": "same-product similar-values hard negative",
+          "document": "Customer: Noah Weber. Policy TEST-KFZ-2026-1701, Motor Insurance, Partial Coverage, Active. Term: 2026-05-01 to 2027-04-30. Deductible: 300 EUR. Annual premium: 735 EUR."
+        },
+        {
+          "id": "oliver_motor_1101",
+          "relevance": 0,
+          "label": "same-product hard negative",
+          "document": "Customer: Oliver Brandt. Policy TEST-KFZ-2026-1101, Motor Insurance, Comprehensive Coverage, Active. Term: 2026-02-01 to 2027-01-31. Deductible: 300 EUR. Annual premium: 1120 EUR."
+        },
+        {
+          "id": "hannah_motor_1401",
+          "relevance": 0,
+          "label": "same-product hard negative",
+          "document": "Customer: Hannah Vogel. Policy TEST-KFZ-2026-1401, Motor Insurance, Liability Coverage, Active. Term: 2026-03-01 to 2027-02-28. Deductible: 500 EUR. Annual premium: 520 EUR."
+        },
+        {
+          "id": "generic_motor_terms",
+          "relevance": 0,
+          "label": "general-terms hard negative",
+          "document": "General motor insurance terms describe liability, partial coverage and comprehensive coverage. Customer-specific deductibles and annual premiums are defined only in the applicable individual policy."
+        }
+      ]
+    },
+    {
+      "id": "sophie_active_household_policy",
+      "mandatory_rank1": false,
+      "query": "What are the coverage type, deductible and annual premium of Sophie Keller's active household insurance policy?",
+      "correct_candidate_id": "sophie_household_1201",
+      "candidates": [
+        {
+          "id": "sophie_household_1201",
+          "relevance": 3,
+          "label": "exact policy",
+          "document": "Customer: Sophie Keller. Policy TEST-HH-2026-1201, Household Insurance, Standard Coverage, Active. Term: 2026-01-15 to 2027-01-14. Deductible: 250 EUR. Annual premium: 210 EUR."
+        },
+        {
+          "id": "sophie_legal_1202",
+          "relevance": 0,
+          "label": "same-customer wrong-product hard negative",
+          "document": "Customer: Sophie Keller. Policy TEST-RS-2026-1202, Legal Protection Insurance, Standard Coverage, Pending. Term: 2026-08-01 to 2027-07-31. Deductible: 150 EUR. Annual premium: 280 EUR."
+        },
+        {
+          "id": "sophie_customer_summary",
+          "relevance": 1,
+          "label": "supporting but incomplete",
+          "document": "CRM customer summary: Sophie Keller has a currently active household policy and a separate legal protection policy that is still pending. Consult the household policy record for monetary terms."
+        },
+        {
+          "id": "hannah_household_1402",
+          "relevance": 0,
+          "label": "same-product hard negative",
+          "document": "Customer: Hannah Vogel. Policy TEST-HH-2026-1402, Household Insurance, Standard Coverage, Active. Term: 2026-03-01 to 2027-02-28. Deductible: 200 EUR. Annual premium: 195 EUR."
+        },
+        {
+          "id": "mila_household_1801",
+          "relevance": 0,
+          "label": "same-product wrong-status hard negative",
+          "document": "Customer: Mila Hartmann. Policy TEST-HH-2026-1801, Household Insurance, Standard Coverage, Pending. Term: 2026-09-01 to 2027-08-31. Deductible: 250 EUR. Annual premium: 225 EUR."
+        },
+        {
+          "id": "lara_liability_for_sophie",
+          "relevance": 0,
+          "label": "wrong-customer wrong-product",
+          "document": "Customer: Lara Neumann. Policy TEST-PHV-2026-1002, Personal Liability Insurance, Liability Coverage, Active. Deductible: 0 EUR. Annual premium: 96 EUR."
+        },
+        {
+          "id": "generic_household_terms",
+          "relevance": 0,
+          "label": "general-terms hard negative",
+          "document": "Household contents insurance can protect movable possessions against insured events. The individual policy schedule determines the chosen coverage, deductible and premium."
+        },
+        {
+          "id": "emil_expired_liability",
+          "relevance": 0,
+          "label": "expired unrelated policy",
+          "document": "Customer: Emil Fischer. Policy TEST-PHV-2025-1301, Personal Liability Insurance, Liability Coverage, Expired. Term ended 2025-12-31. Annual premium: 84 EUR."
+        }
+      ]
+    },
+    {
+      "id": "noah_active_motor_policy",
+      "mandatory_rank1": false,
+      "query": "Which active motor policy belongs to Noah Weber, and what are its coverage type, deductible and annual premium?",
+      "correct_candidate_id": "noah_motor_1701_exact",
+      "candidates": [
+        {
+          "id": "noah_motor_1701_exact",
+          "relevance": 3,
+          "label": "exact policy",
+          "document": "Customer: Noah Weber. Policy TEST-KFZ-2026-1701, Motor Insurance, Partial Coverage, Active. Term: 2026-05-01 to 2027-04-30. Deductible: 300 EUR. Annual premium: 735 EUR."
+        },
+        {
+          "id": "noah_legal_1702",
+          "relevance": 0,
+          "label": "same-customer wrong-product hard negative",
+          "document": "Customer: Noah Weber. Policy TEST-RS-2026-1702, Legal Protection Insurance, Standard Coverage, Active. Term: 2026-05-01 to 2027-04-30. Deductible: 200 EUR. Annual premium: 310 EUR."
+        },
+        {
+          "id": "noah_customer_summary",
+          "relevance": 1,
+          "label": "supporting but incomplete",
+          "document": "CRM customer summary: Noah Weber has one active motor policy and one active legal protection policy. The motor policy uses partial coverage; monetary details are stored in its policy record."
+        },
+        {
+          "id": "lara_motor_1003_for_noah",
+          "relevance": 0,
+          "label": "same-product similar-values hard negative",
+          "document": "Customer: Lara Neumann. Policy TEST-KFZ-2026-1003, Motor Insurance, Partial Coverage, Active. Deductible: 300 EUR. Annual premium: 720 EUR."
+        },
+        {
+          "id": "lara_motor_1001_for_noah",
+          "relevance": 0,
+          "label": "same-product hard negative",
+          "document": "Customer: Lara Neumann. Policy TEST-KFZ-2026-1001, Motor Insurance, Partial Coverage, Active. Deductible: 150 EUR. Annual premium: 684 EUR."
+        },
+        {
+          "id": "oliver_motor_1101_for_noah",
+          "relevance": 0,
+          "label": "same-product hard negative",
+          "document": "Customer: Oliver Brandt. Policy TEST-KFZ-2026-1101, Motor Insurance, Comprehensive Coverage, Active. Deductible: 300 EUR. Annual premium: 1120 EUR."
+        },
+        {
+          "id": "hannah_motor_1401_for_noah",
+          "relevance": 0,
+          "label": "same-product hard negative",
+          "document": "Customer: Hannah Vogel. Policy TEST-KFZ-2026-1401, Motor Insurance, Liability Coverage, Active. Deductible: 500 EUR. Annual premium: 520 EUR."
+        },
+        {
+          "id": "generic_motor_policy_record",
+          "relevance": 0,
+          "label": "generic hard negative",
+          "document": "A motor policy record normally contains the customer, policy number, status, coverage type, deductible, annual premium and effective dates."
+        }
+      ]
+    },
+    {
+      "id": "hannah_active_household_term",
+      "mandatory_rank1": false,
+      "query": "What is the policy number, coverage type and term of Hannah Vogel's active household insurance?",
+      "correct_candidate_id": "hannah_household_1402_exact",
+      "candidates": [
+        {
+          "id": "hannah_household_1402_exact",
+          "relevance": 3,
+          "label": "exact policy",
+          "document": "Customer: Hannah Vogel. Policy TEST-HH-2026-1402, Household Insurance, Standard Coverage, Active. Term: 2026-03-01 to 2027-02-28. Deductible: 200 EUR. Annual premium: 195 EUR."
+        },
+        {
+          "id": "hannah_motor_1401_same_customer",
+          "relevance": 0,
+          "label": "same-customer wrong-product hard negative",
+          "document": "Customer: Hannah Vogel. Policy TEST-KFZ-2026-1401, Motor Insurance, Liability Coverage, Active. Term: 2026-03-01 to 2027-02-28. Deductible: 500 EUR. Annual premium: 520 EUR."
+        },
+        {
+          "id": "hannah_customer_summary",
+          "relevance": 1,
+          "label": "supporting but incomplete",
+          "document": "CRM customer summary: Hannah Vogel holds active motor and household insurance policies. Both began in March 2026; consult the household record for its number and full term."
+        },
+        {
+          "id": "sophie_household_1201_for_hannah",
+          "relevance": 0,
+          "label": "same-product hard negative",
+          "document": "Customer: Sophie Keller. Policy TEST-HH-2026-1201, Household Insurance, Standard Coverage, Active. Term: 2026-01-15 to 2027-01-14."
+        },
+        {
+          "id": "mila_household_1801_for_hannah",
+          "relevance": 0,
+          "label": "same-product wrong-status hard negative",
+          "document": "Customer: Mila Hartmann. Policy TEST-HH-2026-1801, Household Insurance, Standard Coverage, Pending. Term: 2026-09-01 to 2027-08-31."
+        },
+        {
+          "id": "noah_motor_for_hannah",
+          "relevance": 0,
+          "label": "unrelated active policy",
+          "document": "Customer: Noah Weber. Policy TEST-KFZ-2026-1701, Motor Insurance, Partial Coverage, Active. Term: 2026-05-01 to 2027-04-30."
+        },
+        {
+          "id": "generic_household_policy_schedule",
+          "relevance": 0,
+          "label": "generic hard negative",
+          "document": "A household insurance schedule states the policy number, selected coverage, effective term, deductible and premium for the named customer."
+        },
+        {
+          "id": "sophie_legal_for_hannah",
+          "relevance": 0,
+          "label": "wrong-customer wrong-product",
+          "document": "Customer: Sophie Keller. Policy TEST-RS-2026-1202, Legal Protection Insurance, Standard Coverage, Pending. Term: 2026-08-01 to 2027-07-31."
+        }
+      ]
+    },
+    {
+      "id": "jonas_cancelled_legal_policy",
+      "mandatory_rank1": false,
+      "query": "What are the status and policy term of Jonas Richter's legal protection insurance?",
+      "correct_candidate_id": "jonas_legal_1501_exact",
+      "candidates": [
+        {
+          "id": "jonas_legal_1501_exact",
+          "relevance": 3,
+          "label": "exact policy",
+          "document": "Customer: Jonas Richter. Policy TEST-RS-2026-1501, Legal Protection Insurance, Standard Coverage, Cancelled. Term: 2026-01-01 to 2026-06-30. Deductible: 150 EUR. Annual premium: 260 EUR."
+        },
+        {
+          "id": "jonas_customer_summary",
+          "relevance": 1,
+          "label": "supporting but incomplete",
+          "document": "CRM customer summary: Jonas Richter previously held a legal protection policy in 2026. The policy is no longer active; consult its record for exact status and dates."
+        },
+        {
+          "id": "sophie_legal_1202_for_jonas",
+          "relevance": 0,
+          "label": "same-product wrong-status hard negative",
+          "document": "Customer: Sophie Keller. Policy TEST-RS-2026-1202, Legal Protection Insurance, Standard Coverage, Pending. Term: 2026-08-01 to 2027-07-31."
+        },
+        {
+          "id": "noah_legal_1702_for_jonas",
+          "relevance": 0,
+          "label": "same-product wrong-status hard negative",
+          "document": "Customer: Noah Weber. Policy TEST-RS-2026-1702, Legal Protection Insurance, Standard Coverage, Active. Term: 2026-05-01 to 2027-04-30."
+        },
+        {
+          "id": "emil_expired_liability_for_jonas",
+          "relevance": 0,
+          "label": "same-status different-product hard negative",
+          "document": "Customer: Emil Fischer. Policy TEST-PHV-2025-1301, Personal Liability Insurance, Liability Coverage, Expired. Term: 2025-01-01 to 2025-12-31."
+        },
+        {
+          "id": "mila_pending_household_for_jonas",
+          "relevance": 0,
+          "label": "wrong-product hard negative",
+          "document": "Customer: Mila Hartmann. Policy TEST-HH-2026-1801, Household Insurance, Standard Coverage, Pending. Term: 2026-09-01 to 2027-08-31."
+        },
+        {
+          "id": "generic_legal_terms",
+          "relevance": 0,
+          "label": "general-terms hard negative",
+          "document": "Legal protection insurance terms explain insured disputes and waiting periods. Contract status and effective dates are found in the customer's policy schedule."
+        },
+        {
+          "id": "hannah_active_household_for_jonas",
+          "relevance": 0,
+          "label": "unrelated active policy",
+          "document": "Customer: Hannah Vogel. Policy TEST-HH-2026-1402, Household Insurance, Standard Coverage, Active. Term: 2026-03-01 to 2027-02-28."
+        }
+      ]
+    },
+    {
+      "id": "oliver_comprehensive_motor_policy",
+      "mandatory_rank1": false,
+      "query": "Which motor policy belongs to Oliver Brandt, and what are its coverage type, deductible and annual premium?",
+      "correct_candidate_id": "oliver_motor_1101_exact",
+      "candidates": [
+        {
+          "id": "oliver_motor_1101_exact",
+          "relevance": 3,
+          "label": "exact policy",
+          "document": "Customer: Oliver Brandt. Policy TEST-KFZ-2026-1101, Motor Insurance, Comprehensive Coverage, Active. Term: 2026-02-01 to 2027-01-31. Deductible: 300 EUR. Annual premium: 1120 EUR."
+        },
+        {
+          "id": "oliver_customer_summary",
+          "relevance": 1,
+          "label": "supporting but incomplete",
+          "document": "CRM customer summary: Oliver Brandt holds an active comprehensive motor insurance policy. Consult the individual policy record for its number, deductible and annual premium."
+        },
+        {
+          "id": "leon_motor_1901",
+          "relevance": 0,
+          "label": "same-product same-coverage hard negative",
+          "document": "Customer: Leon Becker. Policy TEST-KFZ-2026-1901, Motor Insurance, Comprehensive Coverage, Active. Term: 2026-06-01 to 2027-05-31. Deductible: 500 EUR. Annual premium: 1290 EUR."
+        },
+        {
+          "id": "lara_motor_1003_for_oliver",
+          "relevance": 0,
+          "label": "same-product hard negative",
+          "document": "Customer: Lara Neumann. Policy TEST-KFZ-2026-1003, Motor Insurance, Partial Coverage, Active. Deductible: 300 EUR. Annual premium: 720 EUR."
+        },
+        {
+          "id": "noah_motor_1701_for_oliver",
+          "relevance": 0,
+          "label": "same-product similar-deductible hard negative",
+          "document": "Customer: Noah Weber. Policy TEST-KFZ-2026-1701, Motor Insurance, Partial Coverage, Active. Deductible: 300 EUR. Annual premium: 735 EUR."
+        },
+        {
+          "id": "hannah_motor_1401_for_oliver",
+          "relevance": 0,
+          "label": "same-product hard negative",
+          "document": "Customer: Hannah Vogel. Policy TEST-KFZ-2026-1401, Motor Insurance, Liability Coverage, Active. Deductible: 500 EUR. Annual premium: 520 EUR."
+        },
+        {
+          "id": "leon_liability_1902",
+          "relevance": 0,
+          "label": "same-customer-family wrong-product",
+          "document": "Customer: Leon Becker. Policy TEST-PHV-2026-1902, Personal Liability Insurance, Liability Coverage, Active. Deductible: 0 EUR. Annual premium: 108 EUR."
+        },
+        {
+          "id": "generic_comprehensive_terms",
+          "relevance": 0,
+          "label": "general-terms hard negative",
+          "document": "Comprehensive motor coverage may include collision and other insured damage. The customer's policy schedule specifies the deductible and annual premium."
+        }
+      ]
+    }
+  ]
+}

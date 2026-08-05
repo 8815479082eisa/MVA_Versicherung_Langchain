@@ -1,0 +1,13 @@
+{
+  "module": "MvaInsurance",
+  "entity": true,
+  "object": true,
+  "acl": true,
+  "tab": true,
+  "importable": true,
+  "layouts": true,
+  "customizable": true,
+  "isCustom": true,
+  "stream": false,
+  "statusField": "status"
+}

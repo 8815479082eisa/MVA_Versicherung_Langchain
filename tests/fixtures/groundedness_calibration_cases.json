@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "description": "Balanced synthetic insurance claims for deterministic groundedness calibration.",
+  "cases": [
+    {
+      "id": "supported_motor_full_answer",
+      "label": true,
+      "query": "Is windshield damage covered, what deductible applies, and which motor contract is relevant?",
+      "answer": "Windshield glass damage is covered under partial comprehensive insurance. The deductible is EUR 150 per claim under motor contract TEST-KFZ-2026-1001.",
+      "documents": ["Motor insurance contract TEST-KFZ-2026-1001 covers windshield glass damage under partial comprehensive insurance. A deductible of EUR 150 applies per claim."]
+    },
+    {
+      "id": "supported_motor_paraphrase",
+      "label": true,
+      "query": "Does the policy pay for windscreen glass damage?",
+      "answer": "The partial comprehensive cover includes damage to the windscreen, subject to a 150 euro deductible for each claim.",
+      "documents": ["The motor policy provides partial comprehensive coverage for windshield glass damage. The policyholder pays EUR 150 per claim."]
+    },
+    {
+      "id": "supported_contract_identifier",
+      "label": true,
+      "query": "Which contract applies?",
+      "answer": "The applicable contract number is TEST-KFZ-2026-1001.",
+      "documents": ["Applicable motor insurance contract number: TEST-KFZ-2026-1001."]
+    },
+    {
+      "id": "supported_deductible",
+      "label": true,
+      "query": "What is the glass deductible?",
+      "answer": "A deductible of EUR 150 applies per glass claim.",
+      "documents": ["For insured glass damage, the deductible is 150 euros for each claim."]
+    },
+    {
+      "id": "supported_exclusion",
+      "label": true,
+      "query": "Is intentional vehicle damage covered?",
+      "answer": "No. Intentionally caused vehicle damage is not covered.",
+      "documents": ["Intentional damage to the insured vehicle is excluded and is not covered by the policy."]
+    },
+    {
+      "id": "supported_liability",
+      "label": true,
+      "query": "What does personal liability cover?",
+      "answer": "Personal liability insurance covers valid third-party damage claims.",
+      "documents": ["Personal liability contract TEST-PHV-2026-2001 covers valid claims for damage caused to third parties."]
+    },
+    {
+      "id": "supported_coverage_dates",
+      "label": true,
+      "query": "When is the motor policy active?",
+      "answer": "The policy is active from 2026-01-01 through 2026-12-31.",
+      "documents": ["Motor policy period: 2026-01-01 to 2026-12-31. Status: active."]
+    },
+    {
+      "id": "supported_home_deductible",
+      "label": true,
+      "query": "What applies to insured water damage?",
+      "answer": "Insured water damage has a EUR 500 deductible per claim.",
+      "documents": ["Home insurance covers escape-of-water damage with a deductible of EUR 500 per claim."]
+    },
+    {
+      "id": "supported_travel_limit",
+      "label": true,
+      "query": "What is the baggage limit?",
+      "answer": "Travel baggage is covered up to EUR 2,000.",
+      "documents": ["The travel policy covers lost baggage up to a maximum of EUR 2,000."]
+    },
+    {
+      "id": "supported_dental_percentage",
+      "label": true,
+      "query": "How much dental treatment is reimbursed?",
+      "answer": "The plan reimburses 80 percent of eligible dental treatment costs.",
+      "documents": ["Eligible dental treatment costs are reimbursed at 80 percent under the health plan."]
+    },
+    {
+      "id": "supported_two_claims_with_citation",
+      "label": true,
+      "query": "Summarize the motor glass benefit.",
+      "answer": "Glass damage is covered by partial comprehensive insurance [motor_policy:1]. The deductible is EUR 150 per claim [motor_policy:1].",
+      "documents": ["Partial comprehensive motor insurance covers glass damage. The deductible for each glass claim is EUR 150."]
+    },
+    {
+      "id": "supported_short_numeric_answer",
+      "label": true,
+      "query": "How much is the deductible per claim?",
+      "answer": "EUR 150 per claim.",
+      "documents": ["Deductible: EUR 150 per claim."]
+    },
+    {
+      "id": "unsupported_wrong_motor_deductible",
+      "label": false,
+      "query": "What is the glass deductible?",
+      "answer": "The glass deductible is EUR 500 per claim.",
+      "documents": ["The motor glass deductible is EUR 150 per claim."]
+    },
+    {
+      "id": "unsupported_wrong_contract_identifier",
+      "label": false,
+      "query": "Which motor contract applies?",
+      "answer": "The applicable motor contract is TEST-KFZ-2026-9999.",
+      "documents": ["The applicable motor contract is TEST-KFZ-2026-1001."]
+    },
+    {
+      "id": "unsupported_wrong_coverage_type",
+      "label": false,
+      "query": "Which coverage includes windshield damage?",
+      "answer": "Windshield damage is covered under fully comprehensive insurance.",
+      "documents": ["Windshield damage is covered under partial comprehensive insurance."]
+    },
+    {
+      "id": "unsupported_reversed_coverage",
+      "label": false,
+      "query": "Is windshield glass damage covered?",
+      "answer": "Windshield glass damage is not covered by the motor policy.",
+      "documents": ["The motor policy covers windshield glass damage under partial comprehensive coverage."]
+    },
+    {
+      "id": "unsupported_zero_deductible",
+      "label": false,
+      "query": "Does a deductible apply?",
+      "answer": "No deductible applies to a glass claim.",
+      "documents": ["A deductible of EUR 150 applies to every insured glass claim."]
+    },
+    {
+      "id": "unsupported_rental_car_extension",
+      "label": false,
+      "query": "Summarize the glass benefit.",
+      "answer": "Glass damage is covered and a free rental car is provided for fourteen days.",
+      "documents": ["Partial comprehensive insurance covers windshield glass damage with a EUR 150 deductible."]
+    },
+    {
+      "id": "unsupported_wrong_policy_dates",
+      "label": false,
+      "query": "When is the policy active?",
+      "answer": "The policy is active from 2025-01-01 through 2025-12-31.",
+      "documents": ["The policy is active from 2026-01-01 through 2026-12-31."]
+    },
+    {
+      "id": "unsupported_wrong_home_deductible",
+      "label": false,
+      "query": "What is the water damage deductible?",
+      "answer": "The water damage deductible is EUR 250 per claim.",
+      "documents": ["The water damage deductible is EUR 500 per claim."]
+    },
+    {
+      "id": "unsupported_wrong_baggage_limit",
+      "label": false,
+      "query": "What is the baggage limit?",
+      "answer": "Baggage is covered up to EUR 5,000.",
+      "documents": ["Baggage is covered up to EUR 2,000 under the travel policy."]
+    },
+    {
+      "id": "unsupported_wrong_dental_percentage",
+      "label": false,
+      "query": "How much dental treatment is reimbursed?",
+      "answer": "The plan reimburses 100 percent of dental treatment costs.",
+      "documents": ["The plan reimburses 80 percent of eligible dental treatment costs."]
+    },
+    {
+      "id": "unsupported_mixed_extra_claim",
+      "label": false,
+      "query": "Summarize the motor glass benefit.",
+      "answer": "Windshield glass damage is covered. The policy also provides unlimited towing anywhere in Europe.",
+      "documents": ["The motor policy covers windshield glass damage under partial comprehensive coverage."]
+    },
+    {
+      "id": "unsupported_cancellation_claim",
+      "label": false,
+      "query": "What is the status of the contract?",
+      "answer": "Contract TEST-KFZ-2026-1001 was cancelled on 2026-06-30.",
+      "documents": ["Contract TEST-KFZ-2026-1001 is active from 2026-01-01 through 2026-12-31."]
+    },
+    {
+      "id": "supported_customer_association",
+      "label": true,
+      "query": "Whose insured vehicle has glass coverage?",
+      "answer": "The covered insured vehicle belongs to Lara Neumann.",
+      "documents": ["Insured person: Lara Neumann. Her insured vehicle has windshield glass coverage."]
+    },
+    {
+      "id": "supported_concise_coverage",
+      "label": true,
+      "query": "Is the windshield covered?",
+      "answer": "Yes, windshield glass damage is covered.",
+      "documents": ["Windshield glass damage is covered by the motor policy."]
+    },
+    {
+      "id": "unsupported_liability_distractor_answer",
+      "label": false,
+      "query": "Which motor coverage and contract cover windshield damage?",
+      "answer": "Personal liability contract TEST-PHV-2026-2001 covers the windshield damage with no deductible.",
+      "documents": [
+        "Motor contract TEST-KFZ-2026-1001 covers windshield damage under partial comprehensive insurance with a EUR 150 deductible.",
+        "Personal liability contract TEST-PHV-2026-2001 does not cover windshield damage to the insured person's own vehicle and has no general deductible."
+      ]
+    },
+    {
+      "id": "unsupported_information_missing",
+      "label": false,
+      "query": "Is windshield damage covered and what deductible applies?",
+      "answer": "The available documents do not state whether windshield damage is covered or whether a deductible applies.",
+      "documents": ["Windshield glass damage is covered under partial comprehensive insurance. The deductible is EUR 150 per claim."]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "status": "PASSED",
+  "ollamaUrl": "http://host.docker.internal:11434",
+  "modelList": {
+    "status": "PASSED",
+    "latencyMs": 18.93,
+    "requiredModels": {
+      "answer": {
+        "model": "qwen2.5:7b-instruct",
+        "available": true
+      },
+      "guardrail": {
+        "model": "phi3:mini",
+        "available": true
+      }
+    }
+  },
+  "smokeTests": [
+    {
+      "status": "PASSED",
+      "stage": "answer",
+      "model": "qwen2.5:7b-instruct",
+      "numPredict": 384,
+      "timeoutSeconds": 120.0,
+      "latencyMs": 19004.433,
+      "nonEmptyOutput": true,
+      "closedVocabularyOutput": null
+    }
+  ]
+}

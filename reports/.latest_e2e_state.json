@@ -1,0 +1,21 @@
+{
+  "preflight_ok": true,
+  "safety_ok": true,
+  "report": "reports\\e2e_mcp_pipeline_report_20260707_010119.md",
+  "log": "reports\\e2e_mcp_pipeline_log_20260707_010119.txt",
+  "temp_files_created": true,
+  "reindex_ok": false,
+  "reindex_elapsed_seconds": 7200.034897400008,
+  "cleanup_done": true,
+  "removed_temp_files": [
+    "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\data\\raw\\pdfs\\test_multisource_txt.txt",
+    "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\data\\raw\\pdfs\\test_multisource_table.csv",
+    "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\data\\raw\\pdfs\\test_multisource_excel.xlsx",
+    "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\data\\raw\\pdfs\\test_multisource_docx.docx"
+  ],
+  "counts_after_cleanup": {
+    "insurance_rag_collection": 6000,
+    "insuranceqa_collection": 1248
+  },
+  "temp_sources_still_in_index": []
+}

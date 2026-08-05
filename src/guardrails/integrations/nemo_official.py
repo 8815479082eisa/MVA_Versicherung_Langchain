@@ -1,11 +1,17 @@
 from __future__ import annotations
 
 import asyncio
+import contextvars
 import logging
 import threading
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable, Optional, TypeAlias
+
+from src.core.llm_runtime import (
+    GuardrailInvalidOutputError,
+    LLMStageTimeoutError,
+)
 
 if TYPE_CHECKING:
     from nemoguardrails import LLMRails as LLMRailsType
@@ -26,6 +32,7 @@ except Exception:
     from src.guardrails.types import StageResult, TraceEntry
 
 logger = logging.getLogger(__name__)
+_NEMO_GENERATION_GATE = threading.BoundedSemaphore(value=1)
 
 
 def _extract_message_content(response: Any) -> str:
@@ -144,14 +151,17 @@ def _serialize_docs(docs: Iterable[Any]) -> list[dict[str, Any]]:
 def _build_main_llm_from_settings() -> Any:
     """Create the main LLM for NeMo runtime to avoid constructor warnings."""
     settings = load_model_settings()
-    model_name = settings.roles.answer or "qwen3.5:4b"
+    model_name = settings.roles.guardrail or settings.roles.self_check
+    timeout_seconds = settings.llm_runtime.timeout_guardrail_seconds
     kwargs: dict[str, Any] = {
         "model": model_name,
         "base_url": settings.ollama_base_url,
         "temperature": settings.generation.temperature_aux,
+        "num_predict": settings.llm_runtime.max_tokens_guardrail,
+        "client_kwargs": {"timeout": timeout_seconds},
+        "async_client_kwargs": {"timeout": timeout_seconds},
+        "sync_client_kwargs": {"timeout": timeout_seconds},
     }
-    if settings.generation.timeout_seconds is not None:
-        kwargs["timeout"] = settings.generation.timeout_seconds
 
     try:
         from langchain_ollama import ChatOllama  # type: ignore
@@ -217,20 +227,31 @@ class OfficialNemoGuardrailsRuntime:
         normalized_messages = _normalize_messages(messages)
         result_box: dict[str, Any] = {}
         error_box: dict[str, Exception] = {}
+        bounded_timeout = max(0.1, float(timeout_seconds or 30.0))
+        if not _NEMO_GENERATION_GATE.acquire(timeout=bounded_timeout):
+            raise LLMStageTimeoutError("guardrail")
+        caller_context = contextvars.copy_context()
 
         def _runner() -> None:
             try:
-                result_box["value"] = asyncio.run(rails.generate_async(messages=normalized_messages, options=options))
+                result_box["value"] = caller_context.run(
+                    asyncio.run,
+                    rails.generate_async(
+                        messages=normalized_messages,
+                        options=options,
+                    ),
+                )
             except Exception as exc:  # pragma: no cover - surfaced to caller
                 error_box["error"] = exc
+            finally:
+                _NEMO_GENERATION_GATE.release()
 
         thread = threading.Thread(target=_runner, daemon=True)
         thread.start()
-        thread.join(timeout=timeout_seconds)
+        thread.join(timeout=bounded_timeout)
 
         if thread.is_alive():
-            timeout_label = timeout_seconds if timeout_seconds is not None else "unknown"
-            raise TimeoutError(f"NeMo runtime timed out while waiting for generate_async (timeout={timeout_label}s)")
+            raise LLMStageTimeoutError("guardrail")
 
         if error_box:
             raise error_box["error"]
@@ -246,7 +267,9 @@ class OfficialNemoGuardrailsRuntime:
             timeout_seconds=self.config.nemo_runtime_timeout_seconds,
         )
         output_data = _extract_output_data(response)
-        action = str(output_data.get("guardrails_input_action", "allow"))
+        action = str(output_data.get("guardrails_input_action", ""))
+        if action not in {"allow", "block", "fallback", "redact"}:
+            raise GuardrailInvalidOutputError("guardrail")
         reasons = _coerce_str_list(output_data.get("guardrails_input_reasons", []))
         scores = _coerce_score_dict(output_data.get("guardrails_input_scores", {}))
         content = _extract_message_content(response)
@@ -294,7 +317,9 @@ class OfficialNemoGuardrailsRuntime:
             timeout_seconds=self.config.nemo_runtime_timeout_seconds,
         )
         output_data = _extract_output_data(response)
-        action = str(output_data.get("guardrails_context_action", "allow"))
+        action = str(output_data.get("guardrails_context_action", ""))
+        if action not in {"allow", "block", "fallback", "redact"}:
+            raise GuardrailInvalidOutputError("guardrail")
         reasons = _coerce_str_list(output_data.get("guardrails_context_reasons", []))
         scores = _coerce_score_dict(output_data.get("guardrails_context_scores", {}))
         content = _extract_message_content(response)
@@ -349,7 +374,9 @@ class OfficialNemoGuardrailsRuntime:
             timeout_seconds=self.config.nemo_runtime_timeout_seconds,
         )
         output_data = _extract_output_data(response)
-        action = str(output_data.get("guardrails_output_action", "allow"))
+        action = str(output_data.get("guardrails_output_action", ""))
+        if action not in {"allow", "block", "fallback", "redact"}:
+            raise GuardrailInvalidOutputError("guardrail")
         reasons = _coerce_str_list(output_data.get("guardrails_output_reasons", []))
         scores = _coerce_score_dict(output_data.get("guardrails_output_scores", {}))
         content = _extract_message_content(response)
@@ -367,6 +394,12 @@ class OfficialNemoGuardrailsRuntime:
             "query_changed": False,
             "answer_changed": action == "redact" and sanitized_answer != answer,
         }
+        action_details = output_data.get("guardrails_output_details")
+        if isinstance(action_details, Mapping):
+            details["action_details"] = dict(action_details)
+            groundedness_details = action_details.get("groundedness")
+            if isinstance(groundedness_details, Mapping):
+                details["groundedness"] = dict(groundedness_details)
         if colang_history_error is not None:
             details["colang_history_error"] = colang_history_error
 

@@ -1,0 +1,2202 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-01T22:55:29.242744+00:00",
+  "random_seed": 20260802,
+  "blind": true,
+  "case_count": 365,
+  "leakage_group_count": 103,
+  "excluded_split": "LOCKED_HOLDOUT_CANDIDATE",
+  "warning": "Keep this mapping separate from reviewers. It contains no weak labels or scores.",
+  "mapping": [
+    {
+      "blind_case_id": "GHR-0001",
+      "case_id": "ext-iqa-fail-004",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-46f8b30126ae"
+    },
+    {
+      "blind_case_id": "GHR-0002",
+      "case_id": "ext-iqa-pass-004",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-46f8b30126ae"
+    },
+    {
+      "blind_case_id": "GHR-0003",
+      "case_id": "ext-legacy-025",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-ccfc46b15367"
+    },
+    {
+      "blind_case_id": "GHR-0004",
+      "case_id": "ext-iqa-fail-012",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-158b32e48f1c"
+    },
+    {
+      "blind_case_id": "GHR-0005",
+      "case_id": "ext-iqa-pass-012",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-158b32e48f1c"
+    },
+    {
+      "blind_case_id": "GHR-0006",
+      "case_id": "ext-iqa-fail-015",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-cff2a6820ea7"
+    },
+    {
+      "blind_case_id": "GHR-0007",
+      "case_id": "ext-iqa-pass-015",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-cff2a6820ea7"
+    },
+    {
+      "blind_case_id": "GHR-0008",
+      "case_id": "ext-legacy-024",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-fad23eba9a45"
+    },
+    {
+      "blind_case_id": "GHR-0009",
+      "case_id": "ext-iqa-fail-066",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0412d4c453d4"
+    },
+    {
+      "blind_case_id": "GHR-0010",
+      "case_id": "ext-iqa-pass-066",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0412d4c453d4"
+    },
+    {
+      "blind_case_id": "GHR-0011",
+      "case_id": "ext-legacy-023",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-7950cb41790f"
+    },
+    {
+      "blind_case_id": "GHR-0012",
+      "case_id": "ext-iqa-pass-095",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-de449b51c8c5"
+    },
+    {
+      "blind_case_id": "GHR-0013",
+      "case_id": "ext-iqa-fail-022",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e912afbae8e7"
+    },
+    {
+      "blind_case_id": "GHR-0014",
+      "case_id": "ext-iqa-pass-022",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e912afbae8e7"
+    },
+    {
+      "blind_case_id": "GHR-0015",
+      "case_id": "ext-iqa-fail-074",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-fe94f0f45fdb"
+    },
+    {
+      "blind_case_id": "GHR-0016",
+      "case_id": "ext-iqa-fail-023",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-6c4bc6cfa954"
+    },
+    {
+      "blind_case_id": "GHR-0017",
+      "case_id": "ext-iqa-fail-024",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-6c4bc6cfa954"
+    },
+    {
+      "blind_case_id": "GHR-0018",
+      "case_id": "ext-iqa-fail-030",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-6c4bc6cfa954"
+    },
+    {
+      "blind_case_id": "GHR-0019",
+      "case_id": "ext-iqa-pass-023",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-6c4bc6cfa954"
+    },
+    {
+      "blind_case_id": "GHR-0020",
+      "case_id": "ext-iqa-pass-024",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-6c4bc6cfa954"
+    },
+    {
+      "blind_case_id": "GHR-0021",
+      "case_id": "ext-iqa-pass-030",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-6c4bc6cfa954"
+    },
+    {
+      "blind_case_id": "GHR-0022",
+      "case_id": "ext-iqa-pass-092",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-539216c197ba"
+    },
+    {
+      "blind_case_id": "GHR-0023",
+      "case_id": "ext-legacy-008",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-486e5e2f6b26"
+    },
+    {
+      "blind_case_id": "GHR-0024",
+      "case_id": "ext-legacy-011",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-b8ca6c0c57ca"
+    },
+    {
+      "blind_case_id": "GHR-0025",
+      "case_id": "ext-iqa-fail-052",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-92604aa92260"
+    },
+    {
+      "blind_case_id": "GHR-0026",
+      "case_id": "ext-iqa-pass-052",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-92604aa92260"
+    },
+    {
+      "blind_case_id": "GHR-0027",
+      "case_id": "ext-iqa-fail-005",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-f4013c68ca9c"
+    },
+    {
+      "blind_case_id": "GHR-0028",
+      "case_id": "ext-iqa-pass-005",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-f4013c68ca9c"
+    },
+    {
+      "blind_case_id": "GHR-0029",
+      "case_id": "ext-iqa-fail-038",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-6cc4ba0e7bee"
+    },
+    {
+      "blind_case_id": "GHR-0030",
+      "case_id": "ext-iqa-pass-038",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-6cc4ba0e7bee"
+    },
+    {
+      "blind_case_id": "GHR-0031",
+      "case_id": "ext-iqa-pass-097",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7a1764cde250"
+    },
+    {
+      "blind_case_id": "GHR-0032",
+      "case_id": "ext-iqa-pass-076",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-171c5b5949f5"
+    },
+    {
+      "blind_case_id": "GHR-0033",
+      "case_id": "ext-iqa-fail-016",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-893eea51aa5f"
+    },
+    {
+      "blind_case_id": "GHR-0034",
+      "case_id": "ext-iqa-pass-016",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-893eea51aa5f"
+    },
+    {
+      "blind_case_id": "GHR-0035",
+      "case_id": "ext-iqa-fail-040",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-c34c21dbcd45"
+    },
+    {
+      "blind_case_id": "GHR-0036",
+      "case_id": "ext-iqa-pass-040",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-c34c21dbcd45"
+    },
+    {
+      "blind_case_id": "GHR-0037",
+      "case_id": "ext-legacy-001",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-a3c2757c4aec"
+    },
+    {
+      "blind_case_id": "GHR-0038",
+      "case_id": "ext-iqa-pass-100",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-d76697114a22"
+    },
+    {
+      "blind_case_id": "GHR-0039",
+      "case_id": "ext-iqa-fail-042",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-06d04824ff51"
+    },
+    {
+      "blind_case_id": "GHR-0040",
+      "case_id": "ext-iqa-pass-042",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-06d04824ff51"
+    },
+    {
+      "blind_case_id": "GHR-0041",
+      "case_id": "ext-iqa-fail-007",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-2772e43051a7"
+    },
+    {
+      "blind_case_id": "GHR-0042",
+      "case_id": "ext-iqa-pass-007",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-2772e43051a7"
+    },
+    {
+      "blind_case_id": "GHR-0043",
+      "case_id": "ext-iqa-fail-055",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-96158ce07170"
+    },
+    {
+      "blind_case_id": "GHR-0044",
+      "case_id": "ext-iqa-pass-055",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-96158ce07170"
+    },
+    {
+      "blind_case_id": "GHR-0045",
+      "case_id": "ext-iqa-fail-019",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-69f8c9702c9a"
+    },
+    {
+      "blind_case_id": "GHR-0046",
+      "case_id": "ext-iqa-pass-019",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-69f8c9702c9a"
+    },
+    {
+      "blind_case_id": "GHR-0047",
+      "case_id": "ext-legacy-017",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-d19d308f4bb5"
+    },
+    {
+      "blind_case_id": "GHR-0048",
+      "case_id": "ext-iqa-fail-020",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-3a9ca4b9f3c8"
+    },
+    {
+      "blind_case_id": "GHR-0049",
+      "case_id": "ext-iqa-pass-020",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-3a9ca4b9f3c8"
+    },
+    {
+      "blind_case_id": "GHR-0050",
+      "case_id": "ext-iqa-fail-050",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-16b8e6895d05"
+    },
+    {
+      "blind_case_id": "GHR-0051",
+      "case_id": "ext-iqa-pass-050",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-16b8e6895d05"
+    },
+    {
+      "blind_case_id": "GHR-0052",
+      "case_id": "ext-crm-fail-001",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0053",
+      "case_id": "ext-crm-fail-002",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0054",
+      "case_id": "ext-crm-fail-003",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0055",
+      "case_id": "ext-crm-fail-004",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0056",
+      "case_id": "ext-crm-fail-005",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0057",
+      "case_id": "ext-crm-fail-006",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0058",
+      "case_id": "ext-crm-fail-007",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0059",
+      "case_id": "ext-crm-fail-008",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0060",
+      "case_id": "ext-crm-fail-009",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0061",
+      "case_id": "ext-crm-fail-010",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0062",
+      "case_id": "ext-crm-fail-011",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0063",
+      "case_id": "ext-crm-fail-012",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0064",
+      "case_id": "ext-crm-fail-013",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0065",
+      "case_id": "ext-crm-fail-014",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0066",
+      "case_id": "ext-crm-fail-015",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0067",
+      "case_id": "ext-crm-fail-016",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0068",
+      "case_id": "ext-crm-fail-017",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0069",
+      "case_id": "ext-crm-fail-018",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0070",
+      "case_id": "ext-crm-fail-019",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0071",
+      "case_id": "ext-crm-fail-020",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0072",
+      "case_id": "ext-crm-fail-021",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0073",
+      "case_id": "ext-crm-fail-022",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0074",
+      "case_id": "ext-crm-fail-023",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0075",
+      "case_id": "ext-crm-fail-024",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0076",
+      "case_id": "ext-crm-fail-025",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0077",
+      "case_id": "ext-crm-fail-026",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0078",
+      "case_id": "ext-crm-fail-027",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0079",
+      "case_id": "ext-crm-fail-028",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0080",
+      "case_id": "ext-crm-fail-029",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0081",
+      "case_id": "ext-crm-fail-030",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0082",
+      "case_id": "ext-crm-fail-031",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0083",
+      "case_id": "ext-crm-fail-032",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0084",
+      "case_id": "ext-crm-fail-033",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0085",
+      "case_id": "ext-crm-fail-034",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0086",
+      "case_id": "ext-crm-fail-035",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0087",
+      "case_id": "ext-crm-fail-036",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0088",
+      "case_id": "ext-crm-fail-037",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0089",
+      "case_id": "ext-crm-fail-038",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0090",
+      "case_id": "ext-crm-fail-039",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0091",
+      "case_id": "ext-crm-fail-040",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0092",
+      "case_id": "ext-crm-fail-041",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0093",
+      "case_id": "ext-crm-fail-042",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0094",
+      "case_id": "ext-crm-fail-043",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0095",
+      "case_id": "ext-crm-fail-044",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0096",
+      "case_id": "ext-crm-fail-045",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0097",
+      "case_id": "ext-crm-fail-046",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0098",
+      "case_id": "ext-crm-fail-047",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0099",
+      "case_id": "ext-crm-fail-048",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0100",
+      "case_id": "ext-crm-fail-049",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0101",
+      "case_id": "ext-crm-fail-050",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0102",
+      "case_id": "ext-crm-fail-051",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0103",
+      "case_id": "ext-crm-fail-052",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0104",
+      "case_id": "ext-crm-fail-053",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0105",
+      "case_id": "ext-crm-fail-054",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0106",
+      "case_id": "ext-crm-fail-055",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0107",
+      "case_id": "ext-crm-fail-056",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0108",
+      "case_id": "ext-crm-fail-057",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0109",
+      "case_id": "ext-crm-fail-058",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0110",
+      "case_id": "ext-crm-fail-059",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0111",
+      "case_id": "ext-crm-fail-060",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0112",
+      "case_id": "ext-crm-fail-061",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0113",
+      "case_id": "ext-crm-fail-062",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0114",
+      "case_id": "ext-crm-fail-063",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0115",
+      "case_id": "ext-crm-fail-064",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0116",
+      "case_id": "ext-crm-fail-065",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0117",
+      "case_id": "ext-crm-fail-066",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0118",
+      "case_id": "ext-crm-fail-067",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0119",
+      "case_id": "ext-crm-fail-068",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0120",
+      "case_id": "ext-crm-fail-069",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0121",
+      "case_id": "ext-crm-fail-070",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0122",
+      "case_id": "ext-crm-fail-071",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0123",
+      "case_id": "ext-crm-fail-072",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0124",
+      "case_id": "ext-crm-fail-073",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0125",
+      "case_id": "ext-crm-fail-074",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0126",
+      "case_id": "ext-crm-fail-075",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0127",
+      "case_id": "ext-crm-fail-076",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0128",
+      "case_id": "ext-crm-fail-077",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0129",
+      "case_id": "ext-crm-fail-078",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0130",
+      "case_id": "ext-crm-fail-079",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0131",
+      "case_id": "ext-crm-fail-080",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0132",
+      "case_id": "ext-crm-fail-081",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0133",
+      "case_id": "ext-crm-fail-082",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0134",
+      "case_id": "ext-crm-fail-083",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0135",
+      "case_id": "ext-crm-fail-084",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0136",
+      "case_id": "ext-crm-fail-085",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0137",
+      "case_id": "ext-crm-fail-086",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0138",
+      "case_id": "ext-crm-fail-087",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0139",
+      "case_id": "ext-crm-fail-088",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0140",
+      "case_id": "ext-crm-fail-089",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0141",
+      "case_id": "ext-crm-fail-090",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0142",
+      "case_id": "ext-crm-fail-091",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0143",
+      "case_id": "ext-crm-fail-092",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0144",
+      "case_id": "ext-crm-fail-093",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0145",
+      "case_id": "ext-crm-fail-094",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0146",
+      "case_id": "ext-crm-fail-095",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0147",
+      "case_id": "ext-crm-fail-096",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0148",
+      "case_id": "ext-crm-fail-097",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0149",
+      "case_id": "ext-crm-fail-098",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0150",
+      "case_id": "ext-crm-fail-099",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0151",
+      "case_id": "ext-crm-fail-100",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0152",
+      "case_id": "ext-crm-fail-101",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0153",
+      "case_id": "ext-crm-fail-102",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0154",
+      "case_id": "ext-crm-fail-103",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0155",
+      "case_id": "ext-crm-fail-104",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0156",
+      "case_id": "ext-crm-fail-105",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0157",
+      "case_id": "ext-crm-fail-106",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0158",
+      "case_id": "ext-crm-fail-107",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0159",
+      "case_id": "ext-crm-fail-108",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0160",
+      "case_id": "ext-crm-fail-109",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0161",
+      "case_id": "ext-crm-fail-110",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0162",
+      "case_id": "ext-crm-pass-001",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0163",
+      "case_id": "ext-crm-pass-002",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0164",
+      "case_id": "ext-crm-pass-003",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0165",
+      "case_id": "ext-crm-pass-004",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0166",
+      "case_id": "ext-crm-pass-005",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0167",
+      "case_id": "ext-crm-pass-006",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0168",
+      "case_id": "ext-crm-pass-007",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0169",
+      "case_id": "ext-crm-pass-008",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0170",
+      "case_id": "ext-crm-pass-009",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0171",
+      "case_id": "ext-crm-pass-010",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0172",
+      "case_id": "ext-crm-pass-011",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0173",
+      "case_id": "ext-crm-pass-012",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0174",
+      "case_id": "ext-crm-pass-013",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0175",
+      "case_id": "ext-crm-pass-014",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0176",
+      "case_id": "ext-crm-pass-015",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0177",
+      "case_id": "ext-crm-pass-016",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0178",
+      "case_id": "ext-crm-pass-017",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0179",
+      "case_id": "ext-crm-pass-018",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0180",
+      "case_id": "ext-crm-pass-019",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0181",
+      "case_id": "ext-crm-pass-020",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0182",
+      "case_id": "ext-crm-pass-021",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0183",
+      "case_id": "ext-crm-pass-022",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0184",
+      "case_id": "ext-crm-pass-023",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0185",
+      "case_id": "ext-crm-pass-024",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0186",
+      "case_id": "ext-crm-pass-025",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0187",
+      "case_id": "ext-crm-pass-026",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0188",
+      "case_id": "ext-crm-pass-027",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0189",
+      "case_id": "ext-crm-pass-028",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0190",
+      "case_id": "ext-crm-pass-029",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0191",
+      "case_id": "ext-crm-pass-030",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0192",
+      "case_id": "ext-crm-pass-031",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0193",
+      "case_id": "ext-crm-pass-032",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0194",
+      "case_id": "ext-crm-pass-033",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0195",
+      "case_id": "ext-crm-pass-034",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0196",
+      "case_id": "ext-crm-pass-035",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0197",
+      "case_id": "ext-crm-pass-036",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0198",
+      "case_id": "ext-crm-pass-037",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0199",
+      "case_id": "ext-crm-pass-038",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0200",
+      "case_id": "ext-crm-pass-039",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0201",
+      "case_id": "ext-crm-pass-040",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0202",
+      "case_id": "ext-crm-pass-041",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0203",
+      "case_id": "ext-crm-pass-042",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0204",
+      "case_id": "ext-crm-pass-043",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0205",
+      "case_id": "ext-crm-pass-044",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0206",
+      "case_id": "ext-crm-pass-045",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0207",
+      "case_id": "ext-crm-pass-046",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0208",
+      "case_id": "ext-crm-pass-047",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0209",
+      "case_id": "ext-crm-pass-048",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0210",
+      "case_id": "ext-crm-pass-049",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0211",
+      "case_id": "ext-crm-pass-050",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "blind_case_id": "GHR-0212",
+      "case_id": "ext-iqa-fail-046",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-f7c3426f7595"
+    },
+    {
+      "blind_case_id": "GHR-0213",
+      "case_id": "ext-iqa-pass-046",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-f7c3426f7595"
+    },
+    {
+      "blind_case_id": "GHR-0214",
+      "case_id": "ext-iqa-fail-003",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-d1676baf7624"
+    },
+    {
+      "blind_case_id": "GHR-0215",
+      "case_id": "ext-iqa-pass-003",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-d1676baf7624"
+    },
+    {
+      "blind_case_id": "GHR-0216",
+      "case_id": "ext-helvetia-fail-011",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "blind_case_id": "GHR-0217",
+      "case_id": "ext-helvetia-fail-020",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "blind_case_id": "GHR-0218",
+      "case_id": "ext-helvetia-pass-001",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "blind_case_id": "GHR-0219",
+      "case_id": "ext-helvetia-pass-012",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "blind_case_id": "GHR-0220",
+      "case_id": "ext-helvetia-pass-023",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "blind_case_id": "GHR-0221",
+      "case_id": "ext-helvetia-pass-034",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "blind_case_id": "GHR-0222",
+      "case_id": "ext-helvetia-pass-045",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "blind_case_id": "GHR-0223",
+      "case_id": "ext-helvetia-pass-056",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "blind_case_id": "GHR-0224",
+      "case_id": "ext-iqa-fail-056",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e965d718aa27"
+    },
+    {
+      "blind_case_id": "GHR-0225",
+      "case_id": "ext-iqa-pass-056",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e965d718aa27"
+    },
+    {
+      "blind_case_id": "GHR-0226",
+      "case_id": "ext-legacy-028",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-1f830136afe1"
+    },
+    {
+      "blind_case_id": "GHR-0227",
+      "case_id": "ext-iqa-pass-101",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-606f287dcc33"
+    },
+    {
+      "blind_case_id": "GHR-0228",
+      "case_id": "ext-iqa-fail-034",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e4e12d64d217"
+    },
+    {
+      "blind_case_id": "GHR-0229",
+      "case_id": "ext-iqa-pass-034",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e4e12d64d217"
+    },
+    {
+      "blind_case_id": "GHR-0230",
+      "case_id": "ext-iqa-fail-067",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-9cc6a236f482"
+    },
+    {
+      "blind_case_id": "GHR-0231",
+      "case_id": "ext-iqa-pass-067",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-9cc6a236f482"
+    },
+    {
+      "blind_case_id": "GHR-0232",
+      "case_id": "ext-iqa-pass-091",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-f5c92063b9f9"
+    },
+    {
+      "blind_case_id": "GHR-0233",
+      "case_id": "ext-helvetia-fail-003",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "blind_case_id": "GHR-0234",
+      "case_id": "ext-helvetia-fail-014",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "blind_case_id": "GHR-0235",
+      "case_id": "ext-helvetia-fail-024",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "blind_case_id": "GHR-0236",
+      "case_id": "ext-helvetia-fail-034",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "blind_case_id": "GHR-0237",
+      "case_id": "ext-helvetia-pass-005",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "blind_case_id": "GHR-0238",
+      "case_id": "ext-helvetia-pass-016",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "blind_case_id": "GHR-0239",
+      "case_id": "ext-helvetia-pass-027",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "blind_case_id": "GHR-0240",
+      "case_id": "ext-helvetia-pass-038",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "blind_case_id": "GHR-0241",
+      "case_id": "ext-helvetia-pass-049",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "blind_case_id": "GHR-0242",
+      "case_id": "ext-helvetia-pass-060",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "blind_case_id": "GHR-0243",
+      "case_id": "ext-iqa-pass-110",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fa7e632c620b"
+    },
+    {
+      "blind_case_id": "GHR-0244",
+      "case_id": "ext-iqa-pass-075",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-f248e68c5395"
+    },
+    {
+      "blind_case_id": "GHR-0245",
+      "case_id": "ext-iqa-pass-079",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-1ab60ed2ee2e"
+    },
+    {
+      "blind_case_id": "GHR-0246",
+      "case_id": "ext-iqa-pass-106",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-739d57a4dd1e"
+    },
+    {
+      "blind_case_id": "GHR-0247",
+      "case_id": "ext-iqa-pass-108",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-d2e2217b2f76"
+    },
+    {
+      "blind_case_id": "GHR-0248",
+      "case_id": "ext-legacy-014",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-898f7085938f"
+    },
+    {
+      "blind_case_id": "GHR-0249",
+      "case_id": "ext-iqa-fail-075",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-284563f0ab99"
+    },
+    {
+      "blind_case_id": "GHR-0250",
+      "case_id": "ext-legacy-003",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-1362b5203c3b"
+    },
+    {
+      "blind_case_id": "GHR-0251",
+      "case_id": "ext-baloise-fail-009",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "blind_case_id": "GHR-0252",
+      "case_id": "ext-helvetia-fail-027",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "blind_case_id": "GHR-0253",
+      "case_id": "ext-helvetia-fail-037",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "blind_case_id": "GHR-0254",
+      "case_id": "ext-helvetia-pass-008",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "blind_case_id": "GHR-0255",
+      "case_id": "ext-helvetia-pass-019",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "blind_case_id": "GHR-0256",
+      "case_id": "ext-helvetia-pass-030",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "blind_case_id": "GHR-0257",
+      "case_id": "ext-helvetia-pass-041",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "blind_case_id": "GHR-0258",
+      "case_id": "ext-helvetia-pass-052",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "blind_case_id": "GHR-0259",
+      "case_id": "ext-legacy-015",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-6b9d05c33adb"
+    },
+    {
+      "blind_case_id": "GHR-0260",
+      "case_id": "ext-legacy-007",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-d1cf0212c148"
+    },
+    {
+      "blind_case_id": "GHR-0261",
+      "case_id": "ext-iqa-fail-053",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-2f02a4071f1a"
+    },
+    {
+      "blind_case_id": "GHR-0262",
+      "case_id": "ext-iqa-pass-053",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-2f02a4071f1a"
+    },
+    {
+      "blind_case_id": "GHR-0263",
+      "case_id": "ext-legacy-027",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-dcb1752fd89d"
+    },
+    {
+      "blind_case_id": "GHR-0264",
+      "case_id": "ext-iqa-pass-094",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-aa5458d0aec6"
+    },
+    {
+      "blind_case_id": "GHR-0265",
+      "case_id": "ext-legacy-009",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c498a94f6f91"
+    },
+    {
+      "blind_case_id": "GHR-0266",
+      "case_id": "ext-iqa-fail-062",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e1a2f492ceb7"
+    },
+    {
+      "blind_case_id": "GHR-0267",
+      "case_id": "ext-iqa-pass-062",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e1a2f492ceb7"
+    },
+    {
+      "blind_case_id": "GHR-0268",
+      "case_id": "ext-legacy-019",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-d47f9897c75c"
+    },
+    {
+      "blind_case_id": "GHR-0269",
+      "case_id": "ext-iqa-fail-027",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-1d1ce626b09d"
+    },
+    {
+      "blind_case_id": "GHR-0270",
+      "case_id": "ext-iqa-pass-027",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-1d1ce626b09d"
+    },
+    {
+      "blind_case_id": "GHR-0271",
+      "case_id": "ext-iqa-pass-078",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-6b50e6a0e3ef"
+    },
+    {
+      "blind_case_id": "GHR-0272",
+      "case_id": "ext-iqa-fail-025",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-aba2c9e7a82d"
+    },
+    {
+      "blind_case_id": "GHR-0273",
+      "case_id": "ext-iqa-pass-025",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-aba2c9e7a82d"
+    },
+    {
+      "blind_case_id": "GHR-0274",
+      "case_id": "ext-iqa-fail-043",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-e91671ac667e"
+    },
+    {
+      "blind_case_id": "GHR-0275",
+      "case_id": "ext-iqa-pass-043",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-e91671ac667e"
+    },
+    {
+      "blind_case_id": "GHR-0276",
+      "case_id": "ext-iqa-fail-076",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-495342c21815"
+    },
+    {
+      "blind_case_id": "GHR-0277",
+      "case_id": "ext-helvetia-fail-007",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "blind_case_id": "GHR-0278",
+      "case_id": "ext-helvetia-fail-018",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "blind_case_id": "GHR-0279",
+      "case_id": "ext-helvetia-fail-029",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "blind_case_id": "GHR-0280",
+      "case_id": "ext-helvetia-fail-039",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "blind_case_id": "GHR-0281",
+      "case_id": "ext-helvetia-pass-010",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "blind_case_id": "GHR-0282",
+      "case_id": "ext-helvetia-pass-021",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "blind_case_id": "GHR-0283",
+      "case_id": "ext-helvetia-pass-032",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "blind_case_id": "GHR-0284",
+      "case_id": "ext-helvetia-pass-043",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "blind_case_id": "GHR-0285",
+      "case_id": "ext-helvetia-pass-054",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "blind_case_id": "GHR-0286",
+      "case_id": "ext-iqa-fail-021",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-5ec7b9af0c61"
+    },
+    {
+      "blind_case_id": "GHR-0287",
+      "case_id": "ext-iqa-fail-051",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-5ec7b9af0c61"
+    },
+    {
+      "blind_case_id": "GHR-0288",
+      "case_id": "ext-iqa-pass-021",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-5ec7b9af0c61"
+    },
+    {
+      "blind_case_id": "GHR-0289",
+      "case_id": "ext-iqa-pass-051",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-5ec7b9af0c61"
+    },
+    {
+      "blind_case_id": "GHR-0290",
+      "case_id": "ext-iqa-fail-078",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-ea3bb032ab54"
+    },
+    {
+      "blind_case_id": "GHR-0291",
+      "case_id": "ext-iqa-fail-060",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-8472bb0c76c3"
+    },
+    {
+      "blind_case_id": "GHR-0292",
+      "case_id": "ext-iqa-pass-060",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-8472bb0c76c3"
+    },
+    {
+      "blind_case_id": "GHR-0293",
+      "case_id": "ext-helvetia-fail-001",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "blind_case_id": "GHR-0294",
+      "case_id": "ext-helvetia-fail-009",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "blind_case_id": "GHR-0295",
+      "case_id": "ext-helvetia-fail-012",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "blind_case_id": "GHR-0296",
+      "case_id": "ext-helvetia-fail-021",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "blind_case_id": "GHR-0297",
+      "case_id": "ext-helvetia-fail-031",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "blind_case_id": "GHR-0298",
+      "case_id": "ext-helvetia-pass-002",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "blind_case_id": "GHR-0299",
+      "case_id": "ext-helvetia-pass-013",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "blind_case_id": "GHR-0300",
+      "case_id": "ext-helvetia-pass-024",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "blind_case_id": "GHR-0301",
+      "case_id": "ext-helvetia-pass-035",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "blind_case_id": "GHR-0302",
+      "case_id": "ext-helvetia-pass-046",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "blind_case_id": "GHR-0303",
+      "case_id": "ext-helvetia-pass-057",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "blind_case_id": "GHR-0304",
+      "case_id": "ext-legacy-004",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-914b745629ef"
+    },
+    {
+      "blind_case_id": "GHR-0305",
+      "case_id": "ext-iqa-pass-098",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-3b134e28c017"
+    },
+    {
+      "blind_case_id": "GHR-0306",
+      "case_id": "ext-iqa-fail-065",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-23c6bcee5466"
+    },
+    {
+      "blind_case_id": "GHR-0307",
+      "case_id": "ext-iqa-pass-065",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-23c6bcee5466"
+    },
+    {
+      "blind_case_id": "GHR-0308",
+      "case_id": "ext-iqa-pass-077",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-1fe2a3e8b76f"
+    },
+    {
+      "blind_case_id": "GHR-0309",
+      "case_id": "ext-iqa-fail-014",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-e5fbc46753a2"
+    },
+    {
+      "blind_case_id": "GHR-0310",
+      "case_id": "ext-iqa-fail-063",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-e5fbc46753a2"
+    },
+    {
+      "blind_case_id": "GHR-0311",
+      "case_id": "ext-iqa-pass-014",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-e5fbc46753a2"
+    },
+    {
+      "blind_case_id": "GHR-0312",
+      "case_id": "ext-iqa-pass-063",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-e5fbc46753a2"
+    },
+    {
+      "blind_case_id": "GHR-0313",
+      "case_id": "ext-iqa-fail-048",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-bb496bd62b0e"
+    },
+    {
+      "blind_case_id": "GHR-0314",
+      "case_id": "ext-iqa-pass-048",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-bb496bd62b0e"
+    },
+    {
+      "blind_case_id": "GHR-0315",
+      "case_id": "ext-iqa-pass-102",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-1253764bbd0f"
+    },
+    {
+      "blind_case_id": "GHR-0316",
+      "case_id": "ext-iqa-pass-089",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-f21b5436fe03"
+    },
+    {
+      "blind_case_id": "GHR-0317",
+      "case_id": "ext-iqa-pass-090",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-260d2ea3e827"
+    },
+    {
+      "blind_case_id": "GHR-0318",
+      "case_id": "ext-iqa-pass-084",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-4501a3e32b81"
+    },
+    {
+      "blind_case_id": "GHR-0319",
+      "case_id": "ext-legacy-006",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-8c21eb93d9bc"
+    },
+    {
+      "blind_case_id": "GHR-0320",
+      "case_id": "ext-iqa-pass-083",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e56431f4de61"
+    },
+    {
+      "blind_case_id": "GHR-0321",
+      "case_id": "ext-iqa-fail-037",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-75f840a070a5"
+    },
+    {
+      "blind_case_id": "GHR-0322",
+      "case_id": "ext-iqa-pass-037",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-75f840a070a5"
+    },
+    {
+      "blind_case_id": "GHR-0323",
+      "case_id": "ext-legacy-026",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-96fd78f145ac"
+    },
+    {
+      "blind_case_id": "GHR-0324",
+      "case_id": "ext-iqa-fail-044",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-2f27fd06051f"
+    },
+    {
+      "blind_case_id": "GHR-0325",
+      "case_id": "ext-iqa-pass-044",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-2f27fd06051f"
+    },
+    {
+      "blind_case_id": "GHR-0326",
+      "case_id": "ext-iqa-fail-009",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-0d9016c6778e"
+    },
+    {
+      "blind_case_id": "GHR-0327",
+      "case_id": "ext-iqa-pass-009",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-0d9016c6778e"
+    },
+    {
+      "blind_case_id": "GHR-0328",
+      "case_id": "ext-iqa-pass-071",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-79756d801e39"
+    },
+    {
+      "blind_case_id": "GHR-0329",
+      "case_id": "ext-iqa-fail-071",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-a139ceecfa4a"
+    },
+    {
+      "blind_case_id": "GHR-0330",
+      "case_id": "ext-iqa-pass-081",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-a139ceecfa4a"
+    },
+    {
+      "blind_case_id": "GHR-0331",
+      "case_id": "ext-helvetia-fail-005",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "blind_case_id": "GHR-0332",
+      "case_id": "ext-helvetia-fail-016",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "blind_case_id": "GHR-0333",
+      "case_id": "ext-helvetia-fail-026",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "blind_case_id": "GHR-0334",
+      "case_id": "ext-helvetia-fail-036",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "blind_case_id": "GHR-0335",
+      "case_id": "ext-helvetia-pass-007",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "blind_case_id": "GHR-0336",
+      "case_id": "ext-helvetia-pass-018",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "blind_case_id": "GHR-0337",
+      "case_id": "ext-helvetia-pass-029",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "blind_case_id": "GHR-0338",
+      "case_id": "ext-helvetia-pass-040",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "blind_case_id": "GHR-0339",
+      "case_id": "ext-helvetia-pass-051",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "blind_case_id": "GHR-0340",
+      "case_id": "ext-iqa-fail-068",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-1765c102a38c"
+    },
+    {
+      "blind_case_id": "GHR-0341",
+      "case_id": "ext-iqa-pass-068",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-1765c102a38c"
+    },
+    {
+      "blind_case_id": "GHR-0342",
+      "case_id": "ext-iqa-fail-017",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-6b9a823da657"
+    },
+    {
+      "blind_case_id": "GHR-0343",
+      "case_id": "ext-iqa-pass-017",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-6b9a823da657"
+    },
+    {
+      "blind_case_id": "GHR-0344",
+      "case_id": "ext-iqa-fail-072",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-2fdcfee9d401"
+    },
+    {
+      "blind_case_id": "GHR-0345",
+      "case_id": "ext-iqa-pass-096",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-2fdcfee9d401"
+    },
+    {
+      "blind_case_id": "GHR-0346",
+      "case_id": "ext-iqa-fail-033",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-5d4ec89b8176"
+    },
+    {
+      "blind_case_id": "GHR-0347",
+      "case_id": "ext-iqa-pass-033",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-5d4ec89b8176"
+    },
+    {
+      "blind_case_id": "GHR-0348",
+      "case_id": "ext-legacy-005",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-190c8d5c9e81"
+    },
+    {
+      "blind_case_id": "GHR-0349",
+      "case_id": "ext-iqa-fail-054",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-55aa2726a798"
+    },
+    {
+      "blind_case_id": "GHR-0350",
+      "case_id": "ext-iqa-pass-054",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-55aa2726a798"
+    },
+    {
+      "blind_case_id": "GHR-0351",
+      "case_id": "ext-iqa-pass-087",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-45a0ee290c0d"
+    },
+    {
+      "blind_case_id": "GHR-0352",
+      "case_id": "ext-iqa-fail-035",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-998dc2e43ba5"
+    },
+    {
+      "blind_case_id": "GHR-0353",
+      "case_id": "ext-iqa-pass-035",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-998dc2e43ba5"
+    },
+    {
+      "blind_case_id": "GHR-0354",
+      "case_id": "ext-iqa-pass-080",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-d22d88154e4b"
+    },
+    {
+      "blind_case_id": "GHR-0355",
+      "case_id": "ext-iqa-pass-099",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-578f38d6df39"
+    },
+    {
+      "blind_case_id": "GHR-0356",
+      "case_id": "ext-iqa-fail-018",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-3570ee32687e"
+    },
+    {
+      "blind_case_id": "GHR-0357",
+      "case_id": "ext-iqa-pass-018",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-3570ee32687e"
+    },
+    {
+      "blind_case_id": "GHR-0358",
+      "case_id": "ext-iqa-fail-080",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-3181b98ac074"
+    },
+    {
+      "blind_case_id": "GHR-0359",
+      "case_id": "ext-iqa-fail-028",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0be3095c3478"
+    },
+    {
+      "blind_case_id": "GHR-0360",
+      "case_id": "ext-iqa-pass-028",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0be3095c3478"
+    },
+    {
+      "blind_case_id": "GHR-0361",
+      "case_id": "ext-iqa-fail-041",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-bce999019bc2"
+    },
+    {
+      "blind_case_id": "GHR-0362",
+      "case_id": "ext-iqa-pass-041",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-bce999019bc2"
+    },
+    {
+      "blind_case_id": "GHR-0363",
+      "case_id": "ext-iqa-pass-104",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-3a5fb2f61ecb"
+    },
+    {
+      "blind_case_id": "GHR-0364",
+      "case_id": "ext-iqa-fail-045",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb55c6c4f298"
+    },
+    {
+      "blind_case_id": "GHR-0365",
+      "case_id": "ext-iqa-pass-045",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb55c6c4f298"
+    }
+  ]
+}

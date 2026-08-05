@@ -1,0 +1,629 @@
+{
+  "schemaVersion": "1.0",
+  "testId": "combined-crm-rag-glass-damage-20260726-203418",
+  "generatedAt": "2026-07-26T20:57:54+02:00",
+  "repository": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main",
+  "execution": {
+    "kind": "real-live-read-only",
+    "backendPath": "POST /api/ask",
+    "simulatedCrm": false,
+    "simulatedRetrieval": false,
+    "configurationChanged": false,
+    "reindexStarted": false,
+    "crmWritesPerformed": false
+  },
+  "question": "Lara Neumann reported windshield glass damage. Is glass damage generally covered under partial coverage motor insurance? Also provide the coverage type, specific deductible, and policy number stored for the motor policy of Lara Neumann. Separate the general document rule from the individual CRM policy data.",
+  "requiredFacts": [
+    "contact identity",
+    "contact-to-motor-policy association",
+    "policy number",
+    "coverage type",
+    "individual deductible",
+    "general document rule for glass damage"
+  ],
+  "preflight": {
+    "status": "PASS",
+    "containers": {
+      "mva-backend": "running/healthy",
+      "mva-espocrm": "running/healthy",
+      "mva-espocrm-db": "running/healthy"
+    },
+    "health": {
+      "status": "ok",
+      "pipelineReady": true,
+      "crmReady": true,
+      "retrievalReady": true,
+      "llmReady": true,
+      "ollamaReachable": true,
+      "answerModelReady": true,
+      "guardrailModelReady": true,
+      "embeddingReady": true,
+      "safetyEnabled": true,
+      "safetyMode": "enforce"
+    },
+    "espocrm": {
+      "url": "http://localhost:8080/",
+      "reachable": true,
+      "httpStatus": 200
+    },
+    "ollama": {
+      "url": "http://localhost:11434/api/tags",
+      "reachable": true,
+      "availableModelCount": 6
+    },
+    "chromaCollection": {
+      "name": "insurance_rag_collection",
+      "countBefore": 8551
+    },
+    "readOnlyToolsDiscovered": [
+      "find_customer",
+      "get_claim_status",
+      "get_customer_claims",
+      "get_customer_policies",
+      "get_policy"
+    ]
+  },
+  "crmGroundTruth": {
+    "status": "PASS",
+    "access": {
+      "kind": "read-only MCP tools backed by EspoCRM REST API",
+      "entities": [
+        "Contact",
+        "MvaPolicy",
+        "MvaClaim"
+      ],
+      "toolsUsed": [
+        "find_customer",
+        "get_customer_policies",
+        "get_policy",
+        "get_customer_claims",
+        "get_claim_status"
+      ]
+    },
+    "contact": {
+      "name": "Lara Neumann",
+      "email": "l***@example.test"
+    },
+    "relevantPolicy": {
+      "name": "Lara Neumann Motor 2026",
+      "policyNumber": "TEST-KFZ-2026-1001",
+      "product": "Motor Insurance",
+      "coverageType": "Partial Coverage",
+      "status": "Active",
+      "deductible": {
+        "amount": 150,
+        "currency": "EUR"
+      },
+      "annualPremium": {
+        "amount": 684,
+        "currency": "EUR"
+      },
+      "term": {
+        "start": "2026-01-01",
+        "end": "2026-12-31"
+      }
+    },
+    "selectionReason": "The contact also has a personal-liability policy, but only TEST-KFZ-2026-1001 is a Motor Insurance policy and therefore relevant to the windshield question.",
+    "otherPolicy": {
+      "policyNumber": "TEST-PHV-2026-1002",
+      "product": "Personal Liability",
+      "relevant": false
+    },
+    "relatedClaim": {
+      "claimNumber": "TEST-CLM-2026-2001",
+      "type": "Glass Damage",
+      "status": "Under Review",
+      "reportedDate": "2026-07-10",
+      "claimedAmount": {
+        "amount": 780,
+        "currency": "EUR"
+      }
+    }
+  },
+  "ragGroundTruth": {
+    "status": "PASS",
+    "generationUsed": false,
+    "allowReindex": false,
+    "configuredRetrievalTopK": 8,
+    "configuredRerankTopK": 5,
+    "groundTruthQuery": "Under partial coverage motor insurance, is windshield glass damage covered, and what conditions or limitations apply?",
+    "groundTruthQueryResult": {
+      "retrievedCount": 8,
+      "rerankedCount": 5,
+      "relevantRerankedChunks": 4,
+      "irrelevantRerankedChunks": 1,
+      "chunkRelevance": 0.8,
+      "wallLatencyMs": 57239.926,
+      "stageTimingsMs": {
+        "embedding": 10093.215,
+        "lexicalRetrieval": 70.523,
+        "vectorRetrieval": 891.968,
+        "hybridMerge": 0.039,
+        "retrieval": 963.671,
+        "reranking": 31972.428
+      }
+    },
+    "combinedQuestionCandidateReplay": {
+      "purpose": "Inspect the same five reranked candidates made available before self_check without generation or prompt disclosure.",
+      "retrievedCount": 8,
+      "rerankedCount": 5,
+      "relevantRerankedChunks": 3,
+      "irrelevantRerankedChunks": 2,
+      "contextRelevance": 0.6,
+      "wallLatencyMs": 81007.606,
+      "stageTimingsMs": {
+        "embedding": 8563.61,
+        "lexicalRetrieval": 164.499,
+        "vectorRetrieval": 1852.856,
+        "hybridMerge": 0.072,
+        "retrieval": 2018.922,
+        "reranking": 55792.293
+      },
+      "candidates": [
+        {
+          "rank": 1,
+          "filename": "Insurance_Handbook_20103.pdf",
+          "metadataPage": 10,
+          "humanPdfPage": 11,
+          "characterCount": 922,
+          "relevant": true,
+          "reason": "States that comprehensive coverage may reimburse cracked or shattered windshields and that separate glass coverage may have a deductible."
+        },
+        {
+          "rank": 2,
+          "filename": "consumer-auto-shopping-tool.pdf",
+          "metadataPage": 10,
+          "humanPdfPage": 11,
+          "characterCount": 989,
+          "relevant": false,
+          "reason": "Contains consumer questions about glass shops and deductibles but no affirmative coverage rule."
+        },
+        {
+          "rank": 3,
+          "filename": "140_1261_e.pdf",
+          "metadataPage": 19,
+          "humanPdfPage": 20,
+          "characterCount": 997,
+          "relevant": false,
+          "reason": "Discusses building and household glass, not motor-vehicle glass."
+        },
+        {
+          "rank": 4,
+          "filename": "240_1217_e.pdf",
+          "metadataPage": 13,
+          "humanPdfPage": 14,
+          "characterCount": 975,
+          "relevant": true,
+          "reason": "Describes a conditional certified-repair-partner rule and an increased deductible for applicable EasyRepair cover."
+        },
+        {
+          "rank": 5,
+          "filename": "240_1184_e.pdf",
+          "metadataPage": 1,
+          "humanPdfPage": 2,
+          "characterCount": 993,
+          "relevant": true,
+          "reason": "Explicitly lists glass breakage under part comprehensive insurance."
+        }
+      ]
+    },
+    "additionalCoverageEvidence": [
+      {
+        "groundTruthRank": 1,
+        "filename": "publication-aut-pp-consumer-auto.pdf",
+        "metadataPage": 7,
+        "humanPdfPage": 8,
+        "claimSupported": "Comprehensive coverage can reimburse pitted, cracked or damaged windshields; some companies do not charge a deductible for windshield repair."
+      },
+      {
+        "groundTruthRank": 3,
+        "filename": "240_1217_e.pdf",
+        "metadataPage": 12,
+        "humanPdfPage": 13,
+        "claimSupported": "Part comprehensive event TK1.4 includes breakage of the windscreen, side windows or rear windows."
+      },
+      {
+        "groundTruthRank": 4,
+        "filename": "240_1184_e.pdf",
+        "metadataPage": 1,
+        "humanPdfPage": 2,
+        "claimSupported": "Part comprehensive insurance includes glass breakage."
+      }
+    ],
+    "verifiedConclusion": "The documents support that glass breakage, including windscreen damage, is generally covered by part comprehensive/partial coverage. Deductibles and repair-partner conditions can vary. No document establishes that the CRM amount of 150 EUR is a coverage limit; it is the individual deductible.",
+    "citationVisualValidation": {
+      "filesExist": true,
+      "pagesRenderedAndInspected": [
+        {
+          "filename": "publication-aut-pp-consumer-auto.pdf",
+          "humanPdfPage": 8,
+          "metadataPage": 7,
+          "offByOneChecked": true
+        },
+        {
+          "filename": "240_1217_e.pdf",
+          "humanPdfPage": 13,
+          "metadataPage": 12,
+          "offByOneChecked": true
+        },
+        {
+          "filename": "240_1217_e.pdf",
+          "humanPdfPage": 14,
+          "metadataPage": 13,
+          "offByOneChecked": true
+        },
+        {
+          "filename": "240_1184_e.pdf",
+          "humanPdfPage": 2,
+          "metadataPage": 1,
+          "offByOneChecked": true
+        }
+      ]
+    }
+  },
+  "expectedCombinedAnswer": {
+    "summary": "General document rule: part comprehensive/partial coverage generally includes glass breakage and windscreen damage; terms may impose a deductible and, where specifically agreed, repair-partner conditions. Individual CRM data: Lara Neumann is assigned to active motor policy TEST-KFZ-2026-1001 with Partial Coverage and a 150 EUR deductible. The 150 EUR is a deductible, not a demonstrated coverage limit; an individual claim decision remains subject to the policy terms.",
+    "requiresBothSources": true
+  },
+  "liveExecution": {
+    "authoritativePair": {
+      "questionCorrectlyParsedCustomer": "Lara Neumann",
+      "coldWarmRatio": 1.0577,
+      "runs": [
+        {
+          "run": "cold-label-first-corrected",
+          "processCold": false,
+          "httpStatus": 206,
+          "responseStatus": "partial",
+          "route": "combined",
+          "crmResultPresent": true,
+          "knowledgeResult": null,
+          "sourceCount": 4,
+          "sourceTypes": [
+            "EspoCRM Contact",
+            "EspoCRM Policy",
+            "EspoCRM Policy",
+            "EspoCRM Claim"
+          ],
+          "pdfSourceCount": 0,
+          "warning": {
+            "errorCode": "LLM_STAGE_TIMEOUT",
+            "stage": "self_check",
+            "message": "The self check stage exceeded its configured timeout."
+          },
+          "wallLatencyMs": 50432.08,
+          "diagnosticTotalMs": 50414.193,
+          "stageTimingsMs": {
+            "routePlanning": 0.83,
+            "guardrail": 58.211,
+            "crm": 193.419,
+            "embedding": null,
+            "lexicalRetrieval": 179.639,
+            "vectorRetrieval": 860.192,
+            "hybridMerge": 0.06,
+            "retrieval": 1040.889,
+            "reranking": 11370.049,
+            "selfCheck": 30045.66,
+            "rewrite": null,
+            "compression": null,
+            "answer": null
+          },
+          "retries": {}
+        },
+        {
+          "run": "warm",
+          "processCold": false,
+          "httpStatus": 206,
+          "responseStatus": "partial",
+          "route": "combined",
+          "crmResultPresent": true,
+          "knowledgeResult": null,
+          "sourceCount": 4,
+          "sourceTypes": [
+            "EspoCRM Contact",
+            "EspoCRM Policy",
+            "EspoCRM Policy",
+            "EspoCRM Claim"
+          ],
+          "pdfSourceCount": 0,
+          "warning": {
+            "errorCode": "LLM_STAGE_TIMEOUT",
+            "stage": "self_check",
+            "message": "The self check stage exceeded its configured timeout."
+          },
+          "wallLatencyMs": 47679.596,
+          "diagnosticTotalMs": 47671.251,
+          "stageTimingsMs": {
+            "routePlanning": 1.374,
+            "guardrail": 68.048,
+            "crm": 209.056,
+            "embedding": null,
+            "lexicalRetrieval": 199.479,
+            "vectorRetrieval": 700.551,
+            "hybridMerge": 0.071,
+            "retrieval": 900.713,
+            "reranking": 9247.496,
+            "selfCheck": 30050.028,
+            "rewrite": null,
+            "compression": null,
+            "answer": null
+          },
+          "retries": {}
+        }
+      ]
+    },
+    "actualPartialAnswer": "CRM facts:\nCustomer: Lara Neumann (l***@example.test).\nPolicy TEST-PHV-2026-1002: Personal Liability, Liability, Active; term 2026-01-01 to 2026-12-31; deductible 0 EUR; annual premium 96 EUR.\nPolicy TEST-KFZ-2026-1001: Motor Insurance, Partial Coverage, Active; term 2026-01-01 to 2026-12-31; deductible 150 EUR; annual premium 684 EUR.\nClaim TEST-CLM-2026-2001: Glass Damage, status Under Review; reported 2026-07-10; claimed amount 780 EUR; policy Lara Neumann Motor 2026.\n\nDocument evidence:\nUnavailable. No coverage or claim decision was inferred from CRM data.",
+    "authoritativeSources": [
+      {
+        "type": "CRM",
+        "title": "EspoCRM Contact",
+        "section": "Lara Neumann",
+        "page": null
+      },
+      {
+        "type": "CRM",
+        "title": "EspoCRM Policy",
+        "section": "TEST-PHV-2026-1002",
+        "page": null
+      },
+      {
+        "type": "CRM",
+        "title": "EspoCRM Policy",
+        "section": "TEST-KFZ-2026-1001",
+        "page": null
+      },
+      {
+        "type": "CRM",
+        "title": "EspoCRM Claim",
+        "section": "TEST-CLM-2026-2001",
+        "page": null
+      }
+    ],
+    "initialNonAuthoritativePair": {
+      "question": "Does Lara Neumann's motor insurance cover windshield glass damage? If so, under which coverage type, what is her specific deductible, and what is her policy number? Separate the general document rule from her individual CRM policy data.",
+      "result": "Excluded from functional scoring because the conservative name parser selected 'Does Lara', so CRM returned no matching customer.",
+      "route": "combined",
+      "httpStatuses": [
+        206,
+        206
+      ],
+      "wallLatenciesMs": [
+        76035.718,
+        46910.022
+      ],
+      "coldWarmRatio": 1.6209,
+      "errorCode": "LLM_STAGE_TIMEOUT",
+      "errorStage": "self_check",
+      "mitigation": "Only the isolated test question was rephrased to start with 'Lara Neumann'; production routing code and runtime configuration were not changed."
+    }
+  },
+  "timeoutDiagnosis": {
+    "errorCode": "LLM_STAGE_TIMEOUT",
+    "errorStage": "self_check",
+    "httpPartialContractStatus": 206,
+    "configuredStageTimeoutSeconds": 30,
+    "testClientTimeoutSeconds": 190,
+    "requestLevelTimeoutTriggered": false,
+    "selfCheckInput": {
+      "documentCount": 5,
+      "chunkCharacterCounts": [
+        922,
+        989,
+        997,
+        975,
+        993
+      ],
+      "chunkBodyCharactersTotal": 4876,
+      "formattedContextCharacters": 5006,
+      "outputTokenLimit": 8
+    },
+    "retrievalCompletedBeforeTimeout": true,
+    "rerankingCompletedBeforeTimeout": true,
+    "rewriteStarted": false,
+    "compressionStarted": false,
+    "answerGenerationStarted": false,
+    "retries": 0,
+    "causeClassification": "runtime-processing-timeout",
+    "missingDataCause": false,
+    "explanation": "CRM facts and sufficient PDF chunks were available, but self_check consumed its existing 30-second stage budget. The runtime correctly returned a classified HTTP 206 partial response and did not infer glass coverage from CRM alone."
+  },
+  "qualityMetrics": {
+    "contextRelevance": {
+      "score": 0.6,
+      "definition": "Relevant reranked chunks divided by the five reranked candidates for the exact combined question.",
+      "relevant": 3,
+      "total": 5,
+      "note": "The dedicated general ground-truth retrieval was stronger at 4/5 = 0.8."
+    },
+    "contextSufficiency": {
+      "score": 1.0,
+      "presentRequiredFacts": 6,
+      "totalRequiredFacts": 6,
+      "note": "The combined CRM and retrieved PDF context contained all required facts. The failure occurred during processing, not retrieval."
+    },
+    "answerHallucinationRate": {
+      "score": 0.0,
+      "unsupportedStatements": 0,
+      "verifiableStatements": 22,
+      "scope": "Actual emitted partial answer only",
+      "limitation": "No complete document-grounded answer was generated, so the rate cannot demonstrate hallucination performance for the missing glass-coverage statement."
+    },
+    "answerCorrectness": {
+      "score": 0.8333,
+      "correctRequiredFacts": 5,
+      "totalRequiredFacts": 6,
+      "checks": [
+        {
+          "statement": "Contact identity",
+          "expected": "Lara Neumann",
+          "actual": "Lara Neumann",
+          "source": "CRM",
+          "result": "PASS"
+        },
+        {
+          "statement": "Contact-to-motor-policy association",
+          "expected": "Lara Neumann Motor 2026",
+          "actual": "Lara Neumann Motor 2026",
+          "source": "CRM",
+          "result": "PASS"
+        },
+        {
+          "statement": "Policy number",
+          "expected": "TEST-KFZ-2026-1001",
+          "actual": "TEST-KFZ-2026-1001",
+          "source": "CRM",
+          "result": "PASS"
+        },
+        {
+          "statement": "Coverage type",
+          "expected": "Partial Coverage",
+          "actual": "Partial Coverage",
+          "source": "CRM",
+          "result": "PASS"
+        },
+        {
+          "statement": "Individual deductible",
+          "expected": "150 EUR",
+          "actual": "150 EUR",
+          "source": "CRM",
+          "result": "PASS"
+        },
+        {
+          "statement": "General glass-coverage rule",
+          "expected": "Part comprehensive/partial coverage generally covers glass breakage, subject to terms.",
+          "actual": "Unavailable",
+          "source": "PDF/RAG",
+          "result": "FAIL"
+        }
+      ]
+    },
+    "citationValidity": {
+      "result": "FAIL",
+      "reason": "The actual HTTP 206 answer contains no PDF citation because knowledgeResult is null.",
+      "independentGroundTruthCitationValidation": "PASS"
+    },
+    "sourceCompleteness": {
+      "requiredAnswerCoverageScore": 0.8333,
+      "sourcedRequiredFacts": 5,
+      "totalRequiredFacts": 6,
+      "emittedClaimSourceCompleteness": 1.0,
+      "note": "All emitted CRM claims are sourced; the required PDF-grounded coverage claim is absent rather than unsourced."
+    },
+    "routingAccuracy": {
+      "score": 1.0,
+      "expected": "combined",
+      "actual": "combined",
+      "result": "PASS"
+    },
+    "existingDeterministicQaMetrics": {
+      "implementation": "src.evaluation.thesis_metrics.build_qa_metric_row",
+      "retrievalSupportHit": 1.0,
+      "retrievalContextPrecision": 0.8889,
+      "answerExactMatch": 0.0,
+      "answerTokenF1": 0.2973,
+      "citationSourcePresence": 1.0,
+      "citationSupportRate": 0.625,
+      "interpretation": "Citation source presence is satisfied by CRM sources only and therefore does not override the failed PDF citation-validity check."
+    }
+  },
+  "functionalEvaluation": {
+    "routeCombined": "PASS",
+    "crmCalledAndCorrect": "PASS",
+    "retrievalAndRerankingExecuted": "PASS",
+    "http206PartialContract": "PASS",
+    "unsupportedCoverageDecisionAvoided": "PASS",
+    "documentEvidenceReturnedToUser": "FAIL",
+    "completeResponse": "FAIL",
+    "result": "PARTIAL"
+  },
+  "performanceEvaluation": {
+    "result": "FAIL",
+    "reason": "Both authoritative requests timed out in self_check and no complete combined answer was produced.",
+    "coldWarmRatio": 1.0577,
+    "warmWallLatencyImprovementMs": 2752.484,
+    "warmWallLatencyImprovementPercent": 5.46,
+    "runtimeStabilizationBehavior": "PASS: the timeout was bounded, classified, and returned as HTTP 206 rather than an unclassified HTTP 500.",
+    "completeE2ePerformance": "FAIL"
+  },
+  "regression": {
+    "status": "PASS",
+    "commandResult": "47 passed, 22 warnings in 79.13s",
+    "tests": [
+      "tests/unit/test_llm_runtime_stabilization.py",
+      "tests/unit/test_insurance_tool_routing.py",
+      "tests/unit/test_crm_orchestration.py",
+      "tests/unit/test_retrieval_service.py",
+      "tests/unit/test_crm_mcp_tools.py",
+      "tests/integration/test_crm_api_routing.py",
+      "tests/integration/test_espocrm_live.py",
+      "tests/integration/test_rag_smoke.py"
+    ],
+    "warnings": "Dependency deprecation warnings only; no test failures."
+  },
+  "integrity": {
+    "status": "PASS",
+    "chroma": {
+      "countBefore": 8551,
+      "countAfter": 8551,
+      "unchanged": true
+    },
+    "crmCounts": {
+      "before": {
+        "Contact": 10,
+        "MvaPolicy": 15,
+        "MvaClaim": 8
+      },
+      "after": {
+        "Contact": 10,
+        "MvaPolicy": 15,
+        "MvaClaim": 8
+      },
+      "unchanged": true
+    },
+    "pdfGitStatus": "clean",
+    "pdfGitDiff": "empty",
+    "pdfsChanged": false,
+    "secretsEmitted": false,
+    "crmRecordsExported": false,
+    "crmWrites": 0,
+    "reindexes": 0,
+    "runtimeConfigurationChanges": 0,
+    "productionPipelineCodeChangesForThisTest": 0
+  },
+  "verdict": {
+    "CRM Data Retrieval": "PASS",
+    "RAG Retrieval": "PASS",
+    "Combined Routing": "PASS",
+    "Combined Partial Contract": "PASS",
+    "Complete Combined E2E": "FAIL",
+    "Context Relevance": 0.6,
+    "Context Sufficiency": 1.0,
+    "Answer Hallucination Rate": 0.0,
+    "Citation Validity": "FAIL",
+    "Functional": "PARTIAL",
+    "Quality": "PARTIAL",
+    "Performance": "FAIL",
+    "Safety and Integrity": "PASS",
+    "Overall": "PARTIAL"
+  },
+  "recommendedNextStep": "Profile or optimize the existing self_check implementation with the same model, timeout, retrieval-k, reranker, guardrails, and retry policy. Re-run this exact harness afterward. Any configuration change should be a separately approved experiment and must not redefine this baseline.",
+  "essentialCommandsExecuted": [
+    "docker compose ps",
+    "Invoke-RestMethod -Uri http://localhost:8000/health | ConvertTo-Json -Depth 8",
+    "Invoke-WebRequest -Uri http://localhost:8080/ -Method Head -UseBasicParsing",
+    "Invoke-RestMethod -Uri http://localhost:11434/api/tags",
+    "docker exec mva-backend python scripts/test_mcp_crm_client.py",
+    "docker exec mva-backend python scripts/test_combined_crm_rag_glass_damage.py retrieval --output reports/.combined_crm_rag_glass_damage_retrieval_20260726_203418.json",
+    ".\\.venv\\Scripts\\python.exe scripts/test_combined_crm_rag_glass_damage.py live --output reports/.combined_crm_rag_glass_damage_live_corrected_20260726_203418.json --backend-url http://localhost:8000 --timeout-seconds 190",
+    "docker exec mva-backend python /app/tmp/compute_existing_qa_metrics.txt",
+    "docker exec --env ESPOCRM_PUBLIC_URL=http://espocrm mva-backend python -m pytest -q tests/unit/test_llm_runtime_stabilization.py tests/unit/test_insurance_tool_routing.py tests/unit/test_crm_orchestration.py tests/unit/test_retrieval_service.py tests/unit/test_crm_mcp_tools.py tests/integration/test_crm_api_routing.py tests/integration/test_espocrm_live.py tests/integration/test_rag_smoke.py",
+    "docker exec mva-backend python /app/tmp/check_combined_integrity.py",
+    "git status --short -- data/raw/pdfs",
+    "git diff --name-only -- data/raw/pdfs"
+  ],
+  "testArtifacts": [
+    "scripts/test_combined_crm_rag_glass_damage.py",
+    "reports/combined_crm_rag_glass_damage_test_20260726_203418.md",
+    "reports/combined_crm_rag_glass_damage_test_20260726_203418.json"
+  ]
+}

@@ -9,8 +9,10 @@ import pytest
 pytest.importorskip("nemoguardrails")
 
 from src.config.models import SafetyConfig
+from src.core.llm_runtime import LLMStageTimeoutError
 from src.core.safety_adapter import NemoSafetyChecker, create_safety_checker
 from src.guardrails.integrations.nemo_official import create_nemo_official_runtime
+from src.guardrails.types import StageResult
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -156,13 +158,17 @@ def test_official_nemo_runtime_generate_raises_timeout_for_slow_nemo_call() -> N
         return {"output_data": {"guardrails_input_action": "allow"}}
 
     with patch.object(rails, "generate_async", new=AsyncMock(side_effect=_slow_generate_async)):
-        with pytest.raises(TimeoutError, match="NeMo runtime timed out"):
+        with pytest.raises(
+            LLMStageTimeoutError,
+            match="guardrail stage exceeded",
+        ) as timeout_error:
             runtime._generate(
                 rails,
                 messages=[{"role": "user", "content": "What is insurance?"}],
                 options={"rails": ["input"], "output_vars": True},
                 timeout_seconds=0.01,
             )
+    assert timeout_error.value.stage == "guardrail"
 
 
 def test_official_nemo_runtime_prequery_allows_benign_dataset_question_through_active_nemo_runtime() -> None:
@@ -197,7 +203,7 @@ def test_official_nemo_runtime_context_stage_allows_safe_docs() -> None:
     assert stage_result.action == "allow"
 
 
-def test_official_nemo_runtime_output_stage_redacts_email() -> None:
+def test_official_nemo_runtime_output_stage_blocks_unauthorized_email() -> None:
     runtime = create_nemo_official_runtime(_base_config())
     stage_result = runtime.run_post_generation(
         query="How can I contact support?",
@@ -206,8 +212,8 @@ def test_official_nemo_runtime_output_stage_redacts_email() -> None:
     )
 
     assert stage_result.allow is False
-    assert stage_result.action == "redact"
-    assert "[REDACTED_EMAIL]" in stage_result.answer
+    assert stage_result.action == "fallback"
+    assert "UNGROUNDED_PERSONAL_DATA" in stage_result.reasons
     assert stage_result.details.get("nemo_runtime_kind") == "official_llmrails"
 
 
@@ -222,6 +228,9 @@ def test_official_nemo_runtime_output_stage_allows_grounded_safe_answer() -> Non
 
     assert stage_result.allow is True
     assert stage_result.action == "allow"
+    groundedness = stage_result.details.get("groundedness", {})
+    assert groundedness.get("algorithm_version") == "fact_aware_claim_support_v5"
+    assert groundedness.get("claim_details")
 
 
 def test_nemo_safety_checker_uses_official_llmrails_as_primary_runtime() -> None:
@@ -291,7 +300,7 @@ def test_nemo_safety_checker_context_redaction_exposes_sanitized_docs_for_pipeli
     assert details.get("sanitized_docs")
 
 
-def test_nemo_safety_checker_output_redaction_comes_from_official_nemo_path() -> None:
+def test_nemo_safety_checker_blocks_unauthorized_output_via_official_nemo_path() -> None:
     checker = NemoSafetyChecker(_base_config())
 
     result = checker.check_answer_safety(
@@ -302,7 +311,37 @@ def test_nemo_safety_checker_output_redaction_comes_from_official_nemo_path() ->
     details = result.details or {}
 
     assert result.allow is False
-    assert result.action == "redact"
-    assert result.sanitized_answer is not None
-    assert "[REDACTED_EMAIL]" in result.sanitized_answer
+    assert result.action == "fallback"
+    assert "UNGROUNDED_PERSONAL_DATA" in result.reasons
     assert details.get("nemo_runtime_kind") == "official_llmrails"
+
+
+def test_nemo_safety_checker_preserves_groundedness_action_details() -> None:
+    checker = object.__new__(NemoSafetyChecker)
+    checker._runtime_error = None
+    groundedness = {
+        "algorithm_version": "fact_aware_claim_support_v5",
+        "claim_details": [{"claim_text": "Supported claim."}],
+    }
+    stage_result = StageResult(
+        stage="post_generation",
+        allow=False,
+        action="fallback",
+        query="query",
+        answer="answer",
+        reasons=["low_groundedness"],
+        scores={"groundedness": 0.35},
+        details={
+            "nemo_runtime_kind": "official_llmrails",
+            "groundedness": groundedness,
+        },
+    )
+
+    result = checker._runtime_result_to_safety_result(
+        stage_result,
+        stage="post_generation",
+        decision_owner="nemo_output_enforce",
+        mode="runtime_output_enforce",
+    )
+
+    assert result.details["groundedness"] == groundedness

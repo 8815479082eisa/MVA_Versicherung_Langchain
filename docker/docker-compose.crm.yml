@@ -1,0 +1,73 @@
+services:
+  backend:
+    environment:
+      - CRM_ENABLED=${CRM_ENABLED:-false}
+      - ESPOCRM_BASE_URL=${ESPOCRM_BASE_URL:-http://espocrm}
+      - ESPOCRM_API_KEY=${ESPOCRM_API_KEY:-}
+      - ESPOCRM_REQUEST_TIMEOUT_SECONDS=${ESPOCRM_REQUEST_TIMEOUT_SECONDS:-3}
+      - ESPOCRM_MAX_PAGES=${ESPOCRM_MAX_PAGES:-10}
+      - ESPOCRM_PAGE_SIZE=${ESPOCRM_PAGE_SIZE:-50}
+
+  espocrm-db:
+    image: mariadb:11.4
+    container_name: mva-espocrm-db
+    environment:
+      MARIADB_DATABASE: ${ESPOCRM_DB_NAME:-espocrm}
+      MARIADB_USER: ${ESPOCRM_DB_USER:-espocrm}
+      MARIADB_PASSWORD: ${ESPOCRM_DB_PASSWORD:?Set ESPOCRM_DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${ESPOCRM_DB_ROOT_PASSWORD:?Set ESPOCRM_DB_ROOT_PASSWORD}
+    volumes:
+      - espocrm-db-data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 20s
+      start_period: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - mva-network
+
+  espocrm:
+    image: espocrm/espocrm:10.0.3
+    container_name: mva-espocrm
+    environment:
+      ESPOCRM_DATABASE_PLATFORM: Mysql
+      ESPOCRM_DATABASE_HOST: espocrm-db
+      ESPOCRM_DATABASE_NAME: ${ESPOCRM_DB_NAME:-espocrm}
+      ESPOCRM_DATABASE_USER: ${ESPOCRM_DB_USER:-espocrm}
+      ESPOCRM_DATABASE_PASSWORD: ${ESPOCRM_DB_PASSWORD:?Set ESPOCRM_DB_PASSWORD}
+      ESPOCRM_ADMIN_USERNAME: ${ESPOCRM_ADMIN_USERNAME:-admin}
+      ESPOCRM_ADMIN_PASSWORD: ${ESPOCRM_ADMIN_PASSWORD:?Set ESPOCRM_ADMIN_PASSWORD}
+      ESPOCRM_SITE_URL: ${ESPOCRM_PUBLIC_URL:-http://localhost:8080}
+      ESPOCRM_LANGUAGE: en_US
+      ESPOCRM_TIME_ZONE: Europe/Paris
+    volumes:
+      - espocrm-data:/var/www/html/data
+      - espocrm-custom:/var/www/html/custom
+      - espocrm-client-custom:/var/www/html/client/custom
+      - ./espocrm-extension/dist:/opt/mva-extension:ro
+    ports:
+      - "${ESPOCRM_HOST_PORT:-8080}:80"
+    depends_on:
+      espocrm-db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bin/command", "app-check"]
+      start_period: 30s
+      interval: 60s
+      timeout: 20s
+      retries: 5
+    networks:
+      - mva-network
+
+networks:
+  mva-network:
+    driver: bridge
+
+volumes:
+  espocrm-db-data:
+  espocrm-data:
+  espocrm-custom:
+  espocrm-client-custom:

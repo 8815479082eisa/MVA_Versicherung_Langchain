@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "algorithm_version": "fact_aware_claim_support_v5",
+  "selected_threshold": 0.7888,
+  "selection_rule": "Require recall >= 0.80 when feasible; minimize unsupported false acceptance; then maximize F1, recall, and precision; choose the lowest tied threshold.",
+  "dataset": "tests/fixtures/groundedness_calibration_cases.json",
+  "dataset_sha256": "cf92177df13ffd58289cfca9f541c02c2b55af55e026b718edbab5063b210edb",
+  "dataset_size": 28,
+  "class_balance": {
+    "supported": 14,
+    "unsupported": 14
+  },
+  "selected_metrics": {
+    "threshold": 0.7888,
+    "tp": 14,
+    "tn": 14,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "false_acceptance_rate": 0.0
+  },
+  "cases": [
+    {
+      "id": "supported_motor_full_answer",
+      "label": "supported",
+      "score": 1.0,
+      "prediction": "accept"
+    },
+    {
+      "id": "supported_motor_paraphrase",
+      "label": "supported",
+      "score": 0.814545,
+      "prediction": "accept"
+    },
+    {
+      "id": "supported_contract_identifier",
+      "label": "supported",
+      "score": 1.0,
+      "prediction": "accept"
+    },
+    {
+      "id": "supported_deductible",
+      "label": "supported",
+      "score": 0.886667,
+      "prediction": "accept"
+    },
+    {
+      "id": "supported_exclusion",
+      "label": "supported",
+      "score": 0.8,
+      "prediction": "accept"
+    },
+    {
+      "id": "supported_liability",
+      "label": "supported",
+      "score": 0.848889,
+      "prediction": "accept"
+    },
+    {
+      "id": "supported_coverage_dates",
+      "label": "supported",
+      "score": 0.902857,
+      "prediction": "accept"
+    },
+    {
+      "id": "supported_home_deductible",
+      "label": "supported",
+      "score": 1.0,
+      "prediction": "accept"
+    },
+    {
+      "id": "supported_travel_limit",
+      "label": "supported",
+      "score": 1.0,
+      "prediction": "accept"
+    },
+    {
+      "id": "supported_dental_percentage",
+      "label": "supported",
+      "score": 1.0,
+      "prediction": "accept"
+    },
+    {
+      "id": "supported_two_claims_with_citation",
+      "label": "supported",
+      "score": 1.0,
+      "prediction": "accept"
+    },
+    {
+      "id": "supported_short_numeric_answer",
+      "label": "supported",
+      "score": 1.0,
+      "prediction": "accept"
+    },
+    {
+      "id": "unsupported_wrong_motor_deductible",
+      "label": "unsupported",
+      "score": 0.141667,
+      "prediction": "reject"
+    },
+    {
+      "id": "unsupported_wrong_contract_identifier",
+      "label": "unsupported",
+      "score": 0.145714,
+      "prediction": "reject"
+    },
+    {
+      "id": "unsupported_wrong_coverage_type",
+      "label": "unsupported",
+      "score": 0.141667,
+      "prediction": "reject"
+    },
+    {
+      "id": "unsupported_reversed_coverage",
+      "label": "unsupported",
+      "score": 0.15,
+      "prediction": "reject"
+    },
+    {
+      "id": "unsupported_zero_deductible",
+      "label": "unsupported",
+      "score": 0.1275,
+      "prediction": "reject"
+    },
+    {
+      "id": "unsupported_rental_car_extension",
+      "label": "unsupported",
+      "score": 0.333333,
+      "prediction": "reject"
+    },
+    {
+      "id": "unsupported_wrong_policy_dates",
+      "label": "unsupported",
+      "score": 0.145714,
+      "prediction": "reject"
+    },
+    {
+      "id": "unsupported_wrong_home_deductible",
+      "label": "unsupported",
+      "score": 0.145714,
+      "prediction": "reject"
+    },
+    {
+      "id": "unsupported_wrong_baggage_limit",
+      "label": "unsupported",
+      "score": 0.141667,
+      "prediction": "reject"
+    },
+    {
+      "id": "unsupported_wrong_dental_percentage",
+      "label": "unsupported",
+      "score": 0.145714,
+      "prediction": "reject"
+    },
+    {
+      "id": "unsupported_mixed_extra_claim",
+      "label": "unsupported",
+      "score": 0.5,
+      "prediction": "reject"
+    },
+    {
+      "id": "unsupported_cancellation_claim",
+      "label": "unsupported",
+      "score": 0.277875,
+      "prediction": "reject"
+    },
+    {
+      "id": "supported_customer_association",
+      "label": "supported",
+      "score": 0.583333,
+      "prediction": "accept"
+    },
+    {
+      "id": "supported_concise_coverage",
+      "label": "supported",
+      "score": 1.0,
+      "prediction": "accept"
+    },
+    {
+      "id": "unsupported_liability_distractor_answer",
+      "label": "unsupported",
+      "score": 0.141135,
+      "prediction": "reject"
+    },
+    {
+      "id": "unsupported_information_missing",
+      "label": "unsupported",
+      "score": 0.075556,
+      "prediction": "reject"
+    }
+  ],
+  "generated_at": "2026-07-16T18:07:44.811901+00:00"
+}

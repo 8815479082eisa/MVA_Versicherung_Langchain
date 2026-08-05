@@ -1,0 +1,2530 @@
+{
+  "schema_version": 1,
+  "created_before_scoring_at": "2026-08-01T22:03:26.062983+00:00",
+  "status": "FROZEN_FOR_PROVISIONAL_WEAK_SUPERVISION",
+  "holdout_designation": "technical weak-label hold-out",
+  "dataset_path": "tests/fixtures/groundedness_extended_candidates.jsonl",
+  "dataset_sha256": "d87d732ad1532ae184603763c8b278993372ef588af7e54bfd1a88dba1b7a675",
+  "split_plan_path": "reports/groundedness_dataset_split_plan.json",
+  "split_plan_sha256": "9aa5751cf96c78f0c9feff707fd890fbbb1492caf76704e1f7ce4d2b292df9ef",
+  "quality_report_sha256": "63b1dc38d5d9605efb1547282f86cb0598460412f184e442e38d16eef83890b9",
+  "leakage_report_sha256": "cdcbf3d9241772726eb032ab4fa0cd1c243424bf308b23890183b2d7f8f01717",
+  "source_audit_sha256": "b3bdbd9e7f1a933c36e22a3bb9a8d6e4d936d259cf402df75e6755bb07d805c4",
+  "random_seed": 20260801,
+  "near_duplicate_threshold": 0.94,
+  "audit": {
+    "candidate_count": 498,
+    "unique_case_ids": 498,
+    "missing_required_fields_cases": 0,
+    "split_counts": {
+      "CALIBRATION": 277,
+      "LOCKED_HOLDOUT_CANDIDATE": 133,
+      "VALIDATION": 88
+    },
+    "leakage_group_count": 149,
+    "leakage_group_split_violations": 0,
+    "weak_label_counts": {
+      "FAIL": 264,
+      "PASS": 234
+    },
+    "quality_flagged_cases": 15,
+    "quality_flag_occurrences": 15,
+    "exact_duplicate_triplets": 7,
+    "exact_duplicate_cases": 14,
+    "near_duplicate_pairs": 319
+  },
+  "case_assignments": [
+    {
+      "case_id": "ext-iqa-pass-001",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-a489a05f62b0"
+    },
+    {
+      "case_id": "ext-iqa-pass-002",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-74314ded45d1"
+    },
+    {
+      "case_id": "ext-iqa-pass-003",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-d1676baf7624"
+    },
+    {
+      "case_id": "ext-iqa-pass-004",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-46f8b30126ae"
+    },
+    {
+      "case_id": "ext-iqa-pass-005",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-f4013c68ca9c"
+    },
+    {
+      "case_id": "ext-iqa-pass-006",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-ced6d6171b50"
+    },
+    {
+      "case_id": "ext-iqa-pass-007",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-2772e43051a7"
+    },
+    {
+      "case_id": "ext-iqa-pass-008",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-997ccac81852"
+    },
+    {
+      "case_id": "ext-iqa-pass-009",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-0d9016c6778e"
+    },
+    {
+      "case_id": "ext-iqa-pass-010",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-4894bbbcb52c"
+    },
+    {
+      "case_id": "ext-iqa-pass-011",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-e4f6d0dc5640"
+    },
+    {
+      "case_id": "ext-iqa-pass-012",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-158b32e48f1c"
+    },
+    {
+      "case_id": "ext-iqa-pass-013",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-e06506497dd1"
+    },
+    {
+      "case_id": "ext-iqa-pass-014",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-e5fbc46753a2"
+    },
+    {
+      "case_id": "ext-iqa-pass-015",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-cff2a6820ea7"
+    },
+    {
+      "case_id": "ext-iqa-pass-016",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-893eea51aa5f"
+    },
+    {
+      "case_id": "ext-iqa-pass-017",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-6b9a823da657"
+    },
+    {
+      "case_id": "ext-iqa-pass-018",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-3570ee32687e"
+    },
+    {
+      "case_id": "ext-iqa-pass-019",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-69f8c9702c9a"
+    },
+    {
+      "case_id": "ext-iqa-pass-020",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-3a9ca4b9f3c8"
+    },
+    {
+      "case_id": "ext-iqa-pass-021",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-5ec7b9af0c61"
+    },
+    {
+      "case_id": "ext-iqa-pass-022",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e912afbae8e7"
+    },
+    {
+      "case_id": "ext-iqa-pass-023",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-6c4bc6cfa954"
+    },
+    {
+      "case_id": "ext-iqa-pass-024",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-6c4bc6cfa954"
+    },
+    {
+      "case_id": "ext-iqa-pass-025",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-aba2c9e7a82d"
+    },
+    {
+      "case_id": "ext-iqa-pass-026",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-9e8009daaecf"
+    },
+    {
+      "case_id": "ext-iqa-pass-027",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-1d1ce626b09d"
+    },
+    {
+      "case_id": "ext-iqa-pass-028",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0be3095c3478"
+    },
+    {
+      "case_id": "ext-iqa-pass-029",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-33989e349e5c"
+    },
+    {
+      "case_id": "ext-iqa-pass-030",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-6c4bc6cfa954"
+    },
+    {
+      "case_id": "ext-iqa-pass-031",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-43edded82d7c"
+    },
+    {
+      "case_id": "ext-iqa-pass-032",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-a596cce11c22"
+    },
+    {
+      "case_id": "ext-iqa-pass-033",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-5d4ec89b8176"
+    },
+    {
+      "case_id": "ext-iqa-pass-034",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e4e12d64d217"
+    },
+    {
+      "case_id": "ext-iqa-pass-035",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-998dc2e43ba5"
+    },
+    {
+      "case_id": "ext-iqa-pass-036",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-8d7e2acf95d5"
+    },
+    {
+      "case_id": "ext-iqa-pass-037",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-75f840a070a5"
+    },
+    {
+      "case_id": "ext-iqa-pass-038",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-6cc4ba0e7bee"
+    },
+    {
+      "case_id": "ext-iqa-pass-039",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-2a530e51e40c"
+    },
+    {
+      "case_id": "ext-iqa-pass-040",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-c34c21dbcd45"
+    },
+    {
+      "case_id": "ext-iqa-pass-041",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-bce999019bc2"
+    },
+    {
+      "case_id": "ext-iqa-pass-042",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-06d04824ff51"
+    },
+    {
+      "case_id": "ext-iqa-pass-043",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-e91671ac667e"
+    },
+    {
+      "case_id": "ext-iqa-pass-044",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-2f27fd06051f"
+    },
+    {
+      "case_id": "ext-iqa-pass-045",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb55c6c4f298"
+    },
+    {
+      "case_id": "ext-iqa-pass-046",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-f7c3426f7595"
+    },
+    {
+      "case_id": "ext-iqa-pass-047",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-bf57042a42f4"
+    },
+    {
+      "case_id": "ext-iqa-pass-048",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-bb496bd62b0e"
+    },
+    {
+      "case_id": "ext-iqa-pass-049",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-efa66051644a"
+    },
+    {
+      "case_id": "ext-iqa-pass-050",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-16b8e6895d05"
+    },
+    {
+      "case_id": "ext-iqa-pass-051",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-5ec7b9af0c61"
+    },
+    {
+      "case_id": "ext-iqa-pass-052",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-92604aa92260"
+    },
+    {
+      "case_id": "ext-iqa-pass-053",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-2f02a4071f1a"
+    },
+    {
+      "case_id": "ext-iqa-pass-054",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-55aa2726a798"
+    },
+    {
+      "case_id": "ext-iqa-pass-055",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-96158ce07170"
+    },
+    {
+      "case_id": "ext-iqa-pass-056",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e965d718aa27"
+    },
+    {
+      "case_id": "ext-iqa-pass-057",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-3484938e3c8d"
+    },
+    {
+      "case_id": "ext-iqa-pass-058",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-d52a46015bc0"
+    },
+    {
+      "case_id": "ext-iqa-pass-059",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-0842e3c07b93"
+    },
+    {
+      "case_id": "ext-iqa-pass-060",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-8472bb0c76c3"
+    },
+    {
+      "case_id": "ext-iqa-pass-061",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-8a2118072fba"
+    },
+    {
+      "case_id": "ext-iqa-pass-062",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e1a2f492ceb7"
+    },
+    {
+      "case_id": "ext-iqa-pass-063",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-e5fbc46753a2"
+    },
+    {
+      "case_id": "ext-iqa-pass-064",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-bc0d2da20ce3"
+    },
+    {
+      "case_id": "ext-iqa-pass-065",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-23c6bcee5466"
+    },
+    {
+      "case_id": "ext-iqa-pass-066",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0412d4c453d4"
+    },
+    {
+      "case_id": "ext-iqa-pass-067",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-9cc6a236f482"
+    },
+    {
+      "case_id": "ext-iqa-pass-068",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-1765c102a38c"
+    },
+    {
+      "case_id": "ext-iqa-pass-069",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-1ae1de81b884"
+    },
+    {
+      "case_id": "ext-iqa-pass-070",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-4f620dc4451b"
+    },
+    {
+      "case_id": "ext-iqa-pass-071",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-79756d801e39"
+    },
+    {
+      "case_id": "ext-iqa-pass-072",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-eb39f2aacad7"
+    },
+    {
+      "case_id": "ext-iqa-pass-073",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-eb3338d2d21b"
+    },
+    {
+      "case_id": "ext-iqa-pass-074",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-7611a909dba9"
+    },
+    {
+      "case_id": "ext-iqa-pass-075",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-f248e68c5395"
+    },
+    {
+      "case_id": "ext-iqa-pass-076",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-171c5b5949f5"
+    },
+    {
+      "case_id": "ext-iqa-pass-077",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-1fe2a3e8b76f"
+    },
+    {
+      "case_id": "ext-iqa-pass-078",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-6b50e6a0e3ef"
+    },
+    {
+      "case_id": "ext-iqa-pass-079",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-1ab60ed2ee2e"
+    },
+    {
+      "case_id": "ext-iqa-pass-080",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-d22d88154e4b"
+    },
+    {
+      "case_id": "ext-iqa-pass-081",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-a139ceecfa4a"
+    },
+    {
+      "case_id": "ext-iqa-pass-082",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-dd866d624eeb"
+    },
+    {
+      "case_id": "ext-iqa-pass-083",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e56431f4de61"
+    },
+    {
+      "case_id": "ext-iqa-pass-084",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-4501a3e32b81"
+    },
+    {
+      "case_id": "ext-iqa-pass-085",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-0f3b7f218fbc"
+    },
+    {
+      "case_id": "ext-iqa-pass-086",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-a13bb5c15d00"
+    },
+    {
+      "case_id": "ext-iqa-pass-087",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-45a0ee290c0d"
+    },
+    {
+      "case_id": "ext-iqa-pass-088",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-6fdc3d2d9390"
+    },
+    {
+      "case_id": "ext-iqa-pass-089",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-f21b5436fe03"
+    },
+    {
+      "case_id": "ext-iqa-pass-090",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-260d2ea3e827"
+    },
+    {
+      "case_id": "ext-iqa-pass-091",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-f5c92063b9f9"
+    },
+    {
+      "case_id": "ext-iqa-pass-092",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-539216c197ba"
+    },
+    {
+      "case_id": "ext-iqa-pass-093",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-4a33acbf9d3a"
+    },
+    {
+      "case_id": "ext-iqa-pass-094",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-aa5458d0aec6"
+    },
+    {
+      "case_id": "ext-iqa-pass-095",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-de449b51c8c5"
+    },
+    {
+      "case_id": "ext-iqa-pass-096",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-2fdcfee9d401"
+    },
+    {
+      "case_id": "ext-iqa-pass-097",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7a1764cde250"
+    },
+    {
+      "case_id": "ext-iqa-pass-098",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-3b134e28c017"
+    },
+    {
+      "case_id": "ext-iqa-pass-099",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-578f38d6df39"
+    },
+    {
+      "case_id": "ext-iqa-pass-100",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-d76697114a22"
+    },
+    {
+      "case_id": "ext-iqa-pass-101",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-606f287dcc33"
+    },
+    {
+      "case_id": "ext-iqa-pass-102",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-1253764bbd0f"
+    },
+    {
+      "case_id": "ext-iqa-pass-103",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-da8f48a2b6c6"
+    },
+    {
+      "case_id": "ext-iqa-pass-104",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-3a5fb2f61ecb"
+    },
+    {
+      "case_id": "ext-iqa-pass-105",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-b0c4193ba7ae"
+    },
+    {
+      "case_id": "ext-iqa-pass-106",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-739d57a4dd1e"
+    },
+    {
+      "case_id": "ext-iqa-pass-107",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-148dcee9455b"
+    },
+    {
+      "case_id": "ext-iqa-pass-108",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-d2e2217b2f76"
+    },
+    {
+      "case_id": "ext-iqa-pass-109",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-e555d8e9c0cf"
+    },
+    {
+      "case_id": "ext-iqa-pass-110",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fa7e632c620b"
+    },
+    {
+      "case_id": "ext-iqa-fail-001",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-a489a05f62b0"
+    },
+    {
+      "case_id": "ext-iqa-fail-002",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-74314ded45d1"
+    },
+    {
+      "case_id": "ext-iqa-fail-003",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-d1676baf7624"
+    },
+    {
+      "case_id": "ext-iqa-fail-004",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-46f8b30126ae"
+    },
+    {
+      "case_id": "ext-iqa-fail-005",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-f4013c68ca9c"
+    },
+    {
+      "case_id": "ext-iqa-fail-006",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-ced6d6171b50"
+    },
+    {
+      "case_id": "ext-iqa-fail-007",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-2772e43051a7"
+    },
+    {
+      "case_id": "ext-iqa-fail-008",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-997ccac81852"
+    },
+    {
+      "case_id": "ext-iqa-fail-009",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-0d9016c6778e"
+    },
+    {
+      "case_id": "ext-iqa-fail-010",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-4894bbbcb52c"
+    },
+    {
+      "case_id": "ext-iqa-fail-011",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-e4f6d0dc5640"
+    },
+    {
+      "case_id": "ext-iqa-fail-012",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-158b32e48f1c"
+    },
+    {
+      "case_id": "ext-iqa-fail-013",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-e06506497dd1"
+    },
+    {
+      "case_id": "ext-iqa-fail-014",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-e5fbc46753a2"
+    },
+    {
+      "case_id": "ext-iqa-fail-015",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-cff2a6820ea7"
+    },
+    {
+      "case_id": "ext-iqa-fail-016",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-893eea51aa5f"
+    },
+    {
+      "case_id": "ext-iqa-fail-017",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-6b9a823da657"
+    },
+    {
+      "case_id": "ext-iqa-fail-018",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-3570ee32687e"
+    },
+    {
+      "case_id": "ext-iqa-fail-019",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-69f8c9702c9a"
+    },
+    {
+      "case_id": "ext-iqa-fail-020",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-3a9ca4b9f3c8"
+    },
+    {
+      "case_id": "ext-iqa-fail-021",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-5ec7b9af0c61"
+    },
+    {
+      "case_id": "ext-iqa-fail-022",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e912afbae8e7"
+    },
+    {
+      "case_id": "ext-iqa-fail-023",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-6c4bc6cfa954"
+    },
+    {
+      "case_id": "ext-iqa-fail-024",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-6c4bc6cfa954"
+    },
+    {
+      "case_id": "ext-iqa-fail-025",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-aba2c9e7a82d"
+    },
+    {
+      "case_id": "ext-iqa-fail-026",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-9e8009daaecf"
+    },
+    {
+      "case_id": "ext-iqa-fail-027",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-1d1ce626b09d"
+    },
+    {
+      "case_id": "ext-iqa-fail-028",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0be3095c3478"
+    },
+    {
+      "case_id": "ext-iqa-fail-029",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-33989e349e5c"
+    },
+    {
+      "case_id": "ext-iqa-fail-030",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-6c4bc6cfa954"
+    },
+    {
+      "case_id": "ext-iqa-fail-031",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-43edded82d7c"
+    },
+    {
+      "case_id": "ext-iqa-fail-032",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-a596cce11c22"
+    },
+    {
+      "case_id": "ext-iqa-fail-033",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-5d4ec89b8176"
+    },
+    {
+      "case_id": "ext-iqa-fail-034",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e4e12d64d217"
+    },
+    {
+      "case_id": "ext-iqa-fail-035",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-998dc2e43ba5"
+    },
+    {
+      "case_id": "ext-iqa-fail-036",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-8d7e2acf95d5"
+    },
+    {
+      "case_id": "ext-iqa-fail-037",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-75f840a070a5"
+    },
+    {
+      "case_id": "ext-iqa-fail-038",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-6cc4ba0e7bee"
+    },
+    {
+      "case_id": "ext-iqa-fail-039",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-2a530e51e40c"
+    },
+    {
+      "case_id": "ext-iqa-fail-040",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-c34c21dbcd45"
+    },
+    {
+      "case_id": "ext-iqa-fail-041",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-bce999019bc2"
+    },
+    {
+      "case_id": "ext-iqa-fail-042",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-06d04824ff51"
+    },
+    {
+      "case_id": "ext-iqa-fail-043",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-e91671ac667e"
+    },
+    {
+      "case_id": "ext-iqa-fail-044",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-2f27fd06051f"
+    },
+    {
+      "case_id": "ext-iqa-fail-045",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb55c6c4f298"
+    },
+    {
+      "case_id": "ext-iqa-fail-046",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-f7c3426f7595"
+    },
+    {
+      "case_id": "ext-iqa-fail-047",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-bf57042a42f4"
+    },
+    {
+      "case_id": "ext-iqa-fail-048",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-bb496bd62b0e"
+    },
+    {
+      "case_id": "ext-iqa-fail-049",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-efa66051644a"
+    },
+    {
+      "case_id": "ext-iqa-fail-050",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-16b8e6895d05"
+    },
+    {
+      "case_id": "ext-iqa-fail-051",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-5ec7b9af0c61"
+    },
+    {
+      "case_id": "ext-iqa-fail-052",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-92604aa92260"
+    },
+    {
+      "case_id": "ext-iqa-fail-053",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-2f02a4071f1a"
+    },
+    {
+      "case_id": "ext-iqa-fail-054",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-55aa2726a798"
+    },
+    {
+      "case_id": "ext-iqa-fail-055",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-96158ce07170"
+    },
+    {
+      "case_id": "ext-iqa-fail-056",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e965d718aa27"
+    },
+    {
+      "case_id": "ext-iqa-fail-057",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-3484938e3c8d"
+    },
+    {
+      "case_id": "ext-iqa-fail-058",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-d52a46015bc0"
+    },
+    {
+      "case_id": "ext-iqa-fail-059",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-0842e3c07b93"
+    },
+    {
+      "case_id": "ext-iqa-fail-060",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-8472bb0c76c3"
+    },
+    {
+      "case_id": "ext-iqa-fail-061",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-8a2118072fba"
+    },
+    {
+      "case_id": "ext-iqa-fail-062",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-e1a2f492ceb7"
+    },
+    {
+      "case_id": "ext-iqa-fail-063",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-e5fbc46753a2"
+    },
+    {
+      "case_id": "ext-iqa-fail-064",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-bc0d2da20ce3"
+    },
+    {
+      "case_id": "ext-iqa-fail-065",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-23c6bcee5466"
+    },
+    {
+      "case_id": "ext-iqa-fail-066",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0412d4c453d4"
+    },
+    {
+      "case_id": "ext-iqa-fail-067",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-9cc6a236f482"
+    },
+    {
+      "case_id": "ext-iqa-fail-068",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-1765c102a38c"
+    },
+    {
+      "case_id": "ext-iqa-fail-069",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-1ae1de81b884"
+    },
+    {
+      "case_id": "ext-iqa-fail-070",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-4f620dc4451b"
+    },
+    {
+      "case_id": "ext-iqa-fail-071",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-a139ceecfa4a"
+    },
+    {
+      "case_id": "ext-iqa-fail-072",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-2fdcfee9d401"
+    },
+    {
+      "case_id": "ext-iqa-fail-073",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-e555d8e9c0cf"
+    },
+    {
+      "case_id": "ext-iqa-fail-074",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-fe94f0f45fdb"
+    },
+    {
+      "case_id": "ext-iqa-fail-075",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-284563f0ab99"
+    },
+    {
+      "case_id": "ext-iqa-fail-076",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-495342c21815"
+    },
+    {
+      "case_id": "ext-iqa-fail-077",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-0f927e1fe262"
+    },
+    {
+      "case_id": "ext-iqa-fail-078",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-ea3bb032ab54"
+    },
+    {
+      "case_id": "ext-iqa-fail-079",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-0d445bc7dadd"
+    },
+    {
+      "case_id": "ext-iqa-fail-080",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-3181b98ac074"
+    },
+    {
+      "case_id": "ext-helvetia-pass-001",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "case_id": "ext-helvetia-pass-002",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "case_id": "ext-helvetia-pass-003",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-004",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-005",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "case_id": "ext-helvetia-pass-006",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-007",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "case_id": "ext-helvetia-pass-008",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "case_id": "ext-helvetia-pass-009",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-010",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "case_id": "ext-helvetia-pass-011",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-012",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "case_id": "ext-helvetia-pass-013",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "case_id": "ext-helvetia-pass-014",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-015",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-016",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "case_id": "ext-helvetia-pass-017",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-018",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "case_id": "ext-helvetia-pass-019",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "case_id": "ext-helvetia-pass-020",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-021",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "case_id": "ext-helvetia-pass-022",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-023",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "case_id": "ext-helvetia-pass-024",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "case_id": "ext-helvetia-pass-025",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-026",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-027",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "case_id": "ext-helvetia-pass-028",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-029",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "case_id": "ext-helvetia-pass-030",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "case_id": "ext-helvetia-pass-031",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-032",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "case_id": "ext-helvetia-pass-033",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-034",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "case_id": "ext-helvetia-pass-035",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "case_id": "ext-helvetia-pass-036",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-037",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-038",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "case_id": "ext-helvetia-pass-039",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-040",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "case_id": "ext-helvetia-pass-041",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "case_id": "ext-helvetia-pass-042",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-043",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "case_id": "ext-helvetia-pass-044",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-045",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "case_id": "ext-helvetia-pass-046",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "case_id": "ext-helvetia-pass-047",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-048",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-049",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "case_id": "ext-helvetia-pass-050",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-051",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "case_id": "ext-helvetia-pass-052",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "case_id": "ext-helvetia-pass-053",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-054",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "case_id": "ext-helvetia-pass-055",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-056",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "case_id": "ext-helvetia-pass-057",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "case_id": "ext-helvetia-pass-058",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-059",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-pass-060",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "case_id": "ext-helvetia-fail-001",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "case_id": "ext-helvetia-fail-002",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-003",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "case_id": "ext-helvetia-fail-004",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-005",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "case_id": "ext-helvetia-fail-006",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-007",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "case_id": "ext-helvetia-fail-008",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-009",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "case_id": "ext-helvetia-fail-010",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-011",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "case_id": "ext-helvetia-fail-012",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "case_id": "ext-helvetia-fail-013",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-014",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "case_id": "ext-helvetia-fail-015",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-016",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "case_id": "ext-helvetia-fail-017",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-018",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "case_id": "ext-helvetia-fail-019",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-020",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c51dd7a63470"
+    },
+    {
+      "case_id": "ext-helvetia-fail-021",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "case_id": "ext-helvetia-fail-022",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-023",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-024",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "case_id": "ext-helvetia-fail-025",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-026",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "case_id": "ext-helvetia-fail-027",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "case_id": "ext-helvetia-fail-028",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-029",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "case_id": "ext-helvetia-fail-030",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-031",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-0cf33004bcbf"
+    },
+    {
+      "case_id": "ext-helvetia-fail-032",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-033",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-034",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-7975497f9d66"
+    },
+    {
+      "case_id": "ext-helvetia-fail-035",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-036",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-384a1a4b0321"
+    },
+    {
+      "case_id": "ext-helvetia-fail-037",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "case_id": "ext-helvetia-fail-038",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-helvetia-fail-039",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-fb2eac232edc"
+    },
+    {
+      "case_id": "ext-helvetia-fail-040",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-001",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-002",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-003",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-004",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-005",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-006",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-007",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-008",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-009",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-15b51ba77470"
+    },
+    {
+      "case_id": "ext-baloise-fail-010",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-011",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-012",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-013",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-014",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-015",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-016",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-017",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-018",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-019",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-baloise-fail-020",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-62bb52eee817"
+    },
+    {
+      "case_id": "ext-crm-pass-001",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-002",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-003",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-004",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-005",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-006",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-007",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-008",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-009",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-010",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-011",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-012",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-013",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-014",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-015",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-016",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-017",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-018",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-019",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-020",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-021",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-022",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-023",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-024",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-025",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-026",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-027",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-028",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-029",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-030",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-031",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-032",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-033",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-034",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-035",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-036",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-037",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-038",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-039",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-040",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-041",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-042",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-043",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-044",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-045",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-046",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-047",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-048",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-049",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-pass-050",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-001",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-002",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-003",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-004",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-005",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-006",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-007",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-008",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-009",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-010",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-011",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-012",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-013",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-014",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-015",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-016",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-017",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-018",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-019",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-020",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-021",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-022",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-023",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-024",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-025",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-026",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-027",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-028",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-029",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-030",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-031",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-032",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-033",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-034",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-035",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-036",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-037",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-038",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-039",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-040",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-041",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-042",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-043",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-044",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-045",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-046",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-047",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-048",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-049",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-050",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-051",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-052",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-053",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-054",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-055",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-056",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-057",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-058",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-059",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-060",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-061",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-062",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-063",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-064",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-065",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-066",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-067",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-068",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-069",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-070",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-071",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-072",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-073",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-074",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-075",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-076",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-077",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-078",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-079",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-080",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-081",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-082",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-083",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-084",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-085",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-086",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-087",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-088",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-089",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-090",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-091",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-092",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-093",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-094",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-095",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-096",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-097",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-098",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-099",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-100",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-101",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-102",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-103",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-104",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-105",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-106",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-107",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-108",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-109",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-crm-fail-110",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-05df6a2320fd"
+    },
+    {
+      "case_id": "ext-legacy-001",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-a3c2757c4aec"
+    },
+    {
+      "case_id": "ext-legacy-002",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-c3d76fbfa9fc"
+    },
+    {
+      "case_id": "ext-legacy-003",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-1362b5203c3b"
+    },
+    {
+      "case_id": "ext-legacy-004",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-914b745629ef"
+    },
+    {
+      "case_id": "ext-legacy-005",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-190c8d5c9e81"
+    },
+    {
+      "case_id": "ext-legacy-006",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-8c21eb93d9bc"
+    },
+    {
+      "case_id": "ext-legacy-007",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-d1cf0212c148"
+    },
+    {
+      "case_id": "ext-legacy-008",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-486e5e2f6b26"
+    },
+    {
+      "case_id": "ext-legacy-009",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-c498a94f6f91"
+    },
+    {
+      "case_id": "ext-legacy-010",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-3638f992c52a"
+    },
+    {
+      "case_id": "ext-legacy-011",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-b8ca6c0c57ca"
+    },
+    {
+      "case_id": "ext-legacy-012",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-da0ca57bf427"
+    },
+    {
+      "case_id": "ext-legacy-013",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-821b597ae9c7"
+    },
+    {
+      "case_id": "ext-legacy-014",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-898f7085938f"
+    },
+    {
+      "case_id": "ext-legacy-015",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-6b9d05c33adb"
+    },
+    {
+      "case_id": "ext-legacy-016",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-b0a4367e73e3"
+    },
+    {
+      "case_id": "ext-legacy-017",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-d19d308f4bb5"
+    },
+    {
+      "case_id": "ext-legacy-018",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-14602e56cb6b"
+    },
+    {
+      "case_id": "ext-legacy-019",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-d47f9897c75c"
+    },
+    {
+      "case_id": "ext-legacy-020",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-75e244543ac4"
+    },
+    {
+      "case_id": "ext-legacy-021",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-e0167034848e"
+    },
+    {
+      "case_id": "ext-legacy-022",
+      "split": "LOCKED_HOLDOUT_CANDIDATE",
+      "leakage_group_id": "lg-0115bc5dd3ce"
+    },
+    {
+      "case_id": "ext-legacy-023",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-7950cb41790f"
+    },
+    {
+      "case_id": "ext-legacy-024",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-fad23eba9a45"
+    },
+    {
+      "case_id": "ext-legacy-025",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-ccfc46b15367"
+    },
+    {
+      "case_id": "ext-legacy-026",
+      "split": "CALIBRATION",
+      "leakage_group_id": "lg-96fd78f145ac"
+    },
+    {
+      "case_id": "ext-legacy-027",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-dcb1752fd89d"
+    },
+    {
+      "case_id": "ext-legacy-028",
+      "split": "VALIDATION",
+      "leakage_group_id": "lg-1f830136afe1"
+    }
+  ],
+  "assignment_sha256": "ae7666b6ffb699f682c3e110265d787fb82c88064f91e3b74d37caa2318254e7",
+  "rule": "Split assignments are frozen before any groundedness score is calculated and must not be changed based on scores."
+}

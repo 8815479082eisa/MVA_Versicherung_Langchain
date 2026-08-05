@@ -1,0 +1,374 @@
+{
+  "generatedAt": "2026-07-26T14:36:16.287586+00:00",
+  "backendUrl": "http://localhost:8000",
+  "callsPerScenario": 1,
+  "clientTimeoutSeconds": 190.0,
+  "scenarios": {
+    "crm_only": {
+      "status": "PASSED",
+      "scenario": "crm_only",
+      "calls": 1,
+      "p50Ms": 167.26,
+      "p95Ms": 167.26,
+      "meanMs": 167.26,
+      "responses": [
+        {
+          "httpStatus": 200,
+          "resultStatus": "complete",
+          "errorCode": null,
+          "diagnostics": {
+            "requestId": "2d9ba221b73a45cca19b27a1d1e27b3c",
+            "route": "crm-only",
+            "stageTimings": {
+              "routePlanningMs": 2.509,
+              "crmMs": 131.064
+            },
+            "stageStatus": {
+              "route_planning": "completed",
+              "crm": "completed"
+            },
+            "timeoutStage": null,
+            "retries": {},
+            "status": "complete",
+            "partial": false,
+            "totalMs": 133.682
+          }
+        }
+      ]
+    },
+    "retrieval_only": {
+      "status": "FAILED",
+      "scenario": "retrieval_only",
+      "calls": 1,
+      "p50Ms": 47500.054,
+      "p95Ms": 47500.054,
+      "meanMs": 47500.054,
+      "responses": [
+        {
+          "httpStatus": 504,
+          "resultStatus": "error",
+          "errorCode": "LLM_STAGE_TIMEOUT",
+          "diagnostics": {
+            "requestId": "51de33eb50e942309cd63830069647d7",
+            "route": "retrieval-only",
+            "stageTimings": {
+              "routePlanningMs": 0.307,
+              "guardrailMs": 0.09,
+              "lexicalRetrievalMs": 23.664,
+              "vectorRetrievalMs": 434.972,
+              "hybridMergeMs": 0.102,
+              "retrievalMs": 459.62,
+              "rerankingMs": 10017.893,
+              "selfCheckMs": 30082.28
+            },
+            "stageStatus": {
+              "route_planning": "completed",
+              "guardrail": "completed",
+              "retrieval": "completed",
+              "lexical_retrieval": "completed",
+              "vector_retrieval": "completed",
+              "hybrid_merge": "completed",
+              "reranker": "completed",
+              "self_check": "timeout"
+            },
+            "timeoutStage": "self_check",
+            "retries": {},
+            "status": "error",
+            "partial": false,
+            "totalMs": 47497.876
+          }
+        }
+      ]
+    },
+    "combined": {
+      "status": "FAILED",
+      "scenario": "combined",
+      "calls": 1,
+      "p50Ms": 45551.799,
+      "p95Ms": 45551.799,
+      "meanMs": 45551.799,
+      "responses": [
+        {
+          "httpStatus": 206,
+          "resultStatus": "partial",
+          "errorCode": null,
+          "diagnostics": {
+            "requestId": "76f5de71a4b1450c87c237ac48441d4a",
+            "route": "combined",
+            "stageTimings": {
+              "routePlanningMs": 1.385,
+              "guardrailMs": 0.206,
+              "crmMs": 260.01,
+              "lexicalRetrievalMs": 81.136,
+              "vectorRetrievalMs": 431.846,
+              "hybridMergeMs": 0.062,
+              "retrievalMs": 514.187,
+              "rerankingMs": 8122.954,
+              "selfCheckMs": 30046.757
+            },
+            "stageStatus": {
+              "route_planning": "completed",
+              "crm": "completed",
+              "guardrail": "completed",
+              "retrieval": "completed",
+              "lexical_retrieval": "completed",
+              "vector_retrieval": "completed",
+              "hybrid_merge": "completed",
+              "reranker": "completed",
+              "self_check": "timeout"
+            },
+            "timeoutStage": "self_check",
+            "retries": {},
+            "status": "partial",
+            "partial": true,
+            "totalMs": 45546.769
+          }
+        }
+      ]
+    }
+  },
+  "pureRetrieval": {
+    "withoutReranker": {
+      "status": "PASSED",
+      "query": "What does partial coverage generally cover?",
+      "retrievalMode": "hybrid_without_reranker",
+      "generationUsed": false,
+      "rerankerUsed": false,
+      "documentCount": 5,
+      "documents": [
+        {
+          "rank": 1,
+          "filename": "publication-hoi-pp-consumer-homeowners.pdf",
+          "source": "data\\raw\\pdfs\\publication-hoi-pp-consumer-homeowners.pdf",
+          "page": 14,
+          "score": null
+        },
+        {
+          "rank": 2,
+          "filename": "publication-aut-pp-consumer-auto.pdf",
+          "source": "data\\raw\\pdfs\\publication-aut-pp-consumer-auto.pdf",
+          "page": 11,
+          "score": null
+        },
+        {
+          "rank": 3,
+          "filename": "10050-medicare-and-you.pdf",
+          "source": "data\\raw\\pdfs\\10050-medicare-and-you.pdf",
+          "page": 93,
+          "score": null
+        },
+        {
+          "rank": 4,
+          "filename": "10050-medicare-and-you.pdf",
+          "source": "data\\raw\\pdfs\\10050-medicare-and-you.pdf",
+          "page": 24,
+          "score": null
+        },
+        {
+          "rank": 5,
+          "filename": "10050-medicare-and-you.pdf",
+          "source": "data\\raw\\pdfs\\10050-medicare-and-you.pdf",
+          "page": 29,
+          "score": null
+        }
+      ],
+      "diagnostics": {
+        "requestId": "31b69146a1284a7bb32ba18a8da5f994",
+        "route": "pure-retrieval",
+        "stageTimings": {
+          "embeddingMs": 10103.391,
+          "lexicalRetrievalMs": 21.091,
+          "vectorRetrievalMs": 253.135,
+          "hybridMergeMs": 0.025,
+          "retrievalMs": 275.11
+        },
+        "stageStatus": {
+          "embedding": "completed",
+          "retrieval": "completed",
+          "lexical_retrieval": "completed",
+          "vector_retrieval": "completed",
+          "hybrid_merge": "completed",
+          "reranker": "not_run"
+        },
+        "timeoutStage": null,
+        "retries": {},
+        "status": "complete",
+        "partial": false,
+        "totalMs": 20970.429
+      },
+      "warnings": []
+    },
+    "withReranker": {
+      "status": "PASSED",
+      "query": "What does partial coverage generally cover?",
+      "retrievalMode": "hybrid_with_existing_reranker",
+      "generationUsed": false,
+      "rerankerUsed": true,
+      "documentCount": 5,
+      "documents": [
+        {
+          "rank": 1,
+          "filename": "10050-medicare-and-you.pdf",
+          "source": "data\\raw\\pdfs\\10050-medicare-and-you.pdf",
+          "page": 93,
+          "score": null
+        },
+        {
+          "rank": 2,
+          "filename": "10050-medicare-and-you.pdf",
+          "source": "data\\raw\\pdfs\\10050-medicare-and-you.pdf",
+          "page": 29,
+          "score": null
+        },
+        {
+          "rank": 3,
+          "filename": "10050-medicare-and-you.pdf",
+          "source": "data\\raw\\pdfs\\10050-medicare-and-you.pdf",
+          "page": 24,
+          "score": null
+        },
+        {
+          "rank": 4,
+          "filename": "publication-aut-pp-consumer-auto.pdf",
+          "source": "data\\raw\\pdfs\\publication-aut-pp-consumer-auto.pdf",
+          "page": 11,
+          "score": null
+        },
+        {
+          "rank": 5,
+          "filename": "publication-hoi-pp-consumer-homeowners.pdf",
+          "source": "data\\raw\\pdfs\\publication-hoi-pp-consumer-homeowners.pdf",
+          "page": 14,
+          "score": null
+        }
+      ],
+      "diagnostics": {
+        "requestId": "e9e4fd6f26424772ba9c6e4932e7681d",
+        "route": "pure-retrieval",
+        "stageTimings": {
+          "embeddingMs": 12527.04,
+          "lexicalRetrievalMs": 30.332,
+          "vectorRetrievalMs": 519.921,
+          "hybridMergeMs": 0.033,
+          "retrievalMs": 552.679,
+          "rerankingMs": 24371.171
+        },
+        "stageStatus": {
+          "embedding": "completed",
+          "retrieval": "completed",
+          "lexical_retrieval": "completed",
+          "vector_retrieval": "completed",
+          "hybrid_merge": "completed",
+          "reranker": "completed"
+        },
+        "timeoutStage": null,
+        "retries": {},
+        "status": "complete",
+        "partial": false,
+        "totalMs": 83450.051
+      },
+      "warnings": []
+    }
+  },
+  "ollamaSmoke": {
+    "answer": {
+      "status": "PASSED",
+      "ollamaUrl": "http://host.docker.internal:11434",
+      "modelList": {
+        "status": "PASSED",
+        "latencyMs": 18.93,
+        "requiredModels": {
+          "answer": {
+            "model": "qwen2.5:7b-instruct",
+            "available": true
+          },
+          "guardrail": {
+            "model": "phi3:mini",
+            "available": true
+          }
+        }
+      },
+      "smokeTests": [
+        {
+          "status": "PASSED",
+          "stage": "answer",
+          "model": "qwen2.5:7b-instruct",
+          "numPredict": 384,
+          "timeoutSeconds": 120.0,
+          "latencyMs": 19004.433,
+          "nonEmptyOutput": true,
+          "closedVocabularyOutput": null
+        }
+      ]
+    },
+    "guardrail": {
+      "status": "PASSED",
+      "ollamaUrl": "http://host.docker.internal:11434",
+      "modelList": {
+        "status": "PASSED",
+        "latencyMs": 29.476,
+        "requiredModels": {
+          "answer": {
+            "model": "qwen2.5:7b-instruct",
+            "available": true
+          },
+          "guardrail": {
+            "model": "phi3:mini",
+            "available": true
+          }
+        }
+      },
+      "smokeTests": [
+        {
+          "status": "PASSED",
+          "stage": "guardrail",
+          "model": "phi3:mini",
+          "numPredict": 8,
+          "timeoutSeconds": 30.0,
+          "latencyMs": 9305.561,
+          "nonEmptyOutput": true,
+          "closedVocabularyOutput": true
+        }
+      ]
+    }
+  },
+  "resourceSnapshot": {
+    "status": "PASSED",
+    "containers": [
+      {
+        "BlockIO": "0B / 0B",
+        "CPUPerc": "8.69%",
+        "Container": "mva-backend",
+        "ID": "35d491fbc27c",
+        "MemPerc": "22.53%",
+        "MemUsage": "2.161GiB / 9.59GiB",
+        "Name": "mva-backend",
+        "NetIO": "695MB / 19.5MB",
+        "PIDs": "50"
+      },
+      {
+        "BlockIO": "0B / 0B",
+        "CPUPerc": "0.01%",
+        "Container": "mva-espocrm",
+        "ID": "0c9b8ffdea0b",
+        "MemPerc": "1.31%",
+        "MemUsage": "128.2MiB / 9.59GiB",
+        "Name": "mva-espocrm",
+        "NetIO": "11.8MB / 21.2MB",
+        "PIDs": "11"
+      },
+      {
+        "BlockIO": "0B / 0B",
+        "CPUPerc": "0.02%",
+        "Container": "mva-espocrm-db",
+        "ID": "5d34c0709d2a",
+        "MemPerc": "1.62%",
+        "MemUsage": "159.4MiB / 9.59GiB",
+        "Name": "mva-espocrm-db",
+        "NetIO": "12.2MB / 10.2MB",
+        "PIDs": "16"
+      }
+    ]
+  },
+  "status": "FAILED"
+}
