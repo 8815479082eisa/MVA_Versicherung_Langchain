@@ -444,6 +444,77 @@ class CRMOrchestrationTest(unittest.IsolatedAsyncioTestCase):
             {"TEST-KFZ-2026-1001", "TEST-KFZ-2026-1003"},
         )
 
+    def test_plural_claim_question_preserves_all_customer_claims(self):
+        claims = (
+            {
+                "documentId": "espocrm:claim-1",
+                "documentTitle": "EspoCRM Claim",
+                "section": "TEST-CLM-2026-2601",
+                "snippet": "Claim TEST-CLM-2026-2601: Collision, status Approved.",
+            },
+            {
+                "documentId": "espocrm:claim-2",
+                "documentTitle": "EspoCRM Claim",
+                "section": "TEST-CLM-2026-2602",
+                "snippet": "Claim TEST-CLM-2026-2602: Property Damage, status Closed.",
+            },
+        )
+        result = CRMQueryResult(
+            answer="all facts",
+            sources=claims,
+            tool_results=(
+                {
+                    "claims": [
+                        {"id": "claim-1", "claim_date": "2026-06-18"},
+                        {"id": "claim-2", "claim_date": "2026-07-08"},
+                    ]
+                },
+            ),
+        )
+
+        selection = select_crm_context(
+            result,
+            "Which claims are recorded for Leon Becker?",
+        )
+
+        self.assertEqual(
+            {source["documentId"] for source in selection.sources},
+            {"espocrm:claim-1", "espocrm:claim-2"},
+        )
+
+    def test_contact_source_is_minimized_when_contact_fields_are_not_requested(self):
+        result = CRMQueryResult(
+            answer="facts",
+            sources=(
+                {
+                    "documentId": "espocrm:contact-1",
+                    "documentTitle": "EspoCRM Contact",
+                    "section": "Noah Weber",
+                    "snippet": "Customer: Noah Weber; Email: noah@example.test.",
+                },
+                {
+                    "documentId": "espocrm:claim-1",
+                    "documentTitle": "EspoCRM Claim",
+                    "section": "TEST-CLM-2026-2501",
+                    "snippet": "Claim TEST-CLM-2026-2501: Theft, status Under Review.",
+                },
+            ),
+            tool_results=({"claim": {"id": "claim-1"}},),
+        )
+
+        selection = select_crm_context(
+            result,
+            "What is the status of claim TEST-CLM-2026-2501?",
+        )
+
+        contact = next(
+            source
+            for source in selection.sources
+            if source["documentTitle"] == "EspoCRM Contact"
+        )
+        self.assertEqual(contact["snippet"], "Customer: Noah Weber.")
+        self.assertNotIn("noah@example.test", contact["snippet"])
+
 
 if __name__ == "__main__":
     unittest.main()

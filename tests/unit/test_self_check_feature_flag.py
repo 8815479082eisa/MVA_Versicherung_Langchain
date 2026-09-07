@@ -44,6 +44,35 @@ class _TrackingSafetyChecker:
         return answer
 
 
+class _LowGroundednessThenAllowChecker(_TrackingSafetyChecker):
+    def check_answer_safety(self, query, documents, answer):
+        del query, documents, answer
+        self.answer_calls += 1
+        if self.answer_calls == 1:
+            return rag_service.SafetyResult(
+                allow=False,
+                risk_level="medium",
+                reasons=["low_groundedness"],
+                action="fallback",
+                scores={"groundedness": 0.62},
+                details={
+                    "groundedness": {
+                        "claim_details": [
+                            {"claim_text": "Generic unsupported conclusion.", "v5_claim_score": 0.2}
+                        ]
+                    }
+                },
+            )
+        return rag_service.SafetyResult(
+            allow=True,
+            risk_level="low",
+            reasons=[],
+            action="allow",
+            scores={"groundedness": 0.91},
+            details={"groundedness": {}},
+        )
+
+
 def _run_pipeline(*, self_check_enabled: bool):
     settings = replace(
         rag_service.SETTINGS,
@@ -162,6 +191,54 @@ def test_disabled_flag_skips_self_check_but_keeps_retrieval_answer_and_safety() 
     assert execution["safety_checker"].answer_calls == 1
 
 
+def test_low_groundedness_gets_one_guarded_rewrite_before_fallback() -> None:
+    settings = replace(
+        rag_service.SETTINGS,
+        retrieval=replace(rag_service.SETTINGS.retrieval, self_check_enabled=False),
+    )
+    pipeline = rag_service.RAGPipeline(settings)
+    checker = _LowGroundednessThenAllowChecker()
+    pipeline._safety_checker = checker
+    document = Document(
+        page_content="Glass damage is covered.",
+        metadata={"source": "policy.pdf", "page": 1},
+    )
+    retrieval_service = rag_service.RetrievalService(settings)
+    retrieval_service.retrieve_and_rerank = Mock(
+        return_value=([document], [document])
+    )
+    components = {
+        "retrieval_service": retrieval_service,
+        "self_check_llm": None,
+        "query_rewrite_llm": object(),
+        "compressor_llm": object(),
+        "llm": object(),
+    }
+    diagnostics = RequestDiagnostics(route="retrieval-only")
+    token = set_current_diagnostics(diagnostics)
+    try:
+        with patch.object(pipeline, "initialize", return_value=components), patch.object(
+            rag_service, "pdfs_have_changed", return_value=False
+        ), patch.object(
+            rag_service,
+            "generate_answer",
+            return_value="Glass damage is covered. Generic unsupported conclusion.",
+        ), patch.object(
+            rag_service,
+            "regenerate_answer_for_groundedness",
+            return_value="Glass damage is covered [policy.pdf, page 2].",
+        ) as repair_mock, patch.object(rag_service, "audit_log"):
+            result = pipeline.run("Is glass damage covered?")
+    finally:
+        reset_current_diagnostics(token)
+
+    repair_mock.assert_called_once()
+    assert checker.answer_calls == 2
+    assert result.answer.startswith("Glass damage is covered")
+    assert result.sources
+    assert diagnostics.evidence["groundednessRepair"]["passed"] is True
+
+
 def test_existing_pdf_chunk_and_crm_fact_share_one_generation_call() -> None:
     settings = replace(
         rag_service.SETTINGS,
@@ -232,8 +309,8 @@ def test_existing_pdf_chunk_and_crm_fact_share_one_generation_call() -> None:
     retrieval_service.retrieve_and_rerank.assert_called_once_with(
         "Does partial coverage include marten bites?",
         retrieval_top_k=settings.retrieval.top_k,
-        rerank_top_k=min(2, settings.reranker.top_k),
-        use_reranker=False,
+        rerank_top_k=max(settings.reranker.top_k, settings.retrieval.top_k),
+        use_reranker=True,
         source_filename="motor-vehicle-insurance-sti.pdf",
     )
     answer_mock.assert_called_once()

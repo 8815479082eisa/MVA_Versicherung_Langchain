@@ -140,6 +140,35 @@ class CurrentPolicySelectionTests(unittest.TestCase):
         self.assertFalse(result.intent_activated)
         self.assertEqual(result.selected_records, tuple(records))
 
+    def test_current_status_does_not_mean_current_active_policy(self):
+        cancelled = policy(
+            "TEST-RS-2026-1202",
+            "Jonas Richter",
+            "Legal Protection",
+            "Cancelled",
+            "2026-01-01",
+            "2026-06-30",
+        )
+        result = select_current_policy_records(
+            "What is the current status of Jonas Richter's legal protection policy?",
+            [cancelled],
+            reference_date=REFERENCE_DATE,
+        )
+
+        self.assertFalse(result.intent_activated)
+        self.assertEqual(result.selected_records, (cancelled,))
+
+    def test_show_policy_numbers_is_a_multi_policy_request(self):
+        records = [self.lara_old, self.lara_current]
+        result = select_current_policy_records(
+            "Show Lara Neumann's policy numbers and their statuses.",
+            records,
+            reference_date=REFERENCE_DATE,
+        )
+
+        self.assertFalse(result.intent_activated)
+        self.assertEqual(result.selected_records, tuple(records))
+
     def test_f_missing_or_conflicting_metadata_fails_safe(self):
         missing_end = policy(
             "TEST-KFZ-2026-9998",

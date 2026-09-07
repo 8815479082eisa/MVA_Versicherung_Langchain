@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import pytest
+
+pytestmark = pytest.mark.usefixtures("stub_entailment_provider")
+
 import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
@@ -212,8 +216,9 @@ def test_official_nemo_runtime_output_stage_blocks_unauthorized_email() -> None:
     )
 
     assert stage_result.allow is False
-    assert stage_result.action == "fallback"
-    assert "UNGROUNDED_PERSONAL_DATA" in stage_result.reasons
+    assert stage_result.action == "redact"
+    assert "pii_detected_in_answer" in stage_result.reasons
+    assert "max.mustermann@example.com" not in stage_result.answer
     assert stage_result.details.get("nemo_runtime_kind") == "official_llmrails"
 
 
@@ -229,7 +234,7 @@ def test_official_nemo_runtime_output_stage_allows_grounded_safe_answer() -> Non
     assert stage_result.allow is True
     assert stage_result.action == "allow"
     groundedness = stage_result.details.get("groundedness", {})
-    assert groundedness.get("algorithm_version") == "fact_aware_claim_support_v5"
+    assert groundedness.get("algorithm_version") == "claim_entailment_v1"
     assert groundedness.get("claim_details")
 
 
@@ -311,8 +316,8 @@ def test_nemo_safety_checker_blocks_unauthorized_output_via_official_nemo_path()
     details = result.details or {}
 
     assert result.allow is False
-    assert result.action == "fallback"
-    assert "UNGROUNDED_PERSONAL_DATA" in result.reasons
+    assert result.action == "redact"
+    assert "pii_detected_in_answer" in result.reasons
     assert details.get("nemo_runtime_kind") == "official_llmrails"
 
 

@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import hashlib
+import math
 import re
+import threading
 from copy import deepcopy
+from datetime import datetime
 from typing import Any, Iterable, Optional, Sequence
 
 from langchain_core.documents import Document
+from src.core.coverage_polarity import coverage_polarity, coverage_relation
 
 from nemoguardrails import LLMRails
 from nemoguardrails.actions import action
@@ -181,7 +186,7 @@ GROUNDING_STOPWORDS = {
     "zu",
 }
 
-GROUNDING_ALGORITHM_VERSION = "fact_aware_claim_support_v5"
+GROUNDING_ALGORITHM_VERSION = "claim_entailment_v1"
 
 AUTHORIZED_INTERNAL_CUSTOMER_DATA = "AUTHORIZED_INTERNAL_CUSTOMER_DATA"
 SYSTEM_SECRET_REQUEST = "SYSTEM_SECRET_REQUEST"
@@ -199,10 +204,24 @@ _GROUNDING_IDENTIFIER_RE = re.compile(
 _GROUNDING_DATE_RE = re.compile(
     r"(?<!\d)(?:\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4})(?!\d)"
 )
+_GROUNDING_ENGLISH_DATE_RE = re.compile(
+    r"\b(?:January|February|March|April|May|June|July|August|September|"
+    r"October|November|December)\s+\d{1,2},\s+\d{4}\b",
+    re.IGNORECASE,
+)
 _GROUNDING_NUMBER_RE = re.compile(r"(?<![\w])\d+(?:[.,]\d+)?(?![\w])")
-_GROUNDING_CLAIM_SPLIT_RE = re.compile(r"(?<=[.!?])\s+|[\r\n]+|\s*;\s*")
+_GROUNDING_COMPACT_UNIT_NUMBER_RE = re.compile(
+    r"(?<![\w])\d+(?:[.,]\d+)?(?=[A-Za-z])"
+)
+# Keep legal references such as "Art. 4 Abs. 2" in one claim.  Splitting on
+# the abbreviation periods turns an otherwise supported sentence into tiny
+# claims ("Art.", "4 Abs.", "2 ...") and makes the groundedness score fail.
+_GROUNDING_CLAIM_SPLIT_RE = re.compile(
+    r"(?<!Art\.)(?<!Abs\.)(?<!Nr\.)(?<=[.!?])\s+|[\r\n]+|\s*;\s*"
+)
 _GROUNDING_ANSWER_REFERENCE_RE = re.compile(
-    r"\[(?:CRM:[^\]\r\n]+|[^,\]\r\n]+,\s*(?:physical\s+)?page\s+\d+|[^\]\r\n]+:\d+)\]",
+    r"\[(?:CRM:[^\]\r\n]+|[^,\]\r\n]+,\s*(?:physical\s+)?page\s+\d+"
+    r"(?:\s*(?:[-–;,]|and)\s*(?:page\s+)?\d+)*|[^\]\r\n]+:\d+)\]",
     re.IGNORECASE,
 )
 _GROUNDING_EVIDENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+|[\r\n]+")
@@ -285,6 +304,76 @@ _GROUNDING_TOKEN_ALIASES = {
     "reimburses": "reimburse",
     "windscreen": "windshield",
 }
+
+_grounding_embeddings: Any = None
+_grounding_embeddings_lock = threading.RLock()
+_grounding_semantic_cache: dict[str, list[list[float]]] = {}
+
+
+def configure_grounding_embeddings(embeddings: Any) -> None:
+    """Share the already-loaded multilingual retriever embedder with guardrails."""
+
+    global _grounding_embeddings
+    with _grounding_embeddings_lock:
+        if embeddings is _grounding_embeddings:
+            return
+        _grounding_embeddings = embeddings
+        _grounding_semantic_cache.clear()
+
+
+def _semantic_claim_support_scores(
+    claims: Sequence[str],
+    documents: Sequence[str],
+) -> list[list[float]]:
+    """Return conservative cross-lingual support scores for claim/document pairs."""
+
+    if _grounding_embeddings is None or not claims or not documents:
+        return [[0.0 for _ in documents] for _ in claims]
+    # Groundedness runs on every answer.  Encoding every retrieved parent chunk
+    # with BGE-M3 on a CPU can exceed the API guardrail timeout, while the
+    # reranker has already ordered the most relevant evidence first.  Keep the
+    # semantic rescue deliberately small and bounded; lexical/fact checks still
+    # evaluate the complete context below.
+    selected_documents = list(documents[:8])
+    semantic_claims = [str(claim)[:512] for claim in claims]
+    semantic_documents = [str(document)[:1200] for document in selected_documents]
+    payload = "\x1e".join(
+        (str(len(documents)), *semantic_claims, "\x1d", *semantic_documents)
+    )
+    key = hashlib.sha256(payload.encode("utf-8", errors="ignore")).hexdigest()
+    with _grounding_embeddings_lock:
+        cached = _grounding_semantic_cache.get(key)
+        if cached is not None:
+            return cached
+        vectors = _grounding_embeddings.embed_documents(
+            [*semantic_claims, *semantic_documents]
+        )
+        claim_vectors = vectors[: len(semantic_claims)]
+        document_vectors = vectors[len(semantic_claims) :]
+        result: list[list[float]] = []
+        for claim_vector in claim_vectors:
+            claim_norm = math.sqrt(sum(float(value) ** 2 for value in claim_vector)) or 1.0
+            row: list[float] = []
+            for document_vector in document_vectors:
+                document_norm = (
+                    math.sqrt(sum(float(value) ** 2 for value in document_vector)) or 1.0
+                )
+                cosine = sum(
+                    float(left) * float(right)
+                    for left, right in zip(claim_vector, document_vector)
+                ) / (claim_norm * document_norm)
+                # BGE-M3 unrelated insurance passages can still have moderately
+                # positive cosine similarity.  Only the high-similarity tail may
+                # rescue a low lexical score; hard-fact and polarity checks remain.
+                calibrated = max(0.0, min(1.0, (cosine - 0.42) / 0.35))
+                row.append(calibrated)
+            # Preserve the caller's document indexing; documents beyond the
+            # bounded semantic window simply cannot rescue a lexical miss.
+            result.append(row + [0.0] * (len(documents) - len(row)))
+        if len(_grounding_semantic_cache) >= 32:
+            _grounding_semantic_cache.pop(next(iter(_grounding_semantic_cache)))
+        _grounding_semantic_cache[key] = result
+        return result
 
 
 def _resolve_safety_config(project_safety_config: Optional[SafetyConfig]) -> SafetyConfig:
@@ -396,7 +485,23 @@ def _grounding_facts(text: str) -> set[str]:
             facts.add(f"{prefix}:{match.group(0).casefold()}")
             occupied.append(match.span())
 
+    for match in _GROUNDING_ENGLISH_DATE_RE.finditer(cleaned):
+        try:
+            normalized_date = datetime.strptime(
+                match.group(0).title(), "%B %d, %Y"
+            ).date().isoformat()
+        except ValueError:
+            continue
+        facts.add(f"date:{normalized_date}")
+        occupied.append(match.span())
+
     for match in _GROUNDING_NUMBER_RE.finditer(cleaned):
+        if any(match.start() < end and match.end() > start for start, end in occupied):
+            continue
+        normalized = match.group(0).replace(",", ".")
+        facts.add(f"number:{normalized}")
+
+    for match in _GROUNDING_COMPACT_UNIT_NUMBER_RE.finditer(cleaned):
         if any(match.start() < end and match.end() > start for start, end in occupied):
             continue
         normalized = match.group(0).replace(",", ".")
@@ -416,56 +521,19 @@ def _grounding_facts(text: str) -> set[str]:
     return facts
 
 
-def _coverage_polarity(text: str) -> Optional[bool]:
-    match = _GROUNDING_COVERAGE_PREDICATE_RE.search(text or "")
-    if match is None:
-        return None
-    local_context = (text or "")[max(0, match.start() - 30) : match.end() + 18]
-    return not bool(_GROUNDING_NEGATION_RE.search(local_context))
+def _coverage_polarity(text: str):
+    return coverage_polarity(text)
 
 
 def _polarity_support(claim: str, document_text: str) -> float:
-    claim_polarity = _coverage_polarity(claim)
-    if claim_polarity is None:
-        return 1.0
-
-    claim_tokens = _tokenize_grounding(claim)
-    candidates: list[tuple[float, Optional[bool]]] = []
-    for statement in _GROUNDING_EVIDENCE_SPLIT_RE.split(document_text or ""):
-        if not statement.strip() or not _GROUNDING_COVERAGE_RE.search(statement):
-            continue
-        statement_tokens = _tokenize_grounding(statement)
-        overlap = len(claim_tokens & statement_tokens) / max(len(claim_tokens), 1)
-        candidates.append((overlap, _coverage_polarity(statement)))
-
-    if not candidates:
-        return 0.7
-    same_polarity_overlap = max(
-        (
-            overlap
-            for overlap, evidence_polarity in candidates
-            if evidence_polarity == claim_polarity
-        ),
-        default=0.0,
-    )
-    opposite_polarity_overlap = max(
-        (
-            overlap
-            for overlap, evidence_polarity in candidates
-            if evidence_polarity is not None and evidence_polarity != claim_polarity
-        ),
-        default=0.0,
-    )
-    if same_polarity_overlap > 0.0 and (
-        opposite_polarity_overlap <= same_polarity_overlap + 0.05
-    ):
-        return 1.0
-    if opposite_polarity_overlap >= 0.35:
-        return 0.15
-    return 0.7
+    return 0.15 if coverage_relation(claim, document_text) == "contradiction" else 1.0
 
 
-def _claim_support_score(claim: str, document_text: str) -> float:
+def _claim_support_score(
+    claim: str,
+    document_text: str,
+    semantic_score: Optional[float] = None,
+) -> float:
     claim_tokens = _tokenize_grounding(claim)
     document_tokens = _tokenize_grounding(document_text)
     if not claim_tokens or not document_tokens:
@@ -486,6 +554,11 @@ def _claim_support_score(claim: str, document_text: str) -> float:
     else:
         combined = lexical_score
 
+    if semantic_score is not None and lexical_score < 0.35:
+        facts_allow_semantic_rescue = not claim_facts or fact_score >= 1.0
+        if facts_allow_semantic_rescue:
+            combined = max(combined, semantic_score)
+
     return combined * _polarity_support(claim, document_text)
 
 
@@ -505,6 +578,11 @@ def _grounding_claims(answer: str) -> list[str]:
         if stripped.startswith("#"):
             continue
         if re.fullmatch(r"(?:source|sources|citations?)\s*: ?", normalized):
+            continue
+        # Citation labels are presentation metadata, not answer claims.  The
+        # answer prompt allows the user's language, so handle the German
+        # labels emitted by the model as well.
+        if re.match(r"^(?:source|sources|quelle|quellen|citation|citations?)\s*:", normalized):
             continue
         if re.fullmatch(r"material documented conditions\s*: ?", normalized):
             continue
@@ -539,7 +617,26 @@ def _grounding_claims(answer: str) -> list[str]:
         ):
             continue
         claims.append(claim)
-    return claims
+
+    # Models sometimes restate the same supported condition in a second
+    # paragraph (especially after adding a citation).  Treat near-duplicate
+    # claims as one semantic claim, retaining the longer version because it
+    # carries the qualifying conditions needed by the evidence matcher.
+    deduplicated: list[str] = []
+    for claim in claims:
+        claim_tokens = _tokenize_grounding(claim)
+        duplicate_index = None
+        for index, existing in enumerate(deduplicated):
+            existing_tokens = _tokenize_grounding(existing)
+            overlap = len(claim_tokens & existing_tokens)
+            if overlap / max(min(len(claim_tokens), len(existing_tokens)), 1) >= 0.80:
+                duplicate_index = index
+                break
+        if duplicate_index is None:
+            deduplicated.append(claim)
+        elif len(claim_tokens) > len(_tokenize_grounding(deduplicated[duplicate_index])):
+            deduplicated[duplicate_index] = claim
+    return deduplicated
 
 
 def calculate_groundedness_score(
@@ -555,6 +652,7 @@ def calculate_groundedness_score(
         return 0.0
 
     query_tokens = _tokenize_grounding(query)
+    semantic_support = _semantic_claim_support_scores(claims, documents)
     query_relevance = [
         len(query_tokens & _tokenize_grounding(document)) / max(len(query_tokens), 1)
         if query_tokens
@@ -565,11 +663,15 @@ def calculate_groundedness_score(
 
     weighted_total = 0.0
     total_weight = 0.0
-    for claim in claims:
+    for claim_index, claim in enumerate(claims):
         claim_weight = float(min(max(len(_tokenize_grounding(claim)), 1), 20))
         document_scores: list[float] = []
         for index, document in enumerate(documents):
-            support = _claim_support_score(claim, document)
+            support = _claim_support_score(
+                claim,
+                document,
+                semantic_score=semantic_support[claim_index][index],
+            )
             if max_query_relevance > 0.0:
                 relative_relevance = query_relevance[index] / max_query_relevance
                 support *= 0.85 + (0.15 * relative_relevance)
@@ -596,39 +698,8 @@ def _groundedness_evaluation(
     docs: Sequence[Document],
     query: str = "",
 ) -> tuple[float, dict[str, Any]]:
-    try:
-        from scripts.experimental_groundedness_v5 import (
-            calculate_groundedness_score_v5_experimental,
-        )
-
-        result = calculate_groundedness_score_v5_experimental(answer, docs, query)
-        return result.score, result.to_dict()
-    except Exception as exc:
-        logger.exception("groundedness_v5_failed_falling_back_to_v4")
-        from src.core.diagnostic_capture import sanitize_diagnostic_text
-
-        score = calculate_groundedness_score(answer, docs, query)
-        return score, {
-            "score": score,
-            "final_v5_score": score,
-            "base_v4_score": score,
-            "minimum_claim_support": None,
-            "extracted_claims": _grounding_claims(answer),
-            "ignored_nonsemantic_lines": [],
-            "claim_details": [],
-            "unsupported_atomic_facts": [],
-            "citation_mismatches": [],
-            "structured_mismatches": [],
-            "structured_field_mismatches": [],
-            "coverage_type_mismatches": [],
-            "policy_number_mismatches": [],
-            "numeric_or_monetary_mismatches": [],
-            "polarity_mismatches": [],
-            "applied_caps": [],
-            "algorithm_version": "fact_aware_claim_support_v4_fallback",
-            "exception_type": type(exc).__name__,
-            "exception_message_sanitized": sanitize_diagnostic_text(str(exc)),
-        }
+    from src.core.claim_groundedness import evaluate_claim_groundedness
+    return evaluate_claim_groundedness(answer, docs, query)
 
 
 def _pre_query_decision_source(
@@ -1078,7 +1149,7 @@ def _evaluate_output_safety(
         docs,
         query,
     )
-    if docs and groundedness < config.min_groundedness:
+    if docs and (groundedness < config.min_groundedness or not groundedness_diagnostics.get("all_claims_supported", False)):
         reasons.append("low_groundedness")
         if action == "allow":
             action = "fallback"

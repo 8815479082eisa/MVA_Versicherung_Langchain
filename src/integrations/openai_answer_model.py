@@ -67,6 +67,7 @@ class OpenAIResponsesAnswerModel(Runnable[Any, AIMessage]):
         max_output_tokens: int,
         timeout_seconds: float,
         max_retries: int,
+        json_schema: Optional[dict[str, Any]] = None,
         client_factory: Optional[Callable[..., Any]] = None,
     ) -> None:
         api_key = os.getenv("OPENAI_API_KEY", "").strip()
@@ -96,6 +97,7 @@ class OpenAIResponsesAnswerModel(Runnable[Any, AIMessage]):
         self.model = model
         self.temperature = temperature
         self.max_output_tokens = max_output_tokens
+        self.json_schema = json_schema
         self.client = client_factory(**client_kwargs)
 
     def invoke(
@@ -116,6 +118,11 @@ class OpenAIResponsesAnswerModel(Runnable[Any, AIMessage]):
         }
         if instructions:
             request["instructions"] = instructions
+        if self.json_schema is not None:
+            request["text"] = {"format": {
+                "type": "json_schema", "name": "groundedness", "strict": True,
+                "schema": self.json_schema,
+            }}
 
         response = self.client.responses.create(**request)
         content = str(getattr(response, "output_text", "") or "")

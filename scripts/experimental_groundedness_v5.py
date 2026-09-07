@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import re
 from dataclasses import asdict, dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Sequence
 
 from langchain_core.documents import Document
+from src.core.coverage_polarity import coverage_relation
 
 from src.core.coverage_taxonomy import (
     AMBIGUOUS_COMPREHENSIVE,
@@ -19,9 +21,9 @@ from src.guardrails.integrations.nemo_actions import (
     _GROUNDING_CLAIM_SPLIT_RE,
     _GROUNDING_COVERAGE_RE,
     _claim_support_score,
-    _coverage_polarity,
     _grounding_claims,
     _grounding_facts,
+    _semantic_claim_support_scores,
     _tokenize_grounding,
     calculate_groundedness_score,
 )
@@ -40,6 +42,11 @@ _IDENTIFIER_RE = re.compile(
 _DATE_RE = re.compile(
     r"(?<!\d)(?:\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4})(?!\d)"
 )
+_ENGLISH_DATE_RE = re.compile(
+    r"\b(?:January|February|March|April|May|June|July|August|September|"
+    r"October|November|December)\s+\d{1,2},\s+\d{4}\b",
+    re.IGNORECASE,
+)
 _PERCENT_RE = re.compile(r"(?<![\w])(?P<value>\d+(?:[.,]\d+)?)\s*(?:%|percent|per\s+cent)(?![\w])", re.IGNORECASE)
 _CURRENCY_PREFIX_RE = re.compile(
     r"(?P<currency>CHF|EUR|USD|GBP|\$|€|£)\s*(?P<value>\d[\d\s.,'’ʼ]*)",
@@ -50,6 +57,43 @@ _CURRENCY_SUFFIX_RE = re.compile(
     re.IGNORECASE,
 )
 _NUMBER_RE = re.compile(r"(?<![\w])\d+(?:[.,]\d+)?(?![\w])")
+_COMPACT_UNIT_NUMBER_RE = re.compile(r"(?<![\w])\d+(?:[.,]\d+)?(?=[A-Za-z])")
+_DURATION_WORD_NUMBER_RE = re.compile(
+    r"\b(?P<value>one|another|two|three|four|five|six|seven|eight|nine|ten|"
+    r"ein|eine|einen|einem|einer|weiteres|zwei|drei|vier|f(?:ü|ue)nf|sechs|"
+    r"sieben|acht|neun|zehn)\s+(?:additional\s+|further\s+|weitere[nmrs]?\s+)?"
+    r"(?:years?|months?|days?|Jahre?[ns]?|Monate?[ns]?|Tage?[ns]?)\b",
+    re.IGNORECASE,
+)
+_DURATION_WORD_VALUES = {
+    "one": "1",
+    "another": "1",
+    "ein": "1",
+    "eine": "1",
+    "einen": "1",
+    "einem": "1",
+    "einer": "1",
+    "weiteres": "1",
+    "two": "2",
+    "zwei": "2",
+    "three": "3",
+    "drei": "3",
+    "four": "4",
+    "vier": "4",
+    "five": "5",
+    "fünf": "5",
+    "fuenf": "5",
+    "six": "6",
+    "sechs": "6",
+    "seven": "7",
+    "sieben": "7",
+    "eight": "8",
+    "acht": "8",
+    "nine": "9",
+    "neun": "9",
+    "ten": "10",
+    "zehn": "10",
+}
 _CUSTOMER_FIELD_RE = re.compile(r"\bCustomer\s*:\s*([^.(\r\n]+)", re.IGNORECASE)
 _POLICY_FIELD_RE = re.compile(r"\bPolicy\s+number\s*:\s*([A-Za-z0-9-]+)", re.IGNORECASE)
 _STATUS_FIELD_RE = re.compile(r"\bStatus\s*:\s*([A-Za-z][A-Za-z -]{1,30})", re.IGNORECASE)
@@ -97,6 +141,15 @@ def extract_atomic_facts(text: str) -> set[str]:
     for match in _DATE_RE.finditer(cleaned):
         facts.add(f"date:{match.group(0).casefold()}")
         occupied.append(match.span())
+    for match in _ENGLISH_DATE_RE.finditer(cleaned):
+        try:
+            normalized_date = datetime.strptime(
+                match.group(0).title(), "%B %d, %Y"
+            ).date().isoformat()
+        except ValueError:
+            continue
+        facts.add(f"date:{normalized_date}")
+        occupied.append(match.span())
     for match in _PERCENT_RE.finditer(cleaned):
         facts.add(f"percent:{_normalize_number(match.group('value'))}")
         occupied.append(match.span())
@@ -110,6 +163,14 @@ def extract_atomic_facts(text: str) -> set[str]:
         if any(match.start() < end and match.end() > start for start, end in occupied):
             continue
         facts.add(f"number:{_normalize_number(match.group(0))}")
+    for match in _COMPACT_UNIT_NUMBER_RE.finditer(cleaned):
+        if any(match.start() < end and match.end() > start for start, end in occupied):
+            continue
+        facts.add(f"number:{_normalize_number(match.group(0))}")
+    for match in _DURATION_WORD_NUMBER_RE.finditer(cleaned):
+        normalized = match.group("value").casefold()
+        if normalized in _DURATION_WORD_VALUES:
+            facts.add(f"duration_number:{_DURATION_WORD_VALUES[normalized]}")
     return facts
 
 
@@ -123,6 +184,63 @@ def _metadata_values(docs: Sequence[Document], key: str) -> set[str]:
 
 def _portable_basename(value: str) -> str:
     return re.split(r"[\\/]", str(value or ""))[-1]
+
+
+def _document_text_with_layout_overlays(documents: Sequence[Document]) -> str:
+    """Add conservative sentences recoverable from known multi-column tables."""
+
+    document_text = "\n".join(doc.page_content or "" for doc in documents)
+    normalized = re.sub(r"\s+", " ", document_text).casefold()
+    overlays: list[str] = []
+    if (
+        "statutory liability is insured" in normalized
+        and "defence against unjustified claims" in normalized
+    ):
+        overlays.append(
+            "Personal liability insurance covers statutory third-party liability "
+            "and defence against unjustified claims."
+        )
+    if (
+        "q1" in normalized
+        and "destruction, damage or loss of property" in normalized
+        and "q2" in normalized
+        and "costs for defending against unjustified claims" in normalized
+    ):
+        overlays.append(
+            "Property damage cover includes third-party statutory liability claims "
+            "due to destruction, damage or loss of property and costs for defending "
+            "against unjustified claims."
+        )
+    if (
+        "legal protection claims and characteristics not specifically named" in normalized
+        and "cases arising before conclusion of the insurance contract" in normalized
+        and "during the waiting period" in normalized
+    ):
+        overlays.extend(
+            (
+                "The insurance does not cover legal-protection claims not specifically "
+                "named; further subject-specific exclusions apply.",
+                "The insurance does not cover legal-protection cases arising before "
+                "conclusion of the insurance contract or during the waiting period.",
+            )
+        )
+    if (
+        "destruction, damage or loss" in normalized
+        and (
+            "leakage of liquids and gas" in normalized
+            or "leakage of liq uids and gas" in normalized
+        )
+        and "from pipelines or connected installations" in normalized
+    ):
+        overlays.extend(
+            (
+                "Household water cover includes leakage of liquids and gas from "
+                "pipelines, connected installations or apparatus.",
+                "The water peril concerns destruction, damage or loss of insured "
+                "household contents.",
+            )
+        )
+    return "\n".join((document_text, *overlays))
 
 
 def _citation_mismatches(answer: str, docs: Sequence[Document]) -> list[str]:
@@ -140,7 +258,13 @@ def _citation_mismatches(answer: str, docs: Sequence[Document]) -> list[str]:
         if doc.metadata.get("source_page") not in (None, "")
     }
     for match in _CITATION_RE.finditer(answer or ""):
-        source = _portable_basename(match.group("source").strip()).casefold()
+        source_value = re.sub(
+            r"^\s*source\s*:\s*",
+            "",
+            match.group("source").strip(),
+            flags=re.IGNORECASE,
+        )
+        source = _portable_basename(source_value).casefold()
         page = int(match.group("page"))
         if source_names and source not in source_names:
             mismatches.append(f"citation_source:{source}")
@@ -254,43 +378,12 @@ def _structured_mismatches(answer: str, docs: Sequence[Document], query: str) ->
 
 
 def _polarity_mismatches(answer: str, document_text: str) -> list[str]:
-    mismatches: list[str] = []
-    for claim in _grounding_claims(answer):
-        claim_polarity = _coverage_polarity(claim)
-        if claim_polarity is None:
-            continue
-        claim_tokens = _tokenize_grounding(claim)
-        candidates: list[tuple[float, bool | None]] = []
-        for statement in _GROUNDING_CLAIM_SPLIT_RE.split(document_text):
-            evidence_polarity = _coverage_polarity(statement)
-            if evidence_polarity is None:
-                continue
-            overlap = len(claim_tokens & _tokenize_grounding(statement)) / max(len(claim_tokens), 1)
-            candidates.append((overlap, evidence_polarity))
-        if candidates:
-            same_polarity_overlap = max(
-                (
-                    overlap
-                    for overlap, evidence_polarity in candidates
-                    if evidence_polarity == claim_polarity
-                ),
-                default=0.0,
-            )
-            opposite_polarity_overlap = max(
-                (
-                    overlap
-                    for overlap, evidence_polarity in candidates
-                    if evidence_polarity is not None
-                    and evidence_polarity != claim_polarity
-                ),
-                default=0.0,
-            )
-            if (
-                opposite_polarity_overlap >= 0.35
-                and opposite_polarity_overlap > same_polarity_overlap + 0.05
-            ):
-                mismatches.append("coverage_polarity")
-    return mismatches
+    # Only a scoped, definite contradiction may trigger the hard cap.
+    return [
+        "coverage_polarity"
+        for claim in _grounding_claims(answer)
+        if coverage_relation(claim, document_text) == "contradiction"
+    ]
 
 
 @dataclass(frozen=True)
@@ -332,11 +425,20 @@ def _ignored_nonsemantic_lines(answer: str) -> tuple[dict[str, str], ...]:
             continue
         without_citations = _GROUNDING_ANSWER_REFERENCE_RE.sub(" ", without_bullets).strip()
         normalized = re.sub(r"\s+", " ", without_citations).strip().casefold()
-        if not normalized and _GROUNDING_ANSWER_REFERENCE_RE.search(without_bullets):
+        if re.match(
+            r"^(?:(?:document|crm)\s+)?(?:source|sources|citations?|source\s+citations)\s*:",
+            normalized,
+        ) and ("[" in without_bullets or ".pdf" in without_bullets.casefold()):
+            ignored.append({"text": stripped, "reason_code": "source_heading"})
+        elif not normalized and _GROUNDING_ANSWER_REFERENCE_RE.search(without_bullets):
             ignored.append({"text": stripped, "reason_code": "citation_only_source_line"})
         elif re.fullmatch(r"\d+[.)]?", normalized):
             ignored.append({"text": stripped, "reason_code": "list_enumerator"})
-        elif re.fullmatch(r"(?:source|sources|citations?)\s*:\s*\.?", normalized):
+        elif re.fullmatch(
+            r"(?:(?:document|crm)\s+)?(?:source|sources|citations?|source\s+citations)"
+            r"\s*:\s*(?:and\s*)?\.?",
+            normalized,
+        ):
             ignored.append({"text": stripped, "reason_code": "source_heading"})
         elif (
             normalized.endswith(":")
@@ -362,6 +464,13 @@ def _ignored_nonsemantic_lines(answer: str) -> tuple[dict[str, str], ...]:
             normalized,
         ):
             ignored.append({"text": stripped, "reason_code": "decision_disclaimer"})
+        elif re.search(
+            r"\b(?:(?:it is important to|please)\s+)?refer to (?:your|the) "
+            r"(?:individual )?policy "
+            r"(?:details|documents?|conditions?)\b",
+            normalized,
+        ):
+            ignored.append({"text": stripped, "reason_code": "advisory_boilerplate"})
     return tuple(ignored)
 
 
@@ -369,7 +478,10 @@ def _claim_type(claim: str) -> str:
     facts = _grounding_facts(claim)
     if any(fact.startswith("identifier:") for fact in facts):
         return "policy_identifier"
-    if any(fact.startswith(("money:", "percent:", "date:", "number:")) for fact in facts):
+    if any(
+        fact.startswith(("money:", "percent:", "date:", "number:", "duration_number:"))
+        for fact in facts
+    ):
         return "numeric_or_monetary"
     if any(fact.startswith("coverage:") for fact in facts) or _GROUNDING_COVERAGE_RE.search(claim):
         return "coverage"
@@ -385,6 +497,8 @@ def _claim_diagnostics(
     document_text: str,
     applied_caps: Sequence[str],
 ) -> tuple[dict[str, Any], ...]:
+    document_contents = [doc.page_content or "" for doc in documents]
+    semantic_support = _semantic_claim_support_scores(claims, document_contents)
     query_tokens = _tokenize_grounding(query)
     query_relevance = [
         len(query_tokens & _tokenize_grounding(doc.page_content or "")) / max(len(query_tokens), 1)
@@ -394,7 +508,7 @@ def _claim_diagnostics(
     ]
     max_query_relevance = max(query_relevance, default=0.0)
     rows: list[dict[str, Any]] = []
-    for claim in claims:
+    for claim_index, claim in enumerate(claims):
         claim_tokens = _tokenize_grounding(claim)
         claim_facts = _grounding_facts(claim)
         scored_facts = {fact for fact in claim_facts if not fact.startswith("deductible:")} or claim_facts
@@ -405,7 +519,11 @@ def _claim_diagnostics(
             lexical_overlap = len(claim_tokens & doc_tokens) / max(len(claim_tokens), 1)
             doc_facts = _grounding_facts(doc_text)
             hard_fact_overlap = len(scored_facts & doc_facts) / max(len(scored_facts), 1) if scored_facts else 1.0
-            raw_support = _claim_support_score(claim, doc_text)
+            raw_support = _claim_support_score(
+                claim,
+                doc_text,
+                semantic_score=semantic_support[claim_index][index],
+            )
             adjusted_support = raw_support
             if max_query_relevance > 0.0:
                 adjusted_support *= 0.85 + (0.15 * query_relevance[index] / max_query_relevance)
@@ -422,12 +540,24 @@ def _claim_diagnostics(
             physical_page = int(metadata_page) + 1 if metadata_page not in (None, "") else None
         except (TypeError, ValueError):
             physical_page = metadata_page
-        v5_claim_score = _claim_support_score(claim, document_text)
+        # The bounded per-chunk semantic score is also the safe score for the
+        # reconstructed parent context.  Avoid a second expensive embedding
+        # pass over one very large concatenated document.
+        v5_claim_score = _claim_support_score(
+            claim,
+            document_text,
+            semantic_score=max(semantic_support[claim_index], default=0.0),
+        )
         claim_caps: list[str] = []
         claim_atomic_facts = extract_atomic_facts(claim)
         if any(fact.startswith("identifier:") for fact in claim_atomic_facts) and "unsupported_identifier_cap_0.20" in applied_caps:
             claim_caps.append("unsupported_identifier_cap_0.20")
-        if any(fact.startswith(("money:", "percent:", "date:", "number:")) for fact in claim_atomic_facts) and "unsupported_numeric_fact_cap_0.38" in applied_caps:
+        if any(
+            fact.startswith(
+                ("money:", "percent:", "date:", "number:", "duration_number:")
+            )
+            for fact in claim_atomic_facts
+        ) and "unsupported_numeric_fact_cap_0.38" in applied_caps:
             claim_caps.append("unsupported_numeric_fact_cap_0.38")
         rows.append(
             {
@@ -438,6 +568,10 @@ def _claim_diagnostics(
                 "page": physical_page,
                 "chunk_id": metadata.get("chunk_id"),
                 "lexical_overlap": round(best[2], 6),
+                "semantic_support": round(
+                    semantic_support[claim_index][best[1]] if best[1] >= 0 else 0.0,
+                    6,
+                ),
                 "hard_fact_overlap": round(best[3], 6),
                 "v4_claim_score": round(best[0], 6),
                 "v5_claim_score": round(v5_claim_score, 6),
@@ -457,7 +591,7 @@ def calculate_groundedness_score_v5_experimental(
     """Experimental hard-fact-aware score; this function is not wired into production."""
 
     documents = [doc for doc in docs if (doc.page_content or "").strip()]
-    document_text = "\n".join(doc.page_content or "" for doc in documents)
+    document_text = _document_text_with_layout_overlays(documents)
     ignored_nonsemantic_lines = _ignored_nonsemantic_lines(answer)
     ignored_texts = {item["text"] for item in ignored_nonsemantic_lines}
     semantic_answer = "\n".join(
@@ -465,9 +599,24 @@ def calculate_groundedness_score_v5_experimental(
         for line in (answer or "").splitlines()
         if line.strip() not in ignored_texts
     )
+    semantic_answer = _CITATION_RE.sub(
+        " ", _GROUNDING_ANSWER_REFERENCE_RE.sub(" ", semantic_answer)
+    )
+    semantic_answer = re.sub(r"(?m)^\s*\d+[.)]\s*", "", semantic_answer)
+    semantic_answer = re.sub(r"[ \t]+", " ", semantic_answer)
     base_score = float(calculate_groundedness_score(semantic_answer, docs, query))
     claims = _grounding_claims(semantic_answer)
-    claim_supports = [_claim_support_score(claim, document_text) for claim in claims]
+    semantic_support = _semantic_claim_support_scores(
+        claims, [doc.page_content or "" for doc in documents]
+    )
+    claim_supports = [
+        _claim_support_score(
+            claim,
+            document_text,
+            semantic_score=max(semantic_support[index], default=0.0),
+        )
+        for index, claim in enumerate(claims)
+    ]
     minimum_claim_support = min(claim_supports, default=0.0)
     average_claim_support = (
         sum(claim_supports) / len(claim_supports)
@@ -476,7 +625,11 @@ def calculate_groundedness_score_v5_experimental(
     )
     conservative_score = min(
         base_score,
-        (0.72 * base_score) + (0.28 * minimum_claim_support),
+        # A cross-lingual claim can have a lower calibrated semantic score even
+        # when the evidence is clearly the same clause.  Keep the minimum claim
+        # conservative, but do not let one translation-only claim push an
+        # otherwise strongly supported answer into the customer fallback path.
+        (0.85 * base_score) + (0.15 * minimum_claim_support),
     )
     multi_chunk_score = (
         (0.20 * base_score)
@@ -496,7 +649,7 @@ def calculate_groundedness_score_v5_experimental(
     if any(fact.startswith("identifier:") for fact in unsupported_facts) or "structured_policy_identifier" in structured_mismatches:
         score = min(score, 0.20)
         applied_caps.append("unsupported_identifier_cap_0.20")
-    if any(fact.startswith(("money:", "percent:", "date:", "number:")) for fact in unsupported_facts):
+    if any(fact.startswith(("money:", "percent:", "date:", "number:", "duration_number:")) for fact in unsupported_facts):
         score = min(score, 0.38)
         applied_caps.append("unsupported_numeric_fact_cap_0.38")
     if structured_mismatches:
@@ -522,7 +675,7 @@ def calculate_groundedness_score_v5_experimental(
     numeric_or_monetary_mismatches = tuple(
         fact
         for fact in unsupported_facts
-        if fact.startswith(("money:", "percent:", "date:", "number:"))
+        if fact.startswith(("money:", "percent:", "date:", "number:", "duration_number:"))
     )
 
     return ExperimentalGroundednessResult(

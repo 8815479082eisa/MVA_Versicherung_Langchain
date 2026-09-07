@@ -573,7 +573,21 @@ class EspoCRMClient:
                 "duplicate_match",
                 "Multiple claims match the supplied claim number.",
             )
+        policy_number = await self._related_policy_number(records[0])
+        if policy_number:
+            records[0] = {**records[0], "relatedPolicyNumber": policy_number}
         return {"found": True, "claim": _normalize_claim(records[0])}
+
+    async def _related_policy_number(self, claim_record: dict[str, Any]) -> str | None:
+        policy_id = _clean_text(claim_record.get("policyId"))
+        if not policy_id:
+            return None
+        safe_id = _validate_identifier(policy_id, label="policy_id")
+        record = await self._request_json(
+            f"MvaPolicy/{quote(safe_id, safe='')}",
+            params={"select": "id,policyNumber"},
+        )
+        return _clean_text(record.get("policyNumber"))
 
 
 def _normalize_policy(record: dict[str, Any]) -> dict[str, Any]:
@@ -614,6 +628,7 @@ def _normalize_claim(record: dict[str, Any]) -> dict[str, Any]:
         },
         "status": _clean_text(record.get("status")),
         "policy_reference": _clean_text(record.get("policyName")),
+        "policy_number": _clean_text(record.get("relatedPolicyNumber")),
         "policy_id": _clean_text(record.get("policyId")),
         "customer_id": _clean_text(record.get("customerId")),
         "customer_name": _clean_text(record.get("customerName")),

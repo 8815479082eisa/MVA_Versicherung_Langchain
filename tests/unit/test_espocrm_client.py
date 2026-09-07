@@ -150,6 +150,36 @@ class EspoCRMClientTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(result["found"])
         self.assertEqual(result["claim"]["status"], "Under Review")
 
+    async def test_claim_lookup_resolves_related_policy_number(self):
+        def handler(request: httpx.Request) -> httpx.Response:
+            if request.url.path.endswith("/MvaPolicy/policy-1"):
+                return httpx.Response(
+                    200,
+                    json={"id": "policy-1", "policyNumber": "TEST-KFZ-2026-1401"},
+                )
+            return httpx.Response(
+                200,
+                json={
+                    "total": 1,
+                    "list": [
+                        {
+                            "id": "claim-1",
+                            "claimNumber": "TEST-CLM-2026-2301",
+                            "status": "Open",
+                            "policyId": "policy-1",
+                            "policyName": "Hannah Vogel Motor Insurance",
+                        }
+                    ],
+                },
+            )
+
+        async with EspoCRMClient(
+            _config(), transport=httpx.MockTransport(handler)
+        ) as client:
+            result = await client.get_claim_status("TEST-CLM-2026-2301")
+
+        self.assertEqual(result["claim"]["policy_number"], "TEST-KFZ-2026-1401")
+
     async def test_exact_policy_lookup(self):
         transport = httpx.MockTransport(
             lambda _: httpx.Response(

@@ -454,6 +454,10 @@ class StorageConfig:
 class ChunkingConfig:
     chunk_size: int
     chunk_overlap: int
+    strategy: str = "structure_aware"
+    child_max_tokens: int = 512
+    parent_max_tokens: int = 1536
+    overlap_tokens: int = 32
 
 
 @dataclass(frozen=True)
@@ -632,7 +636,7 @@ def load_model_settings() -> ModelSettings:
         self_check_enabled=_env_bool("SELF_CHECK_ENABLED", False),
         answer_completeness_enabled=_env_bool(
             "ANSWER_COMPLETENESS_ENABLED",
-            False,
+            True,
         ),
         self_check_provider=self_check_provider,
         force_retrieval=_env_bool("RAG_FORCE_RETRIEVAL", True),
@@ -683,6 +687,10 @@ def load_model_settings() -> ModelSettings:
     chunking = ChunkingConfig(
         chunk_size=_env_int("CHUNK_SIZE", 1000),
         chunk_overlap=_env_int("CHUNK_OVERLAP", 200),
+        strategy=os.getenv("CHUNKING_STRATEGY", "structure_aware").strip().lower(),
+        child_max_tokens=_env_int("CHUNK_CHILD_MAX_TOKENS", 512),
+        parent_max_tokens=_env_int("CHUNK_PARENT_MAX_TOKENS", 1536),
+        overlap_tokens=_env_int("CHUNK_OVERLAP_TOKENS", 32),
     )
 
     raw_mode = os.getenv("SAFETY_MODE", "monitor").strip().lower()

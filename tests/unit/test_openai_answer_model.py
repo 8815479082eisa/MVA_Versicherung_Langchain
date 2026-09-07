@@ -21,6 +21,21 @@ class _FakeClient:
         self.responses = _FakeResponses()
 
 
+def test_responses_adapter_requests_strict_judge_schema(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "test-only-key")
+    client = _FakeClient()
+    schema = {"type": "object", "properties": {}, "required": [], "additionalProperties": False}
+    model = OpenAIResponsesAnswerModel(
+        model="gpt-4o-mini", temperature=0, max_output_tokens=2000,
+        timeout_seconds=10, max_retries=0, json_schema=schema,
+        client_factory=lambda **kwargs: client,
+    )
+    model.invoke("Judge a claim")
+    assert client.responses.request["text"]["format"] == {
+        "type": "json_schema", "name": "groundedness", "strict": True, "schema": schema,
+    }
+
+
 def test_responses_adapter_maps_langchain_messages_without_storing_response(
     monkeypatch,
 ) -> None:

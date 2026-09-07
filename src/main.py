@@ -36,7 +36,7 @@ from src.core.insurance_tool_routing import (
     QueryMode,
     build_knowledge_query,
     enrich_knowledge_query,
-    extract_requested_pdf_filename,
+    infer_document_source_filename,
     plan_insurance_query,
 )
 from src.core.safety_audit import (
@@ -47,6 +47,7 @@ from src.core.llm_runtime import (
     RequestTimeoutError,
     RuntimeExecutionError,
 )
+from src.core.guardrail_readiness import check_guardrail_model_readiness
 from src.core.ollama_readiness import check_ollama_readiness
 from src.core.runtime_diagnostics import (
     RequestDiagnostics,
@@ -382,6 +383,17 @@ async def health_check():
         rag_service.SETTINGS,
         timeout_seconds=2.0,
     )
+    guardrail_health = await check_guardrail_model_readiness(timeout_seconds=60.0)
+    # Output rails use FastEmbed's MiniLM model for embeddings-only intent matching.
+    # Keep the optional Ollama status visible, but report the dependency that the
+    # active guardrail path actually needs as guardrailModelReady.
+    llm_health["ollamaGuardrailModelReady"] = llm_health["guardrailModelReady"]
+    llm_health.update(guardrail_health)
+    llm_health["llmReady"] = bool(
+        llm_health["answerModelReady"] and llm_health["guardrailModelReady"]
+    )
+    if llm_health["llmReady"]:
+        llm_health["llmError"] = None
     return {
         "status": "ok",
         "message": "Backend laeuft",
@@ -624,7 +636,11 @@ async def ask(request: AskQuestionRequest):
                     knowledge_query,
                     product_hints=crm_selection.retrieval_hints,
                 )
-                requested_pdf = extract_requested_pdf_filename(question)
+                requested_pdf = infer_document_source_filename(question)
+                if requested_pdf is None and crm_selection.retrieval_hints:
+                    requested_pdf = infer_document_source_filename(
+                        question + " " + " ".join(crm_selection.retrieval_hints)
+                    )
                 diagnostics.record_evidence(
                     "crmSelection",
                     {
@@ -851,7 +867,14 @@ async def ask(request: AskQuestionRequest):
                 )
 
         # RAG-Service path (uses local model provider)
-        result = await _run_rag_with_total_timeout(question, diagnostics)
+        retrieval_query = enrich_knowledge_query(question)
+        requested_pdf = infer_document_source_filename(question)
+        result = await _run_rag_with_total_timeout(
+            question,
+            diagnostics,
+            retrieval_query=retrieval_query,
+            requested_source_filename=requested_pdf,
+        )
         
         # Ergebnis in AnswerResponse umwandeln
         sources = _api_sources(result.sources or [])

@@ -76,11 +76,16 @@ CONTRACT_IDENTIFIER_RE = re.compile(
     (?<!\w)
     (?P<value>
         (?:[A-Z0-9]{2,12}[-/])*
-        (?:CONTRACT|CTR|VTR|KFZ|PHV)
+        (?:CONTRACT|CTR|VTR|KFZ|PHV|HH|RS)
         (?:[-/][A-Z0-9]{2,12}){1,4}
     )
     (?!\w)
     """,
+)
+
+SYNTHETIC_CLAIM_IDENTIFIER_RE = re.compile(
+    r"(?<!\w)(?P<value>TEST-CLM-\d{4}-\d{4,12})(?!\w)",
+    re.IGNORECASE,
 )
 
 DATE_CANDIDATE_RE = re.compile(
@@ -784,6 +789,24 @@ def _detect_identifier_items(text: str, config: Optional[SafetyConfig]) -> List[
                 placeholder=PII_PLACEHOLDERS["contract_id"],
                 allowed=True,
                 reason="allowed_contract_id",
+            )
+        )
+
+    # Evaluation and demo records are explicitly synthetic. Treat only the
+    # reserved TEST namespace as non-personal so production claim identifiers
+    # remain protected by the normal claim-id rule.
+    for match in SYNTHETIC_CLAIM_IDENTIFIER_RE.finditer(text):
+        value = match.group("value")
+        items.append(
+            PIIItem(
+                pii_type="claim_id",
+                value=value,
+                start=match.start("value"),
+                end=match.end("value"),
+                source="synthetic_claim_identifier_regex",
+                placeholder=PII_PLACEHOLDERS["claim_id"],
+                allowed=True,
+                reason="allowed_synthetic_test_identifier",
             )
         )
 

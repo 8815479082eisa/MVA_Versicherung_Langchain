@@ -112,6 +112,17 @@ async def execute_crm_query(
     for result in called_results:
         _raise_for_tool_error(result)
 
+    # A policy-number lookup can carry the related contact name. Follow that
+    # relationship only when the question explicitly asks for a contact field.
+    if customer_result is None and plan.needs_contact:
+        related_name = _related_customer_name(called_results)
+        if related_name:
+            customer_result = await invoke(
+                "find_customer",
+                {"name": related_name, "email": None},
+            )
+            _raise_for_tool_error(customer_result)
+
     results = ([customer_result] if customer_result is not None else []) + list(
         called_results
     )
@@ -267,8 +278,9 @@ def _format_claim(claim: dict[str, Any]) -> str:
         text += f"; reported {claim['claim_date']}"
     if amount:
         text += f"; claimed amount {amount}"
-    if claim.get("policy_reference"):
-        text += f"; policy {claim['policy_reference']}"
+    policy_reference = claim.get("policy_number") or claim.get("policy_reference")
+    if policy_reference:
+        text += f"; policy {policy_reference}"
     if claim.get("description"):
         text += f"; description {claim['description']}"
     return text + "."
@@ -360,7 +372,16 @@ def select_crm_context(
         grouped.setdefault(title, []).append(source)
 
     query_tokens = _context_tokens(question)
-    selected: list[dict[str, Any]] = list(contacts)
+    if _question_requests_contact_fields(question):
+        selected: list[dict[str, Any]] = list(contacts)
+    else:
+        selected = [
+            {
+                **source,
+                "snippet": f"Customer: {source.get('section') or 'unknown'}.",
+            }
+            for source in contacts
+        ]
     evidence: list[dict[str, Any]] = []
     structured_records = _structured_records_by_id(result)
     effective_date = as_of_date or _question_as_of_date(question) or date.today()
@@ -501,7 +522,14 @@ def select_crm_context(
         )
         if not ranked:
             continue
-        selected.append(ranked[0])
+        preserve_all = title == "EspoCRM Claim" and _is_multi_claim_request(question)
+        chosen_sources = ranked if preserve_all else ranked[:1]
+        selected.extend(chosen_sources)
+        chosen_ids = {str(source.get("documentId") or "") for source in chosen_sources}
+        if title == "EspoCRM Claim":
+            for source in chosen_sources:
+                record = _record_for_source(source, structured_records)
+                retrieval_hints.extend(_claim_retrieval_hints(record))
         evidence.extend(
             {
                 "entity_type": title.removeprefix("EspoCRM ").lower(),
@@ -512,7 +540,7 @@ def select_crm_context(
                     question,
                     query_tokens,
                 ),
-                "selected": source is ranked[0],
+                "selected": str(source.get("documentId") or "") in chosen_ids,
             }
             for source in ranked
         )
@@ -522,6 +550,39 @@ def select_crm_context(
         evidence=tuple(evidence),
         retrieval_hints=tuple(dict.fromkeys(retrieval_hints)),
         selected_policy_numbers=tuple(selected_policy_numbers),
+    )
+
+
+def _related_customer_name(results: list[dict[str, Any]]) -> str | None:
+    for result in results:
+        for key in ("policy", "claim"):
+            record = result.get(key)
+            if isinstance(record, dict):
+                value = str(record.get("customer_name") or "").strip()
+                if value:
+                    return value
+    return None
+
+
+def _question_requests_contact_fields(question: str) -> bool:
+    return bool(
+        re.search(
+            r"\b(?:e-?mail|phone|telephone|address|date of birth|birth date|"
+            r"contact id|customer id|contact information|contact details)\b",
+            question or "",
+            re.IGNORECASE,
+        )
+    )
+
+
+def _is_multi_claim_request(question: str) -> bool:
+    return bool(
+        re.search(r"\bclaims\b", question or "", re.IGNORECASE)
+        or re.search(
+            r"\b(?:all|every|list|show|which)\b[^?.!]{0,50}\bclaim\b",
+            question or "",
+            re.IGNORECASE,
+        )
     )
 
 
@@ -580,6 +641,11 @@ _POLICY_DOMAIN_TERMS: dict[str, set[str]] = {
         "reise",
         "travel",
         "trip",
+    },
+    "legal": {
+        "legal",
+        "legal protection",
+        "rechtsschutz",
     },
 }
 
@@ -788,6 +854,14 @@ def _policy_retrieval_hints(
         " ".join(name.split()),
         str(policy.get("product_type") or "").strip(),
         str(policy.get("coverage_type") or "").strip(),
+    ]
+    return [hint for hint in hints if hint]
+
+
+def _claim_retrieval_hints(claim: dict[str, Any]) -> list[str]:
+    hints = [
+        str(claim.get("policy_reference") or "").strip(),
+        str(claim.get("damage_type") or "").strip(),
     ]
     return [hint for hint in hints if hint]
 

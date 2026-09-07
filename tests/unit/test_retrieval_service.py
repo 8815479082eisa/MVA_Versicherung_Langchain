@@ -239,6 +239,22 @@ class RetrievalServiceTest(unittest.TestCase):
         self.assertEqual(source.document_title, "motor-vehicle-insurance-sti.pdf")
         self.assertEqual(source.page, 9)
 
+    def test_source_prefixed_pdf_citation_is_normalized_not_replaced(self):
+        document = Document(
+            page_content="The contract lasts one year.",
+            metadata={"source": "rental-policy.pdf", "source_type": "pdf", "page": 2},
+        )
+
+        answer = rag_service._ensure_inline_citations(
+            "It lasts one year [source: rental-policy.pdf, page 3].",
+            [document],
+        )
+
+        self.assertEqual(
+            answer,
+            "It lasts one year [rental-policy.pdf, page 3].",
+        )
+
     def test_generation_context_has_no_automatic_qualifier_markers(self):
         document = Document(
             page_content=(
@@ -265,7 +281,8 @@ class RetrievalServiceTest(unittest.TestCase):
 
     def test_generate_answer_preserves_theft_conditions_without_appending(self):
         raw_answer = (
-            "General terms: Theft of the insured vehicle is covered, but no "
+            "General terms: Theft of the insured vehicle is covered subject to the "
+            "policy conditions and exclusions, but no "
             "compensation is paid if the act was committed by family members "
             "[motor-vehicle-insurance-sti.pdf, page 13]. The responsible police "
             "must be notified without delay, and the insurer must be informed "
@@ -379,6 +396,48 @@ class RetrievalServiceTest(unittest.TestCase):
             evidence[0]["added"]["chunkId"],
             "neighbor-relevant",
         )
+
+    def test_context_expansion_prefers_declared_structural_parent(self):
+        anchor = Document(
+            page_content="Section: G10.2\ng) A repaired windscreen has no deductible.",
+            metadata={
+                "source": "motor-policy.pdf",
+                "page": 8,
+                "start_index": 100,
+                "chunk_id": "child-g",
+                "parent_id": "g10-2",
+                "parent_start_index": 50,
+                "parent_content": (
+                    "G10.2 You will not have to bear a deductible:\n"
+                    "g) if the windscreen is repaired and not replaced.\n"
+                    "h) if a separate glass repair is organised by Helvetia."
+                ),
+            },
+        )
+
+        expanded, evidence = rag_service._expand_adjacent_source_context(
+            "When is the windscreen deductible waived?",
+            [anchor],
+            [anchor],
+            max_anchors=1,
+            max_additions=1,
+        )
+
+        self.assertEqual(len(expanded), 2)
+        self.assertEqual(expanded[1].metadata["structural_role"], "parent_context")
+        self.assertIn("g) if the windscreen", expanded[1].page_content)
+        self.assertIn("h) if a separate glass repair", expanded[1].page_content)
+        self.assertEqual(evidence[0]["expansionType"], "structural_parent")
+
+    def test_chunk_schema_change_requires_reindex(self):
+        current = rag_service._model_config_payload()
+        with patch.object(rag_service, "_load_model_config", return_value=current):
+            self.assertFalse(rag_service.embedding_model_has_changed())
+
+        stale = dict(current)
+        stale["chunk_schema_version"] = "legacy-character-v0"
+        with patch.object(rag_service, "_load_model_config", return_value=stale):
+            self.assertTrue(rag_service.embedding_model_has_changed())
 
     def test_reranker_preserves_strong_context_neighbors_of_top_anchor(self):
         documents = [

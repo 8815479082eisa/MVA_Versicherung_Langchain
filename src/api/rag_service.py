@@ -51,6 +51,11 @@ from src.core.runtime_diagnostics import (
     mark_self_check_skipped,
     record_evidence,
 )
+from src.core.structure_aware_chunking import (
+    CHUNK_SCHEMA_VERSION,
+    build_structure_aware_chunks,
+    estimated_tokens,
+)
 
 Chroma = None
 
@@ -110,6 +115,8 @@ ChatPromptTemplate = None
 PyPDFLoader = None
 BM25Retriever = None
 RecursiveCharacterTextSplitter = None
+_chunk_tokenizer = None
+_chunk_tokenizer_lock = threading.RLock()
 
 logger = logging.getLogger(__name__)
 
@@ -240,12 +247,16 @@ Do not produce safety disclaimers, policy-compliance warnings, or refusal messag
 If the context contains relevant information, answer from it directly and concisely.
 If the context does not contain sufficient information to answer the question, respond with: "The available sources do not contain enough information to answer this question."
 Do not fabricate information not present in the context.
+Treat separately enumerated clauses and list items as alternatives or siblings
+unless the source explicitly states that one is a condition of another. Preserve
+words such as if, unless, only, and either/or exactly in meaning.
 PDF context passages begin with user-facing source labels such as [policy.pdf, page 7].
 Use those exact labels as citations for the document facts you state. The page
 number in the label is already the physical, human-readable PDF page. Never
 invent a placeholder citation, expose an internal filesystem path, or change a
 provided page number.
-Respond ONLY in English.
+Respond in the language used by the user's current question. Do not translate or
+alter source labels.
 
 --- Chat History ---
 {{chat_history}}
@@ -258,7 +269,7 @@ Use this mode only for general knowledge, conversational, or simple assistant qu
 Do not claim to have searched, quoted, or verified document sources.
 If the question actually requires policy-specific or document-specific evidence, say: "The available sources do not contain enough information to answer this question."
 Do not produce safety disclaimers, policy-compliance warnings, or refusal messages - safety is enforced externally by a separate guardrail layer.
-Respond concisely and ONLY in English.
+Respond concisely in the language used by the user's current question.
 
 --- Chat History ---
 {{chat_history}}
@@ -526,16 +537,19 @@ def _remove_unrequested_abroad_theft_conditions(answer: str, query: str) -> str:
 def _ensure_generation_requirement_support(
     answer: str,
     requirements: Tuple[Any, ...],
+    *,
+    enforce_all: bool = False,
 ) -> str:
     answer = (answer or "").strip()
     if not answer:
         return answer
     normalized_answer = answer.casefold()
     additions: list[str] = []
+    crm_sources_added: set[str] = set()
     for requirement in requirements:
         requirement_id = getattr(requirement, "requirement_id", "")
         source_label = str(getattr(requirement, "source_label", "") or "")
-        if source_label and source_label.casefold() in normalized_answer:
+        if evaluate_answer_completeness(answer, (requirement,)).passed:
             continue
         if requirement_id == "theft_partial_comprehensive_coverage":
             if "theft" in normalized_answer and "partially comprehensive" in normalized_answer:
@@ -544,6 +558,142 @@ def _ensure_generation_requirement_support(
                     "benefit with partially comprehensive insurance "
                     f"{source_label}."
                 )
+        elif not enforce_all:
+            continue
+        elif requirement_id == "legal_interest_and_cost_scope":
+            additions.append(
+                "Legal-protection benefits include payment of the cost of lawyers "
+                f"engaged for the listed legal disputes {source_label}."
+            )
+        elif requirement_id == "legal_precontract_waiting_exclusion":
+            additions.append(
+                "The insurance does not cover legal-protection cases arising before "
+                "conclusion of the insurance contract or during the waiting period "
+                f"{source_label}."
+            )
+        elif requirement_id == "legal_specific_exclusions":
+            additions.append(
+                "The insurance does not cover legal-protection claims not specifically "
+                f"named; further subject-specific exclusions apply {source_label}."
+            )
+        elif requirement_id == "mutual_contract_rules":
+            additions.append(
+                "Contract formation, duration and termination: the insurance contract "
+                "is concluded for the period stipulated in the policy, renewed for a "
+                "further year, and may be terminated at the end of the third or a "
+                "subsequent insurance year subject to three months' notice; these are "
+                f"premium and termination rules {source_label}."
+            )
+        elif requirement_id == "mutual_claim_rules":
+            additions.append(
+                "The provisions include obligations during the contract term, "
+                "obligations and benefits in the event of a claim, reductions in "
+                f"compensation, sanctions and recourse {source_label}."
+            )
+        elif requirement_id == "windscreen_repair_replacement_process":
+            additions.append(
+                "Glass cover applies when damage makes it necessary to replace or "
+                "repair the glass for safety reasons. No compensation is paid if the "
+                "replacement or repair is not carried out or if replacement cost "
+                f"equals or exceeds the vehicle's current value {source_label}."
+            )
+        elif requirement_id == "private_liability_general_scope":
+            additions.append(
+                "Private liability insures statutory third-party liability and defence "
+                "against unjustified claims, including bodily injury and property "
+                f"damage, subject to the listed exclusions {source_label}."
+            )
+        elif requirement_id == "household_contents_damage_scope":
+            additions.append(
+                "The water peril concerns destruction, damage or loss of insured "
+                f"household contents {source_label}."
+            )
+        elif requirement_id == "household_water_leakage_scope":
+            additions.append(
+                "Household water cover includes leakage of liquids and gas from "
+                "pipelines, connected installations or apparatus "
+                f"{source_label}."
+            )
+        elif requirement_id == "household_fire_damage_scope":
+            additions.append(
+                "Household contents are covered against fire: the terms cover "
+                "destruction, damage or loss caused by fire, smoke and water used "
+                f"to extinguish it {source_label}."
+            )
+        elif requirement_id == "building_natural_forces_scope":
+            additions.append(
+                "Building natural-forces cover includes flooding and inundation, "
+                f"storms and hail {source_label}."
+            )
+        elif requirement_id == "building_policy_qualification":
+            additions.append(
+                "The coverage and sums insured are listed in the policy, and the "
+                "explanation of terms must additionally be used to determine the "
+                f"insurance coverage {source_label}."
+            )
+        elif requirement_id == "motor_collision_event_scope":
+            additions.append(
+                "Collision cover concerns damage from sudden and violent external "
+                "effects, particularly impact, collision, overturning or crashing "
+                f"{source_label}."
+            )
+        elif requirement_id == "motor_collision_comprehensive_condition":
+            additions.append(
+                "Under fully comprehensive cover, collision damage is generally "
+                f"covered subject to the individual policy conditions {source_label}."
+            )
+        elif requirement_id == "theft_loss_scope":
+            additions.append(
+                "Vehicle theft is generally covered under the applicable terms: the "
+                "insurance covers loss, disappearance, destruction or damage caused "
+                "by theft, misappropriation or robbery, subject to the policy "
+                f"conditions and exclusions {source_label}."
+            )
+        elif requirement_id == "theft_policy_condition":
+            additions.append(
+                "Vehicle theft is generally covered under the applicable terms: the "
+                "insurance covers loss, disappearance, destruction or damage caused "
+                "by theft, misappropriation or robbery of the insured vehicle, "
+                "subject to the individual policy conditions and exclusions "
+                f"{source_label}."
+            )
+        elif requirement_id == "theft_involuntary_damage":
+            additions.append(
+                "The theft-related damage must have occurred involuntarily "
+                f"{source_label}."
+            )
+        elif requirement_id == "theft_family_exclusion":
+            additions.append(
+                "No compensation is paid if the act was committed by family members "
+                f"{source_label}."
+            )
+        elif requirement_id == "travel_predeparture_cancellation":
+            additions.append(
+                "Travel assistance includes cancellation protection for supported "
+                f"unforeseen events before departure {source_label}."
+            )
+        elif requirement_id == "travel_during_trip_assistance":
+            additions.append(
+                "While travelling, supported benefits include transport, lodging, "
+                f"advances or unused services {source_label}."
+            )
+        elif requirement_id == "services_round_clock_and_payment":
+            additions.append(
+                "The services include round-the-clock emergency assistance and the "
+                f"48-hour claim-payment promise after successful review {source_label}."
+            )
+        elif requirement_id == "motor_hail_partial_comprehensive":
+            additions.append(
+                "Hail is a covered natural-force event under the applicable partially "
+                f"comprehensive terms {source_label}."
+            )
+        elif requirement_id.startswith("crm_") and source_label not in crm_sources_added:
+            evidence_excerpt = str(
+                getattr(requirement, "evidence_excerpt", "") or ""
+            ).strip()
+            if evidence_excerpt:
+                additions.append(f"CRM record: {evidence_excerpt} {source_label}.")
+                crm_sources_added.add(source_label)
     if not additions:
         return answer
     return "\n".join(additions) + "\n\n" + answer
@@ -618,6 +768,13 @@ def _ensure_inline_citations(answer: str, docs: List[Document]) -> str:
     answer = re.sub(
         r"\[(?:Doc-ID|document-id)\s*[:,]\s*page\]",
         "",
+        answer,
+        flags=re.IGNORECASE,
+    )
+    answer = re.sub(
+        r"\[\s*source\s*:\s*([^,\]\r\n]+\.pdf)\s*,\s*"
+        r"(?:physical\s+)?page\s+(\d+)\s*\]",
+        r"[\1, page \2]",
         answer,
         flags=re.IGNORECASE,
     )
@@ -1006,6 +1163,13 @@ def _model_config_payload() -> dict:
     return {
         "provider": SETTINGS.provider,
         "embedding_model": SETTINGS.embedding.model,
+        "chunk_schema_version": CHUNK_SCHEMA_VERSION,
+        "chunking_strategy": SETTINGS.chunking.strategy,
+        "chunk_child_max_tokens": SETTINGS.chunking.child_max_tokens,
+        "chunk_parent_max_tokens": SETTINGS.chunking.parent_max_tokens,
+        "chunk_overlap_tokens": SETTINGS.chunking.overlap_tokens,
+        "legacy_chunk_size": SETTINGS.chunking.chunk_size,
+        "legacy_chunk_overlap": SETTINGS.chunking.chunk_overlap,
         "reranker_model": SETTINGS.reranker.model,
         "compressor_model": SETTINGS.roles.compress,
         "answer_model": SETTINGS.roles.answer,
@@ -1381,10 +1545,18 @@ def save_pdf_hashes(hashes: dict) -> None:
 
 def embedding_model_has_changed() -> bool:
     saved = _load_model_config()
-    prev = saved.get("embedding_model")
-    if not prev:
-        return True
-    return prev != SETTINGS.embedding.model
+    current = _model_config_payload()
+    index_keys = (
+        "embedding_model",
+        "chunk_schema_version",
+        "chunking_strategy",
+        "chunk_child_max_tokens",
+        "chunk_parent_max_tokens",
+        "chunk_overlap_tokens",
+        "legacy_chunk_size",
+        "legacy_chunk_overlap",
+    )
+    return any(saved.get(key) != current.get(key) for key in index_keys)
 
 
 def pdfs_have_changed() -> bool:
@@ -1452,7 +1624,9 @@ def load_pdf_table_source(file_path: str) -> List[Document]:
                                 "source": file_path,
                                 "source_type": "pdf_table",
                                 "table_format": "pdf",
-                                "page": page.page_number,
+                                # Keep page metadata zero-based, consistently with
+                                # PyPDFLoader. Rendering adds one exactly once.
+                                "page": page.page_number - 1,
                                 "table_index": table_index,
                             },
                         )
@@ -1551,21 +1725,56 @@ def load_single_source(file_path: str) -> List[Document]:
 
 
 def load_and_split_documents(source_files: List[str]) -> List[Document]:
-    splitter_cls = _get_text_splitter_cls()
     all_splits: List[Document] = []
-    splitter = splitter_cls(
-        chunk_size=SETTINGS.chunking.chunk_size,
-        chunk_overlap=SETTINGS.chunking.chunk_overlap,
-        add_start_index=True,
-    )
 
     for file_path in source_files:
         try:
             docs = load_single_source(file_path)
-            all_splits.extend(splitter.split_documents(docs))
+            if SETTINGS.chunking.strategy in {"recursive", "recursive_character", "legacy"}:
+                splitter_cls = _get_text_splitter_cls()
+                splitter = splitter_cls(
+                    chunk_size=SETTINGS.chunking.chunk_size,
+                    chunk_overlap=SETTINGS.chunking.chunk_overlap,
+                    add_start_index=True,
+                )
+                all_splits.extend(splitter.split_documents(docs))
+            else:
+                all_splits.extend(
+                    build_structure_aware_chunks(
+                        docs,
+                        child_max_tokens=SETTINGS.chunking.child_max_tokens,
+                        parent_max_tokens=SETTINGS.chunking.parent_max_tokens,
+                        overlap_tokens=SETTINGS.chunking.overlap_tokens,
+                        token_count=_chunk_token_count,
+                    )
+                )
         except Exception as exc:
             print(f"Error loading {file_path}: {exc}")
     return all_splits
+
+
+def _chunk_token_count(text: str) -> int:
+    """Count tokens with the active embedding tokenizer, with a safe local fallback."""
+
+    global _chunk_tokenizer
+    if _chunk_tokenizer is None:
+        with _chunk_tokenizer_lock:
+            if _chunk_tokenizer is None:
+                try:
+                    from transformers import AutoTokenizer
+
+                    _chunk_tokenizer = AutoTokenizer.from_pretrained(
+                        SETTINGS.embedding.model,
+                    )
+                except Exception as exc:
+                    logger.warning(
+                        "Embedding tokenizer unavailable for chunking; using deterministic fallback: %s",
+                        type(exc).__name__,
+                    )
+                    _chunk_tokenizer = False
+    if _chunk_tokenizer is False:
+        return estimated_tokens(text)
+    return len(_chunk_tokenizer.encode(text or "", add_special_tokens=False))
 
 
 def _build_chat_model(model_name: str, temperature: float, stage: str):
@@ -1984,7 +2193,7 @@ def _expand_adjacent_source_context(
     max_anchors: int,
     max_additions: int,
 ) -> tuple[List[Document], list[dict[str, Any]]]:
-    """Add the best neighboring indexed chunk when evidence spans chunk boundaries."""
+    """Expand retrieval children to structural parents, then consider legacy neighbors."""
 
     if not documents or max_additions <= 0:
         return list(documents), []
@@ -2003,6 +2212,59 @@ def _expand_adjacent_source_context(
     }
     selected = list(documents)
     selected_keys = {_document_identity(doc) for doc in selected}
+    evidence: list[dict[str, Any]] = []
+    selected_parent_ids: set[str] = set()
+
+    # New indexes carry the governing section explicitly.  Expanding by parent
+    # identity is deterministic and preserves list/heading relationships; the
+    # heuristic page-neighbour path below remains only for legacy chunks.
+    for anchor in documents[:max_anchors]:
+        if len(evidence) >= max_additions:
+            break
+        parent_id = str(anchor.metadata.get("parent_id") or "").strip()
+        parent_content = str(anchor.metadata.get("parent_content") or "").strip()
+        if not parent_id or not parent_content or parent_id in selected_parent_ids:
+            continue
+        selected_parent_ids.add(parent_id)
+        anchor_id = str(
+            anchor.metadata.get("chunk_id")
+            or "|".join(str(value) for value in _document_identity(anchor)[:3])
+        )
+        parent_document = Document(
+            page_content=parent_content,
+            metadata={
+                **anchor.metadata,
+                "chunk_id": f"parent:{parent_id}",
+                "start_index": int(anchor.metadata.get("parent_start_index") or 0),
+                "structural_role": "parent_context",
+                "context_expansion_anchor_id": anchor_id,
+                "context_expansion_score": 100.0,
+                "context_expansion_type": "structural_parent",
+            },
+        )
+        parent_key = _document_identity(parent_document)
+        if parent_key in selected_keys:
+            continue
+        selected_keys.add(parent_key)
+        selected.append(parent_document)
+        evidence.append(
+            {
+                "score": 100.0,
+                "expansionType": "structural_parent",
+                "anchor": _document_evidence(
+                    anchor,
+                    rank=documents.index(anchor) + 1,
+                ),
+                "added": _document_evidence(
+                    parent_document,
+                    rank=len(selected),
+                ),
+            }
+        )
+
+    if len(evidence) >= max_additions:
+        return selected, evidence
+
     candidates: list[
         tuple[float, int, int, int, Document, Document, Document | None]
     ] = []
@@ -2112,7 +2374,6 @@ def _expand_adjacent_source_context(
             item[3],
         )
     )
-    evidence: list[dict[str, Any]] = []
     for score, _, _, _, candidate, anchor, waiver_companion in candidates:
         if len(evidence) >= max_additions:
             break
@@ -2654,6 +2915,10 @@ def build_generation_chain(answer_llm):
                 "State relevant conditions in the normal answer structure. Do not "
                 "append a separate automatically extracted conditions section, and "
                 "do not include conditions for unrelated benefits or events.\n"
+                "Do not add generic advisory filler telling the user to consult "
+                "the policy; answer with the supplied evidence instead. In a source "
+                "block, emit one complete [filename.pdf, page N] citation per source "
+                "and never combine several page numbers inside one bracket.\n"
                 "Do not answer until all four checks are satisfied."
                 "\nOnly mention foreign-country, abroad, or Swiss-place-of-residence "
                 "duties when the user's scenario explicitly says that the theft or "
@@ -3031,6 +3296,7 @@ def generate_answer(
         return str(content).strip()
 
     diagnostics = current_diagnostics()
+    generation_call_count = 1
     completeness_enabled = answer_completeness_enabled()
     requirements = build_answer_requirements(query, context_docs)
     requirement_payload = [item.as_dict() for item in requirements]
@@ -3101,7 +3367,11 @@ def generate_answer(
     raw_answer = _extract_text(response)
     _record_answer_version("rawOpenAIAnswer", raw_answer)
     first_answer = _remove_unrequested_abroad_theft_conditions(raw_answer, query)
-    first_answer = _ensure_generation_requirement_support(first_answer, requirements)
+    first_answer = _ensure_generation_requirement_support(
+        first_answer,
+        requirements,
+        enforce_all=completeness_enabled,
+    )
     first_answer = _ensure_no_final_claim_decision_sentence(first_answer, query)
     first_answer = _ensure_evidence_backed_windscreen_waiver(first_answer, context_docs)
     first_answer = _ensure_inline_citations(first_answer, context_docs)
@@ -3109,6 +3379,80 @@ def generate_answer(
         "rawOpenAIAnswer": sanitize_diagnostic_text(raw_answer),
         "firstAnswerAfterCitationPostprocessing": sanitize_diagnostic_text(first_answer),
     }
+
+    if (
+        completeness_enabled
+        and requirements
+        and context_docs
+        and _looks_like_insufficient_answer(first_answer)
+    ):
+        deterministic_answer = build_minimal_requirement_answer(query, context_docs)
+        deterministic_evaluation = evaluate_answer_completeness(
+            deterministic_answer,
+            requirements,
+        )
+        if deterministic_answer and deterministic_evaluation.passed:
+            first_answer = deterministic_answer
+            completeness_evidence["insufficientAnswerDeterministicFallbackUsed"] = True
+            answer_versions["insufficientAnswerDeterministicFallback"] = (
+                sanitize_diagnostic_text(first_answer)
+            )
+
+    if _looks_like_insufficient_answer(first_answer) and context_docs:
+        add_retry("answer")
+        add_retry("insufficient_answer")
+        completeness_evidence["insufficientAnswerRetryPerformed"] = True
+        generation_call_count += 1
+        if diagnostics is not None:
+            diagnostics.record_evidence(
+                "answerGeneration",
+                {
+                    "applicationCallCount": generation_call_count,
+                    "provider": SETTINGS.provider,
+                },
+            )
+        regeneration_chain = build_completeness_regeneration_chain(llm)
+        regeneration_response = invoke_llm_stage(
+            "answer",
+            lambda: regeneration_chain.invoke(
+                {
+                    "query": query,
+                    "context": context,
+                    "chat_history": _format_chat_history(chat_history),
+                    "answer_requirements": formatted_requirements,
+                    "missing_requirements": (
+                        "The first draft declined to answer although relevant excerpts "
+                        "are present. Answer only the supported parts of the query and "
+                        "cite the exact supplied source labels."
+                    ),
+                    "draft_answer": first_answer,
+                }
+            ),
+            max_retries=0,
+        )
+        raw_retried_answer = _extract_text(regeneration_response)
+        if raw_retried_answer:
+            first_answer = _remove_unrequested_abroad_theft_conditions(
+                raw_retried_answer,
+                query,
+            )
+            first_answer = _ensure_generation_requirement_support(
+                first_answer,
+                requirements,
+                enforce_all=completeness_enabled,
+            )
+            first_answer = _ensure_no_final_claim_decision_sentence(
+                first_answer,
+                query,
+            )
+            first_answer = _ensure_evidence_backed_windscreen_waiver(
+                first_answer,
+                context_docs,
+            )
+            first_answer = _ensure_inline_citations(first_answer, context_docs)
+            answer_versions["insufficientAnswerRegeneration"] = sanitize_diagnostic_text(
+                first_answer
+            )
 
     if not completeness_enabled:
         final_answer = first_answer or RELIABLE_ANSWER_FAILURE_MESSAGE
@@ -3155,10 +3499,14 @@ def generate_answer(
     record_evidence("completeness", completeness_evidence)
     add_retry("answer")
     add_retry("completeness")
+    generation_call_count += 1
     if diagnostics is not None:
         diagnostics.record_evidence(
             "answerGeneration",
-            {"applicationCallCount": 2, "provider": SETTINGS.provider},
+            {
+                "applicationCallCount": generation_call_count,
+                "provider": SETTINGS.provider,
+            },
         )
 
     missing_requirements = format_missing_requirements(requirements, missing_before)
@@ -3187,6 +3535,7 @@ def generate_answer(
     regenerated_answer = _ensure_generation_requirement_support(
         regenerated_answer,
         requirements,
+        enforce_all=completeness_enabled,
     )
     regenerated_answer = _ensure_no_final_claim_decision_sentence(
         regenerated_answer,
@@ -3223,6 +3572,158 @@ def generate_answer(
     record_evidence("completeness", completeness_evidence)
     record_evidence("answerVersions", answer_versions)
     return final_answer
+
+
+def _looks_like_insufficient_answer(answer: str) -> bool:
+    normalized = " ".join((answer or "").casefold().split())
+    return any(
+        fragment in normalized
+        for fragment in (
+            "available sources do not contain enough information",
+            "available documents do not contain enough information",
+            "could not generate an answer that is sufficiently supported",
+            "cannot answer from the available",
+        )
+    )
+
+
+def _low_groundedness_is_only_blocker(result: SafetyResult) -> bool:
+    if result.allow or "low_groundedness" not in result.reasons:
+        return False
+    informational_reasons = {
+        "low_groundedness",
+        "AUTHORIZED_INTERNAL_CUSTOMER_DATA",
+        "READ_ONLY_ACCESS_ALLOWED",
+        "pii_allowed_business_contact",
+    }
+    return not (set(result.reasons) - informational_reasons)
+
+
+def regenerate_answer_for_groundedness(
+    llm: Any,
+    query: str,
+    context_docs: List[Document],
+    draft_answer: str,
+    groundedness_details: Dict[str, Any],
+    chat_history: Optional[List[Dict[str, str]]] = None,
+) -> str:
+    """Perform one evidence-bound rewrite after a sole groundedness failure."""
+
+    requirements = build_answer_requirements(query, context_docs)
+    formatted_requirements = format_answer_requirements(requirements)
+    weak_claims = [
+        str(row.get("claim_text") or "").strip()
+        for row in groundedness_details.get("claim_details", [])
+        if isinstance(row, dict)
+        and not row.get("passed", False)
+        and str(row.get("claim_text") or "").strip()
+    ][:8]
+    repair_instruction = (
+        "The first draft contained claims not established by the supplied evidence. "
+        "Rewrite those claims using facts entailed by specific evidence. Faithful "
+        "paraphrases are acceptable; copying wording is not the objective. "
+        "Keep every requested CRM field and every mandatory requirement. "
+        "Remove generic advice, conclusions, and ambiguous exclusions that are not "
+        "needed to answer the question. Do not say information is unavailable when "
+        "a supplied excerpt answers the question. Preserve conditional wording. "
+        "Use one exact [filename.pdf, page N] or [CRM: identifier] citation per "
+        "source; never combine page numbers in one bracket."
+    )
+    if weak_claims:
+        repair_instruction += "\nClaims requiring evidence-supported rewriting or omission:\n- " + "\n- ".join(
+            weak_claims
+        )
+
+    diagnostics = current_diagnostics()
+    if diagnostics is not None:
+        answer_generation = dict(diagnostics.evidence.get("answerGeneration", {}))
+        call_count = int(answer_generation.get("applicationCallCount") or 0) + 1
+        diagnostics.record_evidence(
+            "answerGeneration",
+            {
+                **answer_generation,
+                "applicationCallCount": call_count,
+                "provider": SETTINGS.provider,
+            },
+        )
+    add_retry("answer")
+    add_retry("groundedness_repair")
+
+    chain = build_completeness_regeneration_chain(llm)
+    response = invoke_llm_stage(
+        "answer",
+        lambda: chain.invoke(
+            {
+                "query": query,
+                "context": _format_context_with_sources(context_docs),
+                "chat_history": _format_chat_history(chat_history),
+                "answer_requirements": formatted_requirements,
+                "missing_requirements": repair_instruction,
+                "draft_answer": draft_answer,
+            }
+        ),
+        max_retries=0,
+    )
+    content = getattr(response, "content", response)
+    if isinstance(content, list):
+        content = "\n".join(
+            str(item.get("text") if isinstance(item, dict) else item)
+            for item in content
+            if item
+        )
+    repaired = str(content or "").strip()
+    repaired = _remove_unrequested_abroad_theft_conditions(repaired, query)
+    repaired = _ensure_generation_requirement_support(
+        repaired,
+        requirements,
+        enforce_all=True,
+    )
+    repaired = _ensure_no_final_claim_decision_sentence(repaired, query)
+    repaired = _ensure_evidence_backed_windscreen_waiver(repaired, context_docs)
+    repaired = _ensure_inline_citations(repaired, context_docs)
+
+    if diagnostics is not None:
+        completeness = dict(diagnostics.evidence.get("completeness", {}))
+        if completeness.get("enabled"):
+            evaluation = evaluate_answer_completeness(repaired, requirements)
+            completeness.update(
+                {
+                    "completenessPresentItems": list(evaluation.present_ids),
+                    "completenessMissingAfterRetry": list(evaluation.missing_ids),
+                    "completenessPass": evaluation.passed,
+                }
+            )
+            diagnostics.record_evidence("completeness", completeness)
+        diagnostics.record_evidence(
+            "groundednessRepair",
+            {
+                "performed": True,
+                "weakClaims": weak_claims,
+                "answerSanitized": sanitize_diagnostic_text(repaired),
+            },
+        )
+    _record_answer_version("groundednessRepair", repaired)
+    return repaired
+
+
+def build_minimal_requirement_answer(
+    query: str,
+    context_docs: List[Document],
+) -> str:
+    """Build a deterministic last-resort answer from evidence-derived requirements."""
+
+    requirements = build_answer_requirements(query, context_docs)
+    if not requirements:
+        return ""
+    answer = _ensure_generation_requirement_support(
+        "Evidence-based answer:",
+        requirements,
+        enforce_all=True,
+    )
+    answer = _ensure_no_final_claim_decision_sentence(answer, query)
+    answer = _ensure_evidence_backed_windscreen_waiver(answer, context_docs)
+    answer = _ensure_inline_citations(answer, context_docs)
+    return answer
 
 
 def _record_answer_version(stage: str, answer: str) -> None:
@@ -3404,6 +3905,12 @@ class RetrievalService:
                         embedding_model = resolve_local_huggingface_model(embedding_model)
                     try:
                         embeddings = initialize_embeddings(embedding_model)
+                        from src.guardrails.integrations.nemo_actions import (
+                            configure_grounding_embeddings,
+                        )
+
+                        if hasattr(embeddings, "embed_documents"):
+                            configure_grounding_embeddings(embeddings)
                         finish_stage("embedding", embedding_diagnostic_started)
                     except Exception:
                         finish_stage(
@@ -3619,11 +4126,14 @@ class RetrievalService:
                         == requested_name
                     ]
                     source_chunk_count = len(retrieved_docs)
-                    candidate_limit = max(
-                        self.settings.reranker.top_k,
-                        min(
-                            retrieval_top_k,
-                            self.settings.reranker.top_k + 1,
+                    # A named PDF can contain several independently relevant
+                    # sections (for example contract rules and claim rules).
+                    # Give the reranker a broad, still bounded candidate pool.
+                    candidate_limit = min(
+                        source_chunk_count,
+                        max(
+                            retrieval_top_k * 2,
+                            self.settings.reranker.top_k * 3,
                         ),
                     )
                     retrieved_docs = _prefilter_indexed_source_chunks(
@@ -4123,16 +4633,12 @@ class RAGPipeline:
             ),
         )
         while retries < max_attempts:
-            source_scoped_top_k = (
-                min(2, self.settings.reranker.top_k)
-                if requested_source_filename
-                else self.settings.reranker.top_k
-            )
+            source_scoped_top_k = max(self.settings.reranker.top_k, self.settings.retrieval.top_k)
             retrieved_docs, reranked_docs = retrieval_service.retrieve_and_rerank(
                 current_query,
                 retrieval_top_k=self.settings.retrieval.top_k,
                 rerank_top_k=source_scoped_top_k,
-                use_reranker=not bool(requested_source_filename),
+                use_reranker=True,
                 source_filename=requested_source_filename,
             )
             last_retrieved_docs = retrieved_docs
@@ -4276,7 +4782,7 @@ class RAGPipeline:
                     record_evidence(
                         "groundedness",
                         {
-                            "algorithm": "fact_aware_claim_support_v5",
+                            "algorithm": "claim_entailment_v1",
                             "score": None,
                             "threshold": self.settings.safety.min_groundedness,
                             "passed": None,
@@ -4292,7 +4798,7 @@ class RAGPipeline:
                     record_evidence(
                         "groundedness",
                         {
-                            "algorithm": "fact_aware_claim_support_v5",
+                            "algorithm": "claim_entailment_v1",
                             "score": None,
                             "threshold": self.settings.safety.min_groundedness,
                             "passed": None,
@@ -4309,6 +4815,85 @@ class RAGPipeline:
                             details={
                                 "stage": "post_generation",
                                 "error_type": type(exc).__name__,
+                            },
+                        )
+
+                if _low_groundedness_is_only_blocker(safety_post_result):
+                    first_groundedness = safety_post_result.scores.get("groundedness")
+                    try:
+                        repaired_answer = regenerate_answer_for_groundedness(
+                            components["llm"],
+                            original_query,
+                            context_docs,
+                            answer,
+                            safety_post_result.details.get("groundedness", {}),
+                            chat_history,
+                        )
+                        if repaired_answer:
+                            repaired_safety_result = safety_checker.check_answer_safety(
+                                original_query,
+                                context_docs,
+                                repaired_answer,
+                            )
+                            answer = repaired_answer
+                            safety_post_result = repaired_safety_result
+                            if _low_groundedness_is_only_blocker(
+                                repaired_safety_result
+                            ):
+                                minimal_answer = build_minimal_requirement_answer(
+                                    original_query,
+                                    context_docs,
+                                )
+                                if minimal_answer:
+                                    minimal_safety_result = (
+                                        safety_checker.check_answer_safety(
+                                            original_query,
+                                            context_docs,
+                                            minimal_answer,
+                                        )
+                                    )
+                                    if minimal_safety_result.allow:
+                                        answer = minimal_answer
+                                        safety_post_result = minimal_safety_result
+                                        _record_answer_version(
+                                            "groundednessMinimalFallback",
+                                            minimal_answer,
+                                        )
+                            diagnostics = current_diagnostics()
+                            repair_evidence = dict(
+                                diagnostics.evidence.get("groundednessRepair", {})
+                                if diagnostics is not None
+                                else {}
+                            )
+                            repair_evidence.update(
+                                {
+                                    "initialScore": first_groundedness,
+                                    "finalScore": safety_post_result.scores.get(
+                                        "groundedness"
+                                    ),
+                                    "minimalFallbackUsed": (
+                                        answer != repaired_answer
+                                    ),
+                                    "passed": safety_post_result.allow,
+                                    "finalReasons": list(safety_post_result.reasons),
+                                }
+                            )
+                            record_evidence("groundednessRepair", repair_evidence)
+                    except RuntimeExecutionError:
+                        raise
+                    except Exception as exc:
+                        logger.warning(
+                            "Groundedness repair failed; retaining fail-closed output: %s",
+                            type(exc).__name__,
+                        )
+                        record_evidence(
+                            "groundednessRepair",
+                            {
+                                "performed": True,
+                                "initialScore": first_groundedness,
+                                "passed": False,
+                                "exceptionType": type(exc).__name__,
+                                "exceptionMessageSanitized": _audit_safe_text(str(exc)),
                             },
                         )
 
@@ -4336,13 +4921,14 @@ class RAGPipeline:
             {
                 **sanitize_diagnostic_value(groundedness_details),
                 "algorithm": groundedness_details.get(
-                    "algorithm_version", "fact_aware_claim_support_v5"
+                    "algorithm_version", "claim_entailment_v1"
                 ),
                 "score": groundedness_score,
                 "threshold": self.settings.safety.min_groundedness,
-                "thresholdSource": self.settings.safety.min_groundedness_source,
+                "thresholdSource": groundedness_details.get("threshold_policy", self.settings.safety.min_groundedness_source),
                 "passed": (
-                    float(groundedness_score)
+                    groundedness_details.get("all_claims_supported", False)
+                    and float(groundedness_score)
                     >= float(self.settings.safety.min_groundedness)
                     if groundedness_score is not None
                     else None

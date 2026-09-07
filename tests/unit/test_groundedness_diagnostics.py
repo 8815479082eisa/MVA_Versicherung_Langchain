@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import pytest
+
+pytestmark = pytest.mark.usefixtures("stub_entailment_provider")
+
 from langchain_core.documents import Document
 
 from scripts.experimental_groundedness_v5 import (
@@ -100,7 +104,10 @@ def test_applied_caps_and_typed_mismatches_are_serialized() -> None:
     assert result["numeric_or_monetary_mismatches"]
 
 
-def test_claim_diagnostics_survive_low_groundedness_failure() -> None:
+def test_claim_diagnostics_survive_low_groundedness_failure(monkeypatch) -> None:
+    from tests.unit.test_claim_groundedness import FakeJudge
+    from src.core import claim_groundedness
+    monkeypatch.setattr(claim_groundedness, "ModelJudge", lambda: FakeJudge(relation="insufficient_evidence"))
     payload, _ = _evaluate_output_safety(
         "What is covered?",
         "The moon is insured.",
@@ -112,7 +119,8 @@ def test_claim_diagnostics_survive_low_groundedness_failure() -> None:
     assert payload["action"] == "fallback"
     assert "low_groundedness" in payload["reasons"]
     details = payload["details"]["groundedness"]
-    assert details["final_v5_score"] == details["score"]
+    assert details["supported_fraction"] == details["score"]
+    assert details["relation_counts"] == {"insufficient_evidence": 1}
     assert details["extracted_claims"]
     assert details["claim_details"]
 

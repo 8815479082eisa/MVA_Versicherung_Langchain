@@ -40,9 +40,13 @@ _COMPARISON_PATTERN = re.compile(
     r"\b(?:compare|comparison|difference|versus|between|both|"
     r"vergleich\w*|unterschied\w*|zwischen|beide\w*)\b|\bvs\.?\b"
 )
-_LIST_COMMAND_PATTERN = re.compile(r"\b(?:all|list|every|which|alle|liste|welche)\b")
+_LIST_COMMAND_PATTERN = re.compile(r"\b(?:all|list|show|every|which|alle|liste|zeige|welche)\b")
 _PLURAL_POLICY_PATTERN = re.compile(
-    r"\b(?:policies|contracts|policen|vertraege|versicherungen)\b"
+    r"\b(?:policies|contracts|policy\s+numbers?|contract\s+numbers?|"
+    r"policen|vertraege|versicherungen)\b"
+)
+_STATUS_ATTRIBUTE_PATTERN = re.compile(
+    r"\b(?:current|actual|present|aktuell\w*)\s+(?:policy\s+|contract\s+)?status\b"
 )
 
 _PRODUCT_DOMAIN_TERMS: dict[str, set[str]] = {
@@ -71,6 +75,8 @@ def is_current_policy_intent(question: str) -> bool:
     """Activate only for an unambiguous current/latest single-policy request."""
 
     normalized = _normalized(question)
+    if _STATUS_ATTRIBUTE_PATTERN.search(normalized):
+        return False
     has_current_signal = bool(
         _CURRENT_PATTERN.search(normalized) or _ACTIVE_CURRENT_PATTERN.search(normalized)
     )

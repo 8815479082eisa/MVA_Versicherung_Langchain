@@ -15,6 +15,8 @@ services:
       - BACKEND_HOST=0.0.0.0
       - BACKEND_PORT=8000
       - PYTHONUNBUFFERED=1
+      # Keep NeMo/FastEmbed's ONNX model out of the disposable system temp dir.
+      - FASTEMBED_CACHE_PATH=/app/.cache/fastembed
     ports:
       - "8000:8000"
     command: >

@@ -138,7 +138,7 @@ _NEGATED_CLAIM_DIRECTIVE = re.compile(
     re.IGNORECASE,
 )
 _BROAD_ACCESS_PATTERNS = (
-    re.compile(r"\b(?:all|every|entire)\s+(?:customers?|contacts?|policies|claims)\b", re.IGNORECASE),
+    re.compile(r"\b(?:all|every|entire)\s+(?:customers?|contacts?|polic(?:y|ies)|claims?)\b", re.IGNORECASE),
     re.compile(r"\b(?:alle|sämtliche|saemtliche)\s+(?:kunden|kontakte|policen|verträge|vertraege|schäden|schaeden)\b", re.IGNORECASE),
     re.compile(r"\b(?:export|dump|download)\b.*\b(?:crm|customers?|contacts?|policies|claims)\b", re.IGNORECASE),
     re.compile(r"\b(?:list|show|display)\s+(?:the\s+)?(?:customers?|contacts?|policies|claims)\b", re.IGNORECASE),
@@ -231,6 +231,81 @@ def extract_requested_pdf_filename(question: str) -> str | None:
 
     match = _PDF_FILENAME.search(question or "")
     return match.group(0) if match is not None else None
+
+
+def infer_document_source_filename(question: str) -> str | None:
+    """Resolve an unambiguous document-genre request to one corpus file.
+
+    This is intentionally narrower than topic classification: it activates only
+    when the user names a unique artefact or a product-specific set of terms.
+    """
+
+    explicit = extract_requested_pdf_filename(question)
+    if explicit:
+        return explicit
+
+    normalized = " ".join((question or "").casefold().split())
+    exact_genres = (
+        (
+            ("motor vehicle insurance", "product sheet"),
+            "motor-vehicle-insurance-product-sheet.pdf",
+        ),
+        (("insurance services", "brochure"), "brochure-services.pdf"),
+        (("mutual provisions", "private health"), "mutual-provisions-pkv.pdf"),
+        (("assistance", "brochure"), "assistance-brochure.pdf"),
+        (("rental guarantee",), "rental-guarantee-insurance-sti.pdf"),
+    )
+    for required_terms, filename in exact_genres:
+        if all(term in normalized for term in required_terms):
+            return filename
+
+    # Coverage questions name one unambiguous product family even when the
+    # user does not literally say "conditions" or "terms".  Keeping them
+    # source-scoped prevents a product sheet or a neighbouring insurance
+    # product from becoming the cited authority for an STI question.
+    coverage_sources = (
+        (("legal protection",), "legal-protection-sti.pdf"),
+        (("buildings insurance",), "buildings-insurance-sti.pdf"),
+        (("household",), "household-contents-private-liability-sti.pdf"),
+        (("private liability",), "household-contents-private-liability-sti.pdf"),
+        (("motor",), "motor-vehicle-insurance-sti.pdf"),
+    )
+    if re.search(
+        r"\b(?:cover|covered|coverage|benefits?|disputes?|collision|hail|"
+        r"windscreen|windshield|water damage|fire damage)\b",
+        normalized,
+    ):
+        for required_terms, filename in coverage_sources:
+            if all(term in normalized for term in required_terms):
+                return filename
+
+    condition_sources = (
+        (
+            ("legal protection",),
+            "legal-protection-sti.pdf",
+        ),
+        (
+            ("buildings insurance",),
+            "buildings-insurance-sti.pdf",
+        ),
+        (
+            ("household contents",),
+            "household-contents-private-liability-sti.pdf",
+        ),
+        (
+            ("private liability",),
+            "household-contents-private-liability-sti.pdf",
+        ),
+        (
+            ("motor",),
+            "motor-vehicle-insurance-sti.pdf",
+        ),
+    )
+    if re.search(r"\b(?:conditions|terms|exclusions?|waiting periods?)\b", normalized):
+        for required_terms, filename in condition_sources:
+            if all(term in normalized for term in required_terms):
+                return filename
+    return None
 
 
 def build_knowledge_query(question: str, plan: QueryPlan) -> str:
@@ -392,6 +467,60 @@ def enrich_knowledge_query(
             if part
         )
 
+    household_context = bool(
+        re.search(r"\b(?:household|contents|home)\b", lowered)
+        or re.search(r"\b(?:household|contents)\b", hint_text)
+    )
+    if household_context and re.search(
+        r"\b(?:water|liquid|gas|leak|leakage|pipe|pipeline)\b", lowered
+    ):
+        return (
+            "household contents insurance liquids and gas leakage pipelines "
+            "connected installations appliances destruction damage or loss"
+        )
+    if household_context and re.search(r"\b(?:fire|smoke|burn)\b", lowered):
+        return (
+            "household contents insurance fire smoke water used to extinguish "
+            "destruction damage or loss insured contents"
+        )
+
+    private_liability_context = bool(
+        "private liability" in lowered or "private liability" in hint_text
+    )
+    if private_liability_context:
+        return (
+            "private liability insurance statutory liability third party personal injury "
+            "property damage financial loss defence against unjustified claims exclusions"
+        )
+
+    legal_context = bool(
+        "legal protection" in lowered or "legal protection" in hint_text
+    )
+    if legal_context:
+        return (
+            "legal protection insurance legal disputes protection of legal interests "
+            "lawyers fees legal advice costs waiting period trigger event"
+        )
+
+    if re.search(r"\bbuildings? insurance\b", lowered):
+        return (
+            "buildings insurance fire natural forces flood storm hail avalanche "
+            "insured damage exclusions"
+        )
+
+    if "mutual provisions" in lowered:
+        return (
+            "mutual provisions private insurance contract formation duration termination "
+            "premiums obligations event claim benefits reductions compensation sanctions "
+            "recourse standard terms law"
+        )
+
+    if "travel assistance" in lowered:
+        return (
+            "travel assistance cancellation before departure illness accident "
+            "transport costs board lodging unused services return transport while travelling"
+        )
+
     has_glass = bool(
         re.search(
             r"\b(?:windscreen|windshield|glass|scheibe|verglasung)\b",
@@ -404,6 +533,7 @@ def enrich_knowledge_query(
                 "glass breakage",
                 "part comprehensive",
                 "windscreen damage",
+                "repair or replacement necessary for safety reasons",
             )
         )
     if (
@@ -420,8 +550,8 @@ def enrich_knowledge_query(
         expansions.extend(
             (
                 "repaired rather than replaced",
-                "deductible not applied",
-                "partner repair service",
+                "repair organised by Helvetia designated partner company",
+                "replacement compensation",
                 "customer service notification",
             )
         )
@@ -454,6 +584,46 @@ def _first_match(
 def _extract_customer_name(question: str) -> str | None:
     """Extract an explicitly written two-part person name conservatively."""
 
+    # Capitalised organisation, product, document and CRM terms commonly occur
+    # as two-word phrases. They are not evidence of a person's identity.
+    non_person_words = {
+        "helvetia",
+        "baloise",
+        "insurance",
+        "insurer",
+        "motor",
+        "vehicle",
+        "liability",
+        "coverage",
+        "policy",
+        "policies",
+        "claim",
+        "claims",
+        "premium",
+        "deductible",
+        "contract",
+        "customer",
+        "document",
+        "crm",
+        "under",
+        "according",
+        "regarding",
+        "current",
+        "active",
+        "annual",
+        "individual",
+    }
+    possessive = re.search(
+        r"\b([A-ZÄÖÜ][a-zäöüß]{2,30})\s+"
+        r"([A-ZÄÖÜ][a-zäöüß-]{2,40})[’']s\b",
+        question or "",
+    )
+    if possessive is not None and not {
+        possessive.group(1).casefold(),
+        possessive.group(2).casefold(),
+    } & non_person_words:
+        return f"{possessive.group(1)} {possessive.group(2)}"
+
     question = re.sub(
         r"^(?:show|list|give|provide|display|find)\s+",
         "",
@@ -473,14 +643,45 @@ def _extract_customer_name(question: str) -> str | None:
         "Find",
         "Which",
         "What",
+        "For",
+        "Does",
+        "Do",
+        "Did",
+        "Is",
+        "Are",
         "Current",
         "Partial",
         "Glass",
         "Damage",
         "Policy",
         "Claim",
+        "Under",
+        "According",
+        "About",
+        "Regarding",
+        "Within",
+        "From",
+        "With",
+        "Without",
+        "Using",
+        "Based",
+        "Only",
+        "Please",
+        "Active",
+        "Annual",
+        "Individual",
+        "Insurance",
+        "Motor",
+        "Vehicle",
+        "Helvetia",
+        "Baloise",
+        "CRM",
     }
     for first_name, last_name in candidates:
-        if first_name not in excluded_first_words:
+        if (
+            first_name not in excluded_first_words
+            and first_name.casefold() not in non_person_words
+            and last_name.casefold() not in non_person_words
+        ):
             return f"{first_name} {last_name}"
     return None

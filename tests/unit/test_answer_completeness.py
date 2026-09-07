@@ -90,8 +90,9 @@ def _theft_docs() -> list[Document]:
 
 def _complete_answer() -> str:
     return (
-        "General insurance terms: Theft is generally covered under partially "
-        "comprehensive insurance [motor-vehicle-insurance-product-sheet.pdf, page 3]. "
+        "General insurance terms: Theft is generally covered under the terms, subject "
+        "to the policy conditions and exclusions, with partially comprehensive "
+        "insurance [motor-vehicle-insurance-product-sheet.pdf, page 3]. "
         "The terms cover loss, disappearance, destruction or damage caused by theft, "
         "misappropriation or robbery when the damage occurred involuntarily. No "
         "compensation is paid if the act was committed by family members "
@@ -108,6 +109,85 @@ def _complete_answer() -> str:
 
 def _without(answer: str, sentence: str) -> str:
     return answer.replace(sentence, "")
+
+
+def test_domain_requirements_cover_common_two_part_document_questions() -> None:
+    docs = [
+        Document(
+                page_content=(
+                    "Legal protection safeguards legal interests. Payment of costs "
+                    "for a lawyer includes legal advice and representation."
+                ),
+            metadata={
+                "source": "legal-protection-sti.pdf",
+                "source_type": "pdf",
+                "page": 2,
+            },
+        ),
+        Document(
+            page_content=(
+                "Cancellation before departure is insured for unforeseen illness. "
+                "While travelling, transport costs and additional board and lodging "
+                "are provided."
+            ),
+            metadata={
+                "source": "assistance-brochure.pdf",
+                "source_type": "pdf",
+                "page": 3,
+            },
+        ),
+    ]
+
+    legal_ids = {
+        item.requirement_id
+        for item in build_answer_requirements(
+            "What legal disputes are covered by legal protection?",
+            docs,
+        )
+    }
+    travel_ids = {
+        item.requirement_id
+        for item in build_answer_requirements(
+            "What travel assistance benefits are described in the assistance brochure?",
+            docs,
+        )
+    }
+
+    assert "legal_interest_and_cost_scope" in legal_ids
+    assert travel_ids >= {
+        "travel_predeparture_cancellation",
+        "travel_during_trip_assistance",
+    }
+
+
+def test_legal_waiting_question_derives_precontract_and_specific_exclusions() -> None:
+    docs = [
+        Document(
+            page_content=(
+                "The insurance does not cover legal protection claims not specifically "
+                "named, or cases arising before conclusion of the insurance contract "
+                "or during the waiting period."
+            ),
+            metadata={
+                "source": "legal-protection-sti.pdf",
+                "source_type": "pdf",
+                "page": 2,
+            },
+        )
+    ]
+
+    requirement_ids = {
+        item.requirement_id
+        for item in build_answer_requirements(
+            "Which waiting periods or exclusions apply to legal protection cover?",
+            docs,
+        )
+    }
+
+    assert requirement_ids >= {
+        "legal_precontract_waiting_exclusion",
+        "legal_specific_exclusions",
+    }
 
 
 def _run_generation(first: str, regenerated: str | None = None):
@@ -181,6 +261,92 @@ def test_disabled_completeness_returns_first_answer_without_gate_or_retry() -> N
     assert completeness["completenessRequiredItems"] == []
     assert completeness["completenessRetryPerformed"] is False
     assert diagnostics.evidence["answerGeneration"]["applicationCallCount"] == 1
+    regeneration_builder.assert_not_called()
+
+
+def test_insufficient_first_draft_gets_one_evidence_bound_retry() -> None:
+    diagnostics = RequestDiagnostics(route="retrieval-only")
+    token = set_current_diagnostics(diagnostics)
+    first_chain = SimpleNamespace(
+        invoke=lambda _payload: SimpleNamespace(
+            content="The available sources do not contain enough information to answer."
+        )
+    )
+    regeneration_chain = SimpleNamespace(
+        invoke=lambda _payload: SimpleNamespace(
+            content="Vehicle theft is covered under the stated conditions."
+        )
+    )
+    try:
+        with patch.object(
+            rag_service, "build_generation_chain", return_value=first_chain
+        ), patch.object(
+            rag_service,
+            "build_completeness_regeneration_chain",
+            return_value=regeneration_chain,
+        ) as regeneration_builder, patch.object(
+            rag_service,
+            "answer_completeness_enabled",
+            return_value=False,
+        ), patch.object(
+            rag_service,
+            "invoke_llm_stage",
+            side_effect=lambda _stage, operation, **_kwargs: operation(),
+        ):
+            answer = rag_service.generate_answer(object(), QUERY, _theft_docs())
+    finally:
+        reset_current_diagnostics(token)
+
+    assert "Vehicle theft is covered" in answer
+    assert diagnostics.evidence["answerGeneration"]["applicationCallCount"] == 2
+    assert diagnostics.evidence["completeness"]["insufficientAnswerRetryPerformed"] is True
+    regeneration_builder.assert_called_once()
+
+
+def test_insufficient_draft_uses_complete_deterministic_answer_before_retry() -> None:
+    query = "Does household contents insurance generally cover fire damage?"
+    docs = [
+        Document(
+            page_content=(
+                "Household contents insurance. The insurance covers Fire. "
+                "Destruction, damage or loss as a result of B1 fire, smoke and "
+                "water used to extinguish it."
+            ),
+            metadata={
+                "source": "household-contents-private-liability-sti.pdf",
+                "source_type": "pdf",
+                "page": 2,
+            },
+        )
+    ]
+    diagnostics = RequestDiagnostics(route="retrieval-only")
+    token = set_current_diagnostics(diagnostics)
+    first_chain = SimpleNamespace(
+        invoke=lambda _payload: SimpleNamespace(
+            content="The available sources do not contain enough information to answer."
+        )
+    )
+    try:
+        with patch.object(
+            rag_service, "build_generation_chain", return_value=first_chain
+        ), patch.object(
+            rag_service, "build_completeness_regeneration_chain"
+        ) as regeneration_builder, patch.object(
+            rag_service, "answer_completeness_enabled", return_value=True
+        ), patch.object(
+            rag_service,
+            "invoke_llm_stage",
+            side_effect=lambda _stage, operation, **_kwargs: operation(),
+        ):
+            answer = rag_service.generate_answer(object(), query, docs)
+    finally:
+        reset_current_diagnostics(token)
+
+    assert "Household contents are covered against fire" in answer
+    assert diagnostics.evidence["answerGeneration"]["applicationCallCount"] == 1
+    assert diagnostics.evidence["completeness"][
+        "insufficientAnswerDeterministicFallbackUsed"
+    ] is True
     regeneration_builder.assert_not_called()
 
 
@@ -364,3 +530,77 @@ def test_page_17_citation_is_required_for_theft_duties() -> None:
     answer, diagnostics, _, _ = _run_generation(uncited, _complete_answer())
     assert diagnostics.evidence["completeness"]["completenessPass"] is True
     assert "[motor-vehicle-insurance-sti.pdf, page 17]" in answer
+
+
+def test_simple_theft_coverage_question_does_not_require_post_loss_duties() -> None:
+    requirements = build_answer_requirements(
+        "Is vehicle theft generally covered under partially comprehensive insurance?",
+        _theft_docs(),
+    )
+
+    ids = {item.requirement_id for item in requirements}
+    assert "theft_loss_scope" in ids
+    assert "theft_police_reporting" not in ids
+    assert "theft_recovery_notification" not in ids
+
+
+def test_minimal_answer_covers_collision_water_and_building_requirements() -> None:
+    collision_doc = Document(
+        page_content=(
+            "K2.2 Collision events. The insurance covers damage occurring due to "
+            "sudden and violent external effects, particularly damage caused by "
+            "impact, collision, overturning or crashing."
+        ),
+        metadata={"source": "motor-vehicle-insurance-sti.pdf", "page": 13},
+    )
+    water_doc = Document(
+        page_content=(
+            "Destruction, damage or loss of insured household contents as a result "
+            "of leakage of liquids and gas from pipelines or connected installations "
+            "or appliances."
+        ),
+        metadata={"source": "household-contents-private-liability-sti.pdf", "page": 2},
+    )
+    fire_doc = Document(
+        page_content=(
+            "Household contents insurance. The insurance covers Fire. Destruction, "
+            "damage or loss as a result of B1 fire, smoke and water used to extinguish it."
+        ),
+        metadata={"source": "household-contents-private-liability-sti.pdf", "page": 2},
+    )
+    building_hazards = Document(
+        page_content=(
+            "Natural forces. Destruction, damage or loss as a result of flooding and "
+            "inundation; storms; hail; avalanches; snow pressure."
+        ),
+        metadata={"source": "buildings-insurance-sti.pdf", "page": 2},
+    )
+    building_policy = Document(
+        page_content=(
+            "The coverage and sums insured are listed in your policy. The explanation "
+            "of terms must be used additionally to determine the insurance coverage."
+        ),
+        metadata={"source": "buildings-insurance-sti.pdf", "page": 4},
+    )
+
+    collision = rag_service.build_minimal_requirement_answer(
+        "Does this motor policy cover collision damage?", [collision_doc]
+    )
+    water = rag_service.build_minimal_requirement_answer(
+        "Does household contents insurance cover water damage?", [water_doc]
+    )
+    fire = rag_service.build_minimal_requirement_answer(
+        "Does this household policy generally cover fire damage?", [fire_doc]
+    )
+    building = rag_service.build_minimal_requirement_answer(
+        "Under what conditions does buildings insurance cover natural hazards?",
+        [building_hazards, building_policy],
+    )
+
+    assert "sudden and violent external effects" in collision
+    assert "fully comprehensive cover" in collision
+    assert "leakage of liquids and gas" in water
+    assert "destruction, damage or loss" in water
+    assert "Household contents are covered against fire" in fire
+    assert "flooding and inundation" in building
+    assert "coverage and sums insured are listed in the policy" in building

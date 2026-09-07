@@ -5,6 +5,7 @@ from src.core.insurance_tool_routing import (
     build_knowledge_query,
     enrich_knowledge_query,
     extract_requested_pdf_filename,
+    infer_document_source_filename,
     plan_insurance_query,
 )
 
@@ -143,13 +144,114 @@ class InsuranceToolRoutingTest(unittest.TestCase):
         )
         self.assertNotIn("STI Edition March 2026", expanded)
 
+    def test_non_motor_query_expansion_uses_domain_specific_terms(self):
+        expectations = (
+            (
+                "Does household insurance cover water damage?",
+                ("liquids and gas", "pipelines", "household contents"),
+            ),
+            (
+                "Are household contents covered against fire?",
+                ("fire smoke", "water used to extinguish", "household contents"),
+            ),
+            (
+                "What does private liability generally cover?",
+                ("statutory liability", "property damage", "unjustified claims"),
+            ),
+            (
+                "What disputes are covered by legal protection?",
+                ("legal disputes", "legal interests", "lawyers fees"),
+            ),
+            (
+                "Which mutual provisions apply to private health insurance?",
+                ("standard terms", "insurance contract", "termination"),
+            ),
+        )
+        for question, fragments in expectations:
+            with self.subTest(question=question):
+                expanded = enrich_knowledge_query(question)
+                for fragment in fragments:
+                    self.assertIn(fragment, expanded)
+
     def test_show_directive_is_not_parsed_as_customer_name(self):
         plan = plan_insurance_query(
             "Show Lara Neumann's current and previous motor policies."
         )
 
         self.assertEqual(plan.customer_name, "Lara Neumann")
+
+    def test_organisation_phrase_is_not_parsed_as_customer_name(self):
+        plan = plan_insurance_query(
+            "Under Helvetia, which active motor policies are available?"
+        )
+
+        self.assertIsNone(plan.customer_name)
+        self.assertEqual(plan.mode, QueryMode.RETRIEVAL_ONLY)
+
+    def test_product_and_crm_phrases_are_not_customer_names(self):
+        for question in (
+            "Under Helvetia Motor Vehicle Insurance, show the policy coverage.",
+            "According to Helvetia Insurance, what is the annual premium?",
+            "Show Helvetia Insurance's active policies.",
+            "Use CRM Policy data to identify active coverage.",
+        ):
+            with self.subTest(question=question):
+                self.assertIsNone(plan_insurance_query(question).customer_name)
+
+    def test_real_customer_after_possessive_organisation_is_selected(self):
+        plan = plan_insurance_query(
+            "Under Helvetia Insurance's records, which policies does Lara Neumann have?"
+        )
+
+        self.assertEqual(plan.customer_name, "Lara Neumann")
+
+    def test_real_customer_after_organisation_phrase_is_selected(self):
+        plan = plan_insurance_query(
+            "Under Helvetia, which active policies does Lara Neumann have?"
+        )
+
+        self.assertEqual(plan.customer_name, "Lara Neumann")
+        self.assertEqual(plan.mode, QueryMode.CRM_ONLY)
         self.assertTrue(plan.needs_policies)
+
+    def test_leading_question_words_are_not_parsed_as_customer_name(self):
+        for question, expected in (
+            (
+                "For Oliver Brandt's current motor policy, is collision covered?",
+                "Oliver Brandt",
+            ),
+            (
+                "Does Hannah Vogel's household policy generally cover fire damage?",
+                "Hannah Vogel",
+            ),
+        ):
+            with self.subTest(question=question):
+                self.assertEqual(plan_insurance_query(question).customer_name, expected)
+
+    def test_singular_every_policy_enumeration_is_denied(self):
+        self.assertEqual(
+            plan_insurance_query("List every policy stored in CRM.").mode,
+            QueryMode.DENIED,
+        )
+
+    def test_document_genre_infers_a_bounded_corpus_source(self):
+        expectations = {
+            "What information is provided in the motor vehicle insurance product sheet?":
+                "motor-vehicle-insurance-product-sheet.pdf",
+            "What services are summarized in the insurance services brochure?":
+                "brochure-services.pdf",
+            "Which mutual provisions are described for private health insurance?":
+                "mutual-provisions-pkv.pdf",
+            "Which waiting periods apply under the legal protection conditions?":
+                "legal-protection-sti.pdf",
+            "Does this fully comprehensive motor policy generally cover collision damage?":
+                "motor-vehicle-insurance-sti.pdf",
+            "Is property damage generally covered by private liability insurance?":
+                "household-contents-private-liability-sti.pdf",
+        }
+        for question, expected in expectations.items():
+            with self.subTest(question=question):
+                self.assertEqual(infer_document_source_filename(question), expected)
 
     def test_coverage_type_field_does_not_force_document_retrieval(self):
         plan = plan_insurance_query(

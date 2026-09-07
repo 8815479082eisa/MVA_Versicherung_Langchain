@@ -9,6 +9,7 @@ from scripts.experimental_groundedness_v5 import (
     EXPERIMENTAL_GROUNDING_ALGORITHM_VERSION,
     calculate_groundedness_score_v5_experimental,
 )
+from src.guardrails.integrations.nemo_actions import configure_grounding_embeddings
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -39,6 +40,78 @@ def _score(case_id: str):
 
 def test_v5_version_is_explicitly_experimental() -> None:
     assert EXPERIMENTAL_GROUNDING_ALGORITHM_VERSION == "fact_aware_claim_support_v5_experimental"
+
+
+def test_v5_can_verify_a_german_claim_against_english_evidence() -> None:
+    class CrossLingualEmbeddingStub:
+        def embed_documents(self, texts):
+            vectors = []
+            for text in texts:
+                normalized = text.casefold()
+                if any(
+                    marker in normalized
+                    for marker in (
+                        "vertrag läuft ein jahr",
+                        "contract lasts one year",
+                        "automatisch um ein weiteres jahr",
+                        "automatically renews for another year",
+                    )
+                ):
+                    vectors.append([1.0, 0.0])
+                else:
+                    vectors.append([0.0, 1.0])
+            return vectors
+
+    docs = [
+        Document(
+            page_content=(
+                "The contract lasts one year and automatically renews for another "
+                "year unless it is terminated on time."
+            ),
+            metadata={"source_file": "rental-policy.pdf", "source_page": 3},
+        )
+    ]
+    configure_grounding_embeddings(CrossLingualEmbeddingStub())
+    try:
+        result = calculate_groundedness_score_v5_experimental(
+            (
+                "Der Vertrag läuft ein Jahr und verlängert sich automatisch um ein "
+                "weiteres Jahr [source: rental-policy.pdf, page 3]."
+            ),
+            docs,
+            "Wie lange läuft der Vertrag und wie verlängert er sich?",
+        )
+    finally:
+        configure_grounding_embeddings(None)
+
+    assert result.score > 0.7888
+    assert not result.citation_mismatches
+    assert not result.unsupported_atomic_facts
+
+
+def test_v5_still_caps_wrong_cross_lingual_duration() -> None:
+    class TopicOnlyEmbeddingStub:
+        def embed_documents(self, texts):
+            return [[1.0, 0.0] for _ in texts]
+
+    docs = [
+        Document(
+            page_content="The contract lasts one year.",
+            metadata={"source_file": "rental-policy.pdf", "source_page": 3},
+        )
+    ]
+    configure_grounding_embeddings(TopicOnlyEmbeddingStub())
+    try:
+        result = calculate_groundedness_score_v5_experimental(
+            "Der Vertrag läuft zwei Jahre [rental-policy.pdf, page 3].",
+            docs,
+            "Wie lange läuft der Vertrag?",
+        )
+    finally:
+        configure_grounding_embeddings(None)
+
+    assert result.score <= 0.38
+    assert "duration_number:2" in result.unsupported_atomic_facts
 
 
 def test_v5_caps_single_wrong_percentage_in_long_answer() -> None:
@@ -233,6 +306,65 @@ def test_v5_ignores_source_line_with_trailing_period_after_citation() -> None:
         item["reason_code"] == "source_heading"
         for item in result.ignored_nonsemantic_lines
     )
+
+
+def test_v5_ignores_multiple_citations_on_document_source_line() -> None:
+    docs = [
+        Document(
+            page_content="Water damage to household contents is covered.",
+            metadata={"source_file": "household.pdf", "source_page": 9},
+        )
+    ]
+    answer = (
+        "Water damage to household contents is covered.\n"
+        "Document sources: [household.pdf, page 10] [household.pdf, page 10]"
+    )
+
+    result = calculate_groundedness_score_v5_experimental(
+        answer,
+        docs,
+        "Is water damage covered?",
+    )
+
+    assert "number:10" not in result.unsupported_atomic_facts
+    assert result.extracted_claims == ("Water damage to household contents is covered.",)
+
+
+def test_v5_normalizes_english_calendar_date_to_iso_context_date() -> None:
+    docs = [
+        Document(
+            page_content="The policy ended on 2025-12-31.",
+            metadata={"source_file": "crm.txt"},
+        )
+    ]
+
+    result = calculate_groundedness_score_v5_experimental(
+        "The policy ended on December 31, 2025.",
+        docs,
+        "When did the policy end?",
+    )
+
+    assert "date:2025-12-31" not in result.unsupported_atomic_facts
+    assert not {
+        fact for fact in result.unsupported_atomic_facts if fact.startswith("number:")
+    }
+
+
+def test_v5_matches_compact_duration_units_to_written_units() -> None:
+    docs = [
+        Document(
+            page_content="The service includes 24/7 assistance and 48h claims payment.",
+            metadata={"source_file": "services.pdf"},
+        )
+    ]
+
+    result = calculate_groundedness_score_v5_experimental(
+        "The service provides 24/7 assistance and claims payment within 48 hours.",
+        docs,
+        "Which services are provided?",
+    )
+
+    assert "number:48" not in result.unsupported_atomic_facts
 
 
 def test_v5_rejects_wrong_deductible_polarity_despite_clean_formatting() -> None:
@@ -438,3 +570,156 @@ For a definitive decision on any claim, further review is required."""
     assert {
         item["reason_code"] for item in result.ignored_nonsemantic_lines
     } >= {"section_heading", "list_enumerator", "decision_disclaimer"}
+
+
+def test_v5_ignores_multi_page_source_line_and_policy_advice() -> None:
+    docs = [
+        Document(
+            page_content="A three month waiting period applies to the legal dispute.",
+            metadata={"source_file": "legal.pdf", "source_page": 2},
+        )
+    ]
+    answer = """A three month waiting period applies to the legal dispute.
+For specific conditions, please refer to your policy details.
+Source: [legal.pdf, page 3; page 4; page 5]"""
+
+    result = calculate_groundedness_score_v5_experimental(
+        answer,
+        docs,
+        "Which waiting period applies?",
+    )
+
+    assert result.extracted_claims == (
+        "A three month waiting period applies to the legal dispute.",
+    )
+    assert {
+        item["reason_code"] for item in result.ignored_nonsemantic_lines
+    } >= {"advisory_boilerplate", "source_heading"}
+
+
+def test_v5_matches_natural_date_and_compact_time_unit() -> None:
+    docs = [
+        Document(
+            page_content=(
+                "Policy TEST-PHV-2025-1301 ended on 2025-12-31. "
+                "Claims payment is made within 48h following successful review."
+            ),
+            metadata={},
+        )
+    ]
+
+    result = calculate_groundedness_score_v5_experimental(
+        (
+            "Policy TEST-PHV-2025-1301 ended on December 31, 2025. "
+            "Claims payment is made within 48 hours following successful review."
+        ),
+        docs,
+        "When did the policy end and when is payment made?",
+    )
+
+    assert not result.unsupported_atomic_facts
+    assert result.score >= 0.7888
+
+
+def test_v5_recovers_positive_scope_from_multicolumn_liability_table() -> None:
+    docs = [
+        Document(
+            page_content=(
+                "Personal liability insurance. Statutory liability is insured and "
+                "defence against unjustified claims. Property damage. Purely financial "
+                "losses. The following claims are not insured. Q1 Liability claims "
+                "for damages from third parties on the basis of statutory liability "
+                "due to destruction, damage or loss of property. Q2 costs for defending "
+                "against unjustified claims. A36 contractual liability beyond the "
+                "scope of statutory liability."
+            ),
+            metadata={},
+        )
+    ]
+
+    result = calculate_groundedness_score_v5_experimental(
+        (
+            "Personal liability insurance covers statutory third-party liability "
+            "and property damage, and defence against unjustified claims."
+        ),
+        docs,
+        "Is third-party property damage generally covered?",
+    )
+
+    assert not result.polarity_mismatches
+    assert result.score >= 0.7888
+
+
+def test_v5_ignores_inline_numbered_headings_as_presentation_markers() -> None:
+    docs = [
+        Document(
+            page_content=(
+                "Contract formation and duration are regulated. Duties and benefits "
+                "in the event of a claim are regulated."
+            ),
+            metadata={},
+        )
+    ]
+    answer = """1. Contract formation and duration are regulated.
+2. Duties and benefits in the event of a claim are regulated."""
+
+    result = calculate_groundedness_score_v5_experimental(answer, docs, "What is regulated?")
+
+    assert "number:1" not in result.unsupported_atomic_facts
+    assert "number:2" not in result.unsupported_atomic_facts
+    assert result.score >= 0.7888
+
+
+def test_v5_reconstructs_legal_exclusion_heading_across_table_rows() -> None:
+    docs = [
+        Document(
+            page_content=(
+                "The insurance does not cover A8 relating to any legal protection "
+                "claims and characteristics not specifically named; A9 relating to "
+                "cases arising before conclusion of the insurance contract or during "
+                "the waiting period."
+            ),
+            metadata={},
+        )
+    ]
+    answer = (
+        "The insurance does not cover legal-protection claims not specifically named; "
+        "further subject-specific exclusions apply. The insurance does not cover "
+        "legal-protection cases arising before conclusion of the insurance contract "
+        "or during the waiting period."
+    )
+
+    result = calculate_groundedness_score_v5_experimental(
+        answer,
+        docs,
+        "Which waiting-period exclusions apply?",
+    )
+
+    assert not result.polarity_mismatches
+    assert result.score >= 0.7888
+
+
+def test_v5_reconstructs_household_water_scope_across_ocr_break() -> None:
+    docs = [
+        Document(
+            page_content=(
+                "Household contents. Destruction, damage or loss as a result of E1 "
+                "leakage of liq uids and gas: a) from pipelines or connected "
+                "installations or apparatus."
+            ),
+            metadata={},
+        )
+    ]
+    answer = (
+        "Household water cover includes leakage of liquids and gas from pipelines, "
+        "connected installations or apparatus. The water peril concerns destruction, "
+        "damage or loss of insured household contents."
+    )
+
+    result = calculate_groundedness_score_v5_experimental(
+        answer,
+        docs,
+        "Does household contents insurance cover water damage?",
+    )
+
+    assert result.score >= 0.7888

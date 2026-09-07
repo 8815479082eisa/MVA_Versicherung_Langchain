@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import pytest
+
+pytestmark = pytest.mark.usefixtures("stub_entailment_provider")
+
 from langchain_core.documents import Document
 
 from src.config.models import SafetyConfig
@@ -85,6 +89,26 @@ def test_english_german_and_standalone_contract_ids_are_preserved() -> None:
         items = detect_pii(text, _config())
         assert [(item.pii_type, item.allowed) for item in items] == [("contract_id", True)]
         assert sanitize_pii(text, items, _config()) == text
+
+
+def test_all_synthetic_policy_families_are_allowed_business_identifiers() -> None:
+    for identifier in (
+        "TEST-KFZ-2026-1001",
+        "TEST-PHV-2026-1002",
+        "TEST-HH-2026-1201",
+        "TEST-RS-2026-1202",
+    ):
+        items = detect_pii(f"Policy {identifier} is active.", _config())
+        assert [(item.pii_type, item.allowed) for item in items] == [
+            ("contract_id", True)
+        ]
+
+
+def test_synthetic_claim_identifier_does_not_trigger_personal_data_fallback() -> None:
+    identifier = "TEST-CLM-2026-2501"
+    items = detect_pii(f"Claim {identifier} is under review.", _config())
+
+    assert [(item.pii_type, item.allowed) for item in items] == [("claim_id", True)]
 
 
 def test_calendar_dates_are_not_detected_as_phone_numbers() -> None:
