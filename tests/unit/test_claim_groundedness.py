@@ -108,6 +108,7 @@ def test_provider_failure_fails_unknown_without_lexical_fallback():
     assert result["evaluation_status"] == "failed"
     assert result["relation_counts"] == {}
     assert result["exception_type"] == "TimeoutError"
+    assert result["failure_stage"] == "model_or_provider_call"
 
 
 def test_extractor_cannot_drop_answer_units():
@@ -120,6 +121,9 @@ def test_extractor_cannot_drop_answer_units():
     assert result["exception_type"] == "ValueError"
     assert result["evaluation_status"] == "failed"
     assert result["all_claims_supported"] is None
+    assert result["failure_stage"] == "claim_extraction_validation"
+    assert result["failure_code"] == "incomplete_claim_extraction"
+    assert "missing required unit IDs" in result["exception_message"]
 
 
 def test_equivalent_duration_spellings_preserve_sensitive_values():
@@ -179,6 +183,8 @@ def test_audit_rejects_omitted_condition_without_seeing_evidence():
     _, result = evaluate_claim_groundedness("Repairs are paid if authorized.", [Document(page_content="Repairs are paid.")], judge=AuditReject())
     assert not result["all_claims_supported"]
     assert not result["applied_caps"]
+    assert result["failure_stage"] == "claim_extraction_audit"
+    assert result["failure_details"]["attempts"] == 2
 
 
 def test_claim_post_validation_uses_decision_status_field():
@@ -190,3 +196,122 @@ def test_claim_post_validation_uses_decision_status_field():
     detail = result["claim_details"][0]
     assert detail["decision_status"] == "relation_changed_by_post_validation"
     assert "evaluation_status" not in detail
+
+
+def test_generic_intro_heading_is_context_only_for_complete_bullets():
+    answer = """The territorial scope of the motor vehicle insurance is as follows:
+- Valid in Switzerland and the Principality of Liechtenstein.
+- Not valid in Belarus and Syria.
+- In Kosovo, insurance does not apply to liability.
+- For transport by sea, insurance cover will not be interrupted if departure and destination lie within the territorial scope.
+Source: [motor-vehicle-insurance-sti.pdf, page 6]"""
+
+    class HeadingOmittingJudge(FakeJudge):
+        def call(self, instruction, payload, schema):
+            if schema is Extraction:
+                return Extraction(claims=[
+                    {"text": text, "unit_ids": [i]}
+                    for i, text in payload["units"].items()
+                    if i != 0
+                ])
+            return super().call(instruction, payload, schema)
+
+    score, result = evaluate_claim_groundedness(
+        answer,
+        [Document(page_content=answer)],
+        judge=HeadingOmittingJudge(),
+    )
+    assert score == 1
+    assert result["evaluation_status"] == "success"
+    assert result["exception_type"] is None
+
+
+def test_fragment_list_item_must_keep_heading_context():
+    class MissingHeadingContext(FakeJudge):
+        def call(self, instruction, payload, schema):
+            if schema is Extraction:
+                return Extraction(claims=[
+                    {"text": "Not covered in Kosovo.", "unit_ids": [1]},
+                    {"text": "Not covered in Albania.", "unit_ids": [2]},
+                ])
+            return super().call(instruction, payload, schema)
+
+    _, result = evaluate_claim_groundedness(
+        "Not covered in:\n- Kosovo\n- Albania",
+        [Document(page_content="Not covered in Kosovo and Albania.")],
+        judge=MissingHeadingContext(),
+    )
+    assert result["evaluation_status"] == "failed"
+    assert result["failure_stage"] == "claim_extraction_validation"
+    assert "List heading context missing" in result["exception_message"]
+
+
+def test_missing_verdict_is_recovered_with_targeted_second_call():
+    class MissingVerdictOnce(FakeJudge):
+        def __init__(self):
+            super().__init__()
+            self.judgment_calls = 0
+
+        def call(self, instruction, payload, schema):
+            if schema in {Extraction, ExtractionAudit}:
+                return super().call(instruction, payload, schema)
+            self.judgment_calls += 1
+            claims = payload["claims"][:-1] if self.judgment_calls == 1 else payload["claims"]
+            verdicts = []
+            for claim in claims:
+                key = claim["evidence_ids"][0]
+                verdicts.append({
+                    "claim_id": claim["claim_id"],
+                    "relation": "supported",
+                    "confidence": 0.99,
+                    "subject_scope_match": True,
+                    "citations": [{"evidence_id": key, "quote": payload["evidence"][key]["text"]}],
+                    "checks": {name: "not_applicable" for name in CATEGORIES},
+                    "reason": "test semantic judgment",
+                })
+            return Judgments(verdicts=verdicts)
+
+    score, result = evaluate_claim_groundedness(
+        "One claim. Another claim.",
+        [Document(page_content="One claim. Another claim.")],
+        judge=MissingVerdictOnce(),
+    )
+    assert score == 1
+    assert result["evaluation_status"] == "success"
+    assert result["judgment_attempts"] == 2
+
+
+def test_audit_failure_can_recover_once():
+    class AuditFailsOnce(FakeJudge):
+        def __init__(self):
+            super().__init__()
+            self.audit_calls = 0
+
+        def call(self, instruction, payload, schema):
+            if schema is ExtractionAudit:
+                self.audit_calls += 1
+                if self.audit_calls == 1:
+                    return ExtractionAudit(faithful_and_complete=False, reason="Condition omitted")
+                return ExtractionAudit(faithful_and_complete=True, reason="repaired")
+            return super().call(instruction, payload, schema)
+
+    score, result = evaluate_claim_groundedness(
+        "Repairs are paid if authorized.",
+        [Document(page_content="Repairs are paid if authorized.")],
+        judge=AuditFailsOnce(),
+    )
+    assert score == 1
+    assert result["evaluation_status"] == "success"
+    assert result["extraction_attempts"] == 2
+
+
+def test_large_document_context_is_trimmed_instead_of_failing_budget():
+    source = "Insurance covers repairs. " + ("background text " * 14000)
+    score, result = evaluate_claim_groundedness(
+        "Insurance covers repairs.",
+        [Document(page_content=source)],
+        judge=FakeJudge(quote="Insurance covers repairs."),
+    )
+    assert score == 1
+    assert result["evaluation_status"] == "success"
+    assert result["payload_chars"] <= 150000
