@@ -53,13 +53,22 @@ def test_entailment_not_word_overlap_controls_score(answer):
     assert result["evaluation_status"] == "success"
 
 
-@pytest.mark.parametrize("relation", ["unknown", "insufficient_evidence"])
-def test_uncertain_relations_are_not_contradiction(relation):
+@pytest.mark.parametrize(
+    "relation,expected_score,expected_status",
+    [
+        ("unknown", None, "uncertain"),
+        ("insufficient_evidence", 0, "success"),
+    ],
+)
+def test_uncertain_relations_are_not_contradiction(relation, expected_score, expected_status):
     score, result = evaluate("Insurance covers repairs.", "Insurance covers repairs.", relation=relation)
-    assert score == 0
+    if expected_score is None:
+        assert score is None
+    else:
+        assert score == expected_score
     assert not result["applied_caps"]
     assert result["relation_counts"] == {relation: 1}
-    assert result["evaluation_status"] == ("uncertain" if relation == "unknown" else "success")
+    assert result["evaluation_status"] == expected_status
 
 
 def test_low_confidence_contradiction_is_unknown():
