@@ -234,10 +234,12 @@ def extract_requested_pdf_filename(question: str) -> str | None:
 
 
 def infer_document_source_filename(question: str) -> str | None:
-    """Resolve an unambiguous document-genre request to one corpus file.
+    """Resolve only genuinely source-specific requests to one corpus file.
 
-    This is intentionally narrower than topic classification: it activates only
-    when the user names a unique artefact or a product-specific set of terms.
+    Broad product coverage questions intentionally stay global so hybrid retrieval can
+    compare all relevant documents in the product family. Product affinity in the
+    reranker remains the soft preference. Hard source scoping is reserved for an
+    explicit PDF, a uniquely named artefact, or an explicit conditions/terms request.
     """
 
     explicit = extract_requested_pdf_filename(question)
@@ -258,26 +260,6 @@ def infer_document_source_filename(question: str) -> str | None:
     for required_terms, filename in exact_genres:
         if all(term in normalized for term in required_terms):
             return filename
-
-    # Coverage questions name one unambiguous product family even when the
-    # user does not literally say "conditions" or "terms".  Keeping them
-    # source-scoped prevents a product sheet or a neighbouring insurance
-    # product from becoming the cited authority for an STI question.
-    coverage_sources = (
-        (("legal protection",), "legal-protection-sti.pdf"),
-        (("buildings insurance",), "buildings-insurance-sti.pdf"),
-        (("household",), "household-contents-private-liability-sti.pdf"),
-        (("private liability",), "household-contents-private-liability-sti.pdf"),
-        (("motor",), "motor-vehicle-insurance-sti.pdf"),
-    )
-    if re.search(
-        r"\b(?:cover|covered|coverage|benefits?|disputes?|collision|hail|"
-        r"windscreen|windshield|water damage|fire damage)\b",
-        normalized,
-    ):
-        for required_terms, filename in coverage_sources:
-            if all(term in normalized for term in required_terms):
-                return filename
 
     condition_sources = (
         (
