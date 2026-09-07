@@ -21,6 +21,14 @@ CATEGORIES = (
 )
 _MAX_PAYLOAD_CHARS = 150000
 _MAX_REPAIR_ATTEMPTS = 1
+_CONTROLLED_ABSTENTION_MESSAGES = {
+    "The available sources do not contain enough information to answer this question.":
+        "insufficient_information",
+    "I could not find relevant information in the indexed documents. Please rephrase your question or provide additional documents.":
+        "no_relevant_information",
+    "I could not generate a reliable answer from the current model response. Please try again or rephrase the question.":
+        "reliable_answer_failure",
+}
 
 
 class StrictModel(BaseModel):
@@ -94,6 +102,56 @@ def _normal(text: str) -> str:
     text = " ".join(text.casefold().split())
     text = re.sub(r"\s*%\s*", "%", text)
     return re.sub(r"\s*([,.;:])\s*", r"\1", text)
+
+
+def _controlled_abstention_result(answer: str) -> tuple[float, dict] | None:
+    """Return a non-factual evaluator result only for exact system-owned abstentions.
+
+    The match is deliberately exact after whitespace/case normalization. An answer that
+    adds any factual text is evaluated normally and therefore remains fail-closed.
+    """
+
+    normalized = _normal(answer)
+    kind = next(
+        (
+            message_kind
+            for message, message_kind in _CONTROLLED_ABSTENTION_MESSAGES.items()
+            if normalized == _normal(message)
+        ),
+        None,
+    )
+    if kind is None:
+        return None
+
+    score = 1.0
+    return score, {
+        "algorithm_version": ALGORITHM,
+        "score": score,
+        "supported_fraction": None,
+        "supported_count": 0,
+        "unknown_count": 0,
+        "insufficient_evidence_count": 0,
+        "contradicted_count": 0,
+        "decided_count": 0,
+        "unknown_fraction": 0.0,
+        "sensitive_unsupported_count": 0,
+        "non_sensitive_unknown_count": 0,
+        "provenance_failure_count": 0,
+        "relation_counts": {},
+        "claim_details": [],
+        "extracted_claims": [],
+        "all_claims_supported": True,
+        "applied_caps": [],
+        "exception_type": None,
+        "exception_message": None,
+        "failure_stage": None,
+        "failure_code": None,
+        "failure_details": {},
+        "evaluation_status": "not_applicable",
+        "threshold_policy": "controlled_abstention_no_factual_claims",
+        "controlled_abstention": True,
+        "controlled_abstention_kind": kind,
+    }
 
 
 def _quote_tokens(text: str) -> list[str]:
@@ -671,6 +729,10 @@ def _failed_result(units: list[str], exc: Exception) -> tuple[None, dict]:
 
 
 def evaluate_claim_groundedness(answer: str, docs, query: str = "", *, judge=None):
+    controlled_abstention = _controlled_abstention_result(answer)
+    if controlled_abstention is not None:
+        return controlled_abstention
+
     units, required_ids, dependencies = _answer_structure(answer)
     fallback = [{"claim_text": unit, "relation": "unknown", "passed": False} for unit in units]
     try:
