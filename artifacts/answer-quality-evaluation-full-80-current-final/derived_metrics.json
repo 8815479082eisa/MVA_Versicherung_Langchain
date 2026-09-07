@@ -1,0 +1,96 @@
+{
+  "scope": {
+    "cases": 80,
+    "fresh_api_collection": true,
+    "endpoint": "http://127.0.0.1:8000/api/ask",
+    "dataset_sha256": "1a65cf29c6ca11304a3265c7ce21eb38624b8ee81c195a01c1e06c0a63cf91d3",
+    "reference_spec_sha256": "430004953643d7bb1bfd7306f2751abca93567d948b14d08224d9e70335e9677",
+    "method": "automated_reference_based_technical_validation",
+    "human_validated": false
+  },
+  "routing": {
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "per_route": {
+      "crm_only": {"precision": 1.0, "recall": 1.0, "f1": 1.0, "tp": 20, "fp": 0, "fn": 0},
+      "retrieval_only": {"precision": 1.0, "recall": 1.0, "f1": 1.0, "tp": 20, "fp": 0, "fn": 0},
+      "combined": {"precision": 1.0, "recall": 1.0, "f1": 1.0, "tp": 20, "fp": 0, "fn": 0},
+      "denied": {"precision": 1.0, "recall": 1.0, "f1": 1.0, "tp": 20, "fp": 0, "fn": 0}
+    },
+    "confusion_matrix": {
+      "labels": ["crm_only", "retrieval_only", "combined", "denied"],
+      "rows_expected_columns_actual": [
+        [20, 0, 0, 0],
+        [0, 20, 0, 0],
+        [0, 0, 20, 0],
+        [0, 0, 0, 20]
+      ]
+    },
+    "mismatches": []
+  },
+  "operational": {
+    "strict_e2e_count": 80,
+    "strict_e2e_rate": 1.0,
+    "downstream_operational_completion": 1.0,
+    "http_status_distribution": {"200": 68, "206": 2, "403": 10},
+    "diagnostic_status_distribution": {"complete": 68, "partial": 2},
+    "partial_case_ids": ["route-rag-002", "route-combined-011"],
+    "collection_errors": 0,
+    "http_5xx": 0,
+    "timeouts": 0
+  },
+  "retrieval_context": {
+    "eligible_cases": 40,
+    "expected_file_reranker_hit_count": 39,
+    "expected_file_reranker_hit_rate": 0.975,
+    "expected_file_final_context_hit_count": 39,
+    "expected_file_final_context_hit_rate": 0.975,
+    "missed_case_ids": ["route-rag-010"]
+  },
+  "crm_micro": {
+    "eligible_cases": 40,
+    "all_expected_facts_present_cases": 39,
+    "expected_facts": 70,
+    "present_facts": 68,
+    "micro_fact_recall": 0.9714285714285714,
+    "by_table": {
+      "claims": {"expected": 17, "present": 16, "recall": 0.9411764705882353},
+      "contacts": {"expected": 1, "present": 1, "recall": 1.0},
+      "policies": {"expected": 52, "present": 51, "recall": 0.9807692307692307}
+    }
+  },
+  "requirements_micro": {
+    "expected": 65,
+    "covered": 54,
+    "recall": 0.8307692307692308
+  },
+  "groundedness_scores": {
+    "eligible_cases": 60,
+    "mean": 0.904648,
+    "median": 0.918017,
+    "minimum": 0.631157,
+    "maximum": 1.0,
+    "passed": 56,
+    "failed": 4
+  },
+  "latency_ms": {
+    "overall": {"n": 80, "mean": 6056.148, "p50": 3859.619, "p95": 15280.870, "max": 20368.132},
+    "crm_only": {"n": 20, "mean": 553.113, "p50": 545.178, "p95": 814.413, "max": 892.304},
+    "retrieval_only": {"n": 20, "mean": 12397.595, "p50": 11993.643, "p95": 16307.338, "max": 20368.132},
+    "combined": {"n": 20, "mean": 11189.130, "p50": 10742.828, "p95": 15326.889, "max": 17999.584},
+    "denied": {"n": 20, "mean": 84.752, "p50": 77.064, "p95": 130.917, "max": 216.897}
+  },
+  "stage_latency_ms": {
+    "route_planning": {"n": 60, "mean": 0.684, "p50": 0.599, "p95": 1.224, "max": 1.788},
+    "crm": {"n": 40, "mean": 225.765, "p50": 233.517, "p95": 328.733, "max": 362.438},
+    "guardrail": {"n": 40, "mean": 859.497, "p50": 792.053, "p95": 1503.292, "max": 1530.584},
+    "retrieval": {"n": 40, "mean": 393.240, "p50": 84.525, "p95": 3121.919, "max": 3478.448},
+    "reranking": {"n": 40, "mean": 4790.368, "p50": 4626.090, "p95": 6479.034, "max": 7282.197},
+    "answer_generation": {"n": 40, "mean": 3477.614, "p50": 2921.909, "p95": 7710.500, "max": 9258.517},
+    "groundedness": {"n": 40, "mean": 636.323, "p50": 578.179, "p95": 1196.990, "max": 1279.134}
+  },
+  "tests": {
+    "unit": {"passed": 281, "failed": 0, "skipped": 0, "warnings": 226, "subtests_passed": 13},
+    "integration": {"passed": 19, "failed": 0, "skipped": 1, "warnings": 22}
+  }
+}

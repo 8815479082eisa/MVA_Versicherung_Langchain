@@ -2962,6 +2962,39 @@ def build_completeness_regeneration_chain(answer_llm):
     return prompt_template | answer_llm
 
 
+
+def build_groundedness_repair_chain(answer_llm):
+    """Build a minimal-edit chain for repairing only genuinely defective claims."""
+
+    prompt_template_cls = _get_chat_prompt_template_cls()
+    prompt_template = prompt_template_cls.from_messages(
+        [
+            (
+                "system",
+                SYSTEM_PROMPT
+                + "\n\nUse the full retrieved context below as the only source:\n{context}"
+                + "\n\nAll query-specific requirements:\n{answer_requirements}"
+                + "\n\nGroundedness repair instructions:\n{repair_instruction}"
+                + "\n\nThis is a minimal-edit repair, not a general rewrite. "
+                "Preserve supported sentences and claims from the draft as closely "
+                "as possible. Modify or remove only the claims explicitly identified "
+                "for repair. Do not introduce new factual claims, conditions, "
+                "exceptions, numbers, dates, locations, products, coverage types, "
+                "or conclusions. If a listed claim cannot be supported by the "
+                "retrieved context, remove that claim rather than inventing support. "
+                "Preserve material conditional wording such as if, unless, only, "
+                "and either/or. Keep valid source labels already present in the "
+                "draft and use only supplied source labels for repaired claims. "
+                "Return only the repaired answer."
+            ),
+            (
+                "user",
+                "Original query:\n{query}\n\nDraft answer:\n{draft_answer}",
+            ),
+        ]
+    )
+    return prompt_template | answer_llm
+
 def build_direct_answer_chain(answer_llm):
     prompt_template_cls = _get_chat_prompt_template_cls()
     prompt_template = prompt_template_cls.from_messages(
@@ -3599,6 +3632,88 @@ def _low_groundedness_is_only_blocker(result: SafetyResult) -> bool:
     return not (set(result.reasons) - informational_reasons)
 
 
+def _groundedness_claim_is_repairable(row: Dict[str, Any]) -> bool:
+    """Return True only when diagnostics indicate that the answer claim itself needs repair.
+
+    Newer groundedness diagnostics may provide an explicit ``repairable`` flag.
+    For compatibility with the current claim_entailment_v1 payload, fall back to
+    the final relation. ``unknown`` is deliberately not treated as repairable:
+    evaluator/provenance uncertainty must not trigger an answer rewrite.
+    """
+
+    explicit = row.get("repairable")
+    if explicit is True:
+        return True
+    if explicit is False:
+        return False
+
+    final_relation = str(
+        row.get("final_relation")
+        or row.get("relation")
+        or ""
+    ).strip().lower()
+    semantic_relation = str(
+        row.get("semantic_relation")
+        or row.get("original_relation")
+        or ""
+    ).strip().lower()
+
+    if final_relation == "contradicted" or semantic_relation == "contradicted":
+        return True
+
+    if final_relation == "insufficient_evidence":
+        issues = {
+            str(issue).strip()
+            for issue in (row.get("deterministic_issues") or [])
+            if str(issue).strip()
+        }
+        # A pure citation/provenance verification problem is an evaluator-side
+        # uncertainty, not evidence that the answer text itself needs rewriting.
+        if issues == {"unverified_citations"}:
+            return False
+        return True
+
+    if semantic_relation == "insufficient_evidence" and final_relation != "unknown":
+        return True
+
+    return False
+
+
+def _groundedness_recovery_action(result: SafetyResult) -> str:
+    """Classify a sole groundedness failure before touching the answer text."""
+
+    if not _low_groundedness_is_only_blocker(result):
+        return "none"
+
+    groundedness = dict(
+        (result.details or {}).get("groundedness", {}) or {}
+    )
+    evaluation_status = str(
+        groundedness.get("evaluation_status") or ""
+    ).strip().lower()
+
+    # Current claim_entailment_v1 exposes exception_type; newer diagnostics can
+    # expose evaluation_status=failed. Both mean the evaluator failed, not that
+    # the answer was proven ungrounded.
+    if evaluation_status == "failed" or groundedness.get("exception_type"):
+        return "retry_evaluation"
+
+    if groundedness.get("repair_recommended") is True:
+        return "repair_answer"
+
+    claim_details = groundedness.get("claim_details", [])
+    if isinstance(claim_details, list) and any(
+        isinstance(row, dict) and _groundedness_claim_is_repairable(row)
+        for row in claim_details
+    ):
+        return "repair_answer"
+
+    # Unknown/provenance-only uncertainty is intentionally kept separate from
+    # answer repair. The caller remains fail-closed unless a later evaluator
+    # retry or policy layer resolves it.
+    return "no_answer_rewrite"
+
+
 def regenerate_answer_for_groundedness(
     llm: Any,
     query: str,
@@ -3607,7 +3722,7 @@ def regenerate_answer_for_groundedness(
     groundedness_details: Dict[str, Any],
     chat_history: Optional[List[Dict[str, str]]] = None,
 ) -> str:
-    """Perform one evidence-bound rewrite after a sole groundedness failure."""
+    """Minimally repair only claims that diagnostics identify as answer defects."""
 
     requirements = build_answer_requirements(query, context_docs)
     formatted_requirements = format_answer_requirements(requirements)
@@ -3615,24 +3730,44 @@ def regenerate_answer_for_groundedness(
         str(row.get("claim_text") or "").strip()
         for row in groundedness_details.get("claim_details", [])
         if isinstance(row, dict)
-        and not row.get("passed", False)
+        and _groundedness_claim_is_repairable(row)
         and str(row.get("claim_text") or "").strip()
     ][:8]
+
+    # Do not send a correct/uncertain answer through an LLM rewrite when no
+    # genuinely repairable claim has been identified.
+    if not weak_claims:
+        diagnostics = current_diagnostics()
+        if diagnostics is not None:
+            diagnostics.record_evidence(
+                "groundednessRepair",
+                {
+                    "performed": False,
+                    "repairType": None,
+                    "weakClaims": [],
+                    "reason": "no_repairable_claims",
+                    "originalAnswerPreserved": True,
+                },
+            )
+        return draft_answer
+
     repair_instruction = (
-        "The first draft contained claims not established by the supplied evidence. "
-        "Rewrite those claims using facts entailed by specific evidence. Faithful "
-        "paraphrases are acceptable; copying wording is not the objective. "
-        "Keep every requested CRM field and every mandatory requirement. "
-        "Remove generic advice, conclusions, and ambiguous exclusions that are not "
-        "needed to answer the question. Do not say information is unavailable when "
-        "a supplied excerpt answers the question. Preserve conditional wording. "
-        "Use one exact [filename.pdf, page N] or [CRM: identifier] citation per "
-        "source; never combine page numbers in one bracket."
+        "The draft is mostly valid. Preserve all claims and sentences that are "
+        "already supported by the supplied evidence. Modify or remove ONLY the "
+        "claims explicitly listed below. Do not rewrite supported parts merely "
+        "for style. Do not introduce new factual claims, new conditions, new "
+        "exceptions, new numbers, new dates, new locations, new products, or new "
+        "conclusions. For each listed weak claim, either rewrite it so that it is "
+        "fully entailed by the supplied evidence or remove it if the evidence does "
+        "not support it. Preserve the user's requested information whenever the "
+        "evidence supports it. Preserve conditional wording such as if, unless, "
+        "only, and either/or. Keep valid source citations and use only source labels "
+        "that appear in the supplied context."
     )
-    if weak_claims:
-        repair_instruction += "\nClaims requiring evidence-supported rewriting or omission:\n- " + "\n- ".join(
-            weak_claims
-        )
+    repair_instruction += (
+        "\nClaims requiring evidence-supported rewriting or omission:\n- "
+        + "\n- ".join(weak_claims)
+    )
 
     diagnostics = current_diagnostics()
     if diagnostics is not None:
@@ -3649,16 +3784,15 @@ def regenerate_answer_for_groundedness(
     add_retry("answer")
     add_retry("groundedness_repair")
 
-    chain = build_completeness_regeneration_chain(llm)
+    chain = build_groundedness_repair_chain(llm)
     response = invoke_llm_stage(
         "answer",
         lambda: chain.invoke(
             {
                 "query": query,
                 "context": _format_context_with_sources(context_docs),
-                "chat_history": _format_chat_history(chat_history),
                 "answer_requirements": formatted_requirements,
-                "missing_requirements": repair_instruction,
+                "repair_instruction": repair_instruction,
                 "draft_answer": draft_answer,
             }
         ),
@@ -3672,11 +3806,16 @@ def regenerate_answer_for_groundedness(
             if item
         )
     repaired = str(content or "").strip()
+    if not repaired:
+        return draft_answer
+
     repaired = _remove_unrequested_abroad_theft_conditions(repaired, query)
+    # Groundedness repair must not inject every completeness requirement again;
+    # doing so can create fresh claims and cause a second false rejection.
     repaired = _ensure_generation_requirement_support(
         repaired,
         requirements,
-        enforce_all=True,
+        enforce_all=False,
     )
     repaired = _ensure_no_final_claim_decision_sentence(repaired, query)
     repaired = _ensure_evidence_backed_windscreen_waiver(repaired, context_docs)
@@ -3698,7 +3837,9 @@ def regenerate_answer_for_groundedness(
             "groundednessRepair",
             {
                 "performed": True,
+                "repairType": "targeted_claim_repair",
                 "weakClaims": weak_claims,
+                "originalAnswerPreserved": False,
                 "answerSanitized": sanitize_diagnostic_text(repaired),
             },
         )
@@ -4820,80 +4961,188 @@ class RAGPipeline:
 
                 if _low_groundedness_is_only_blocker(safety_post_result):
                     first_groundedness = safety_post_result.scores.get("groundedness")
-                    try:
-                        repaired_answer = regenerate_answer_for_groundedness(
-                            components["llm"],
-                            original_query,
-                            context_docs,
-                            answer,
-                            safety_post_result.details.get("groundedness", {}),
-                            chat_history,
-                        )
-                        if repaired_answer:
-                            repaired_safety_result = safety_checker.check_answer_safety(
+                    recovery_action = _groundedness_recovery_action(safety_post_result)
+                    evaluation_retry_performed = False
+
+                    # A technical evaluator failure is not evidence that the answer
+                    # itself is wrong. Retry the same answer once before considering
+                    # any text repair.
+                    if recovery_action == "retry_evaluation":
+                        try:
+                            add_retry("groundedness_evaluation")
+                            evaluation_retry_performed = True
+                            retried_safety_result = safety_checker.check_answer_safety(
                                 original_query,
                                 context_docs,
-                                repaired_answer,
+                                answer,
                             )
-                            answer = repaired_answer
-                            safety_post_result = repaired_safety_result
-                            if _low_groundedness_is_only_blocker(
-                                repaired_safety_result
-                            ):
-                                minimal_answer = build_minimal_requirement_answer(
-                                    original_query,
-                                    context_docs,
-                                )
-                                if minimal_answer:
-                                    minimal_safety_result = (
-                                        safety_checker.check_answer_safety(
-                                            original_query,
-                                            context_docs,
-                                            minimal_answer,
-                                        )
+                            safety_post_result = retried_safety_result
+                            recovery_action = _groundedness_recovery_action(
+                                retried_safety_result
+                            )
+                            record_evidence(
+                                "groundednessRecovery",
+                                {
+                                    "initialAction": "retry_evaluation",
+                                    "evaluationRetryPerformed": True,
+                                    "postRetryAction": recovery_action,
+                                    "originalAnswerPreserved": True,
+                                    "initialScore": first_groundedness,
+                                    "retryScore": retried_safety_result.scores.get(
+                                        "groundedness"
+                                    ),
+                                    "retryReasons": list(
+                                        retried_safety_result.reasons
+                                    ),
+                                },
+                            )
+                        except RuntimeExecutionError:
+                            raise
+                        except Exception as exc:
+                            logger.warning(
+                                "Groundedness evaluation retry failed; retaining "
+                                "fail-closed output: %s",
+                                type(exc).__name__,
+                            )
+                            record_evidence(
+                                "groundednessRecovery",
+                                {
+                                    "initialAction": "retry_evaluation",
+                                    "evaluationRetryPerformed": True,
+                                    "postRetryAction": "evaluation_retry_failed",
+                                    "originalAnswerPreserved": True,
+                                    "exceptionType": type(exc).__name__,
+                                    "exceptionMessageSanitized": _audit_safe_text(
+                                        str(exc)
+                                    ),
+                                },
+                            )
+                            recovery_action = "no_answer_rewrite"
+
+                    if (
+                        recovery_action == "repair_answer"
+                        and _low_groundedness_is_only_blocker(safety_post_result)
+                    ):
+                        try:
+                            repaired_answer = regenerate_answer_for_groundedness(
+                                components["llm"],
+                                original_query,
+                                context_docs,
+                                answer,
+                                safety_post_result.details.get(
+                                    "groundedness", {}
+                                ),
+                                chat_history,
+                            )
+                            if repaired_answer and repaired_answer != answer:
+                                repaired_safety_result = (
+                                    safety_checker.check_answer_safety(
+                                        original_query,
+                                        context_docs,
+                                        repaired_answer,
                                     )
-                                    if minimal_safety_result.allow:
-                                        answer = minimal_answer
-                                        safety_post_result = minimal_safety_result
-                                        _record_answer_version(
-                                            "groundednessMinimalFallback",
-                                            minimal_answer,
+                                )
+                                answer = repaired_answer
+                                safety_post_result = repaired_safety_result
+                                if _low_groundedness_is_only_blocker(
+                                    repaired_safety_result
+                                ):
+                                    minimal_answer = build_minimal_requirement_answer(
+                                        original_query,
+                                        context_docs,
+                                    )
+                                    if minimal_answer:
+                                        minimal_safety_result = (
+                                            safety_checker.check_answer_safety(
+                                                original_query,
+                                                context_docs,
+                                                minimal_answer,
+                                            )
                                         )
+                                        if minimal_safety_result.allow:
+                                            answer = minimal_answer
+                                            safety_post_result = minimal_safety_result
+                                            _record_answer_version(
+                                                "groundednessMinimalFallback",
+                                                minimal_answer,
+                                            )
+
                             diagnostics = current_diagnostics()
                             repair_evidence = dict(
-                                diagnostics.evidence.get("groundednessRepair", {})
+                                diagnostics.evidence.get(
+                                    "groundednessRepair", {}
+                                )
                                 if diagnostics is not None
                                 else {}
                             )
                             repair_evidence.update(
                                 {
+                                    "recoveryAction": "repair_answer",
+                                    "evaluationRetryPerformed": (
+                                        evaluation_retry_performed
+                                    ),
                                     "initialScore": first_groundedness,
                                     "finalScore": safety_post_result.scores.get(
                                         "groundedness"
                                     ),
                                     "minimalFallbackUsed": (
-                                        answer != repaired_answer
+                                        bool(repaired_answer)
+                                        and answer != repaired_answer
                                     ),
                                     "passed": safety_post_result.allow,
-                                    "finalReasons": list(safety_post_result.reasons),
+                                    "finalReasons": list(
+                                        safety_post_result.reasons
+                                    ),
                                 }
                             )
-                            record_evidence("groundednessRepair", repair_evidence)
-                    except RuntimeExecutionError:
-                        raise
-                    except Exception as exc:
-                        logger.warning(
-                            "Groundedness repair failed; retaining fail-closed output: %s",
-                            type(exc).__name__,
-                        )
+                            record_evidence(
+                                "groundednessRepair", repair_evidence
+                            )
+                        except RuntimeExecutionError:
+                            raise
+                        except Exception as exc:
+                            logger.warning(
+                                "Groundedness repair failed; retaining fail-closed "
+                                "output: %s",
+                                type(exc).__name__,
+                            )
+                            record_evidence(
+                                "groundednessRepair",
+                                {
+                                    "performed": True,
+                                    "recoveryAction": "repair_answer",
+                                    "evaluationRetryPerformed": (
+                                        evaluation_retry_performed
+                                    ),
+                                    "initialScore": first_groundedness,
+                                    "passed": False,
+                                    "exceptionType": type(exc).__name__,
+                                    "exceptionMessageSanitized": _audit_safe_text(
+                                        str(exc)
+                                    ),
+                                },
+                            )
+                    elif (
+                        recovery_action == "no_answer_rewrite"
+                        and _low_groundedness_is_only_blocker(safety_post_result)
+                    ):
+                        # Preserve the draft. The existing fail-closed policy below
+                        # still decides whether the unresolved answer is shown.
                         record_evidence(
-                            "groundednessRepair",
+                            "groundednessRecovery",
                             {
-                                "performed": True,
+                                "initialAction": "no_answer_rewrite",
+                                "evaluationRetryPerformed": (
+                                    evaluation_retry_performed
+                                ),
+                                "originalAnswerPreserved": True,
                                 "initialScore": first_groundedness,
-                                "passed": False,
-                                "exceptionType": type(exc).__name__,
-                                "exceptionMessageSanitized": _audit_safe_text(str(exc)),
+                                "finalScore": safety_post_result.scores.get(
+                                    "groundedness"
+                                ),
+                                "finalReasons": list(
+                                    safety_post_result.reasons
+                                ),
                             },
                         )
 

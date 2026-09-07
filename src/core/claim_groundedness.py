@@ -269,21 +269,128 @@ def critical_facts(text: str) -> set[str]:
     return extract_atomic_facts(normalize_quantities(text))
 
 
-def _result(rows: list[dict], *, error: str | None = None) -> tuple[float, dict]:
+def _result(
+    rows: list[dict],
+    *,
+    error: str | None = None,
+) -> tuple[float | None, dict]:
+
     counts = Counter(row["relation"] for row in rows)
-    score = counts["supported"] / max(1, len(rows))
+
+    # Only claims with an actual semantic decision participate
+    # in the groundedness score.
+    decided_count = (
+        counts["supported"]
+        + counts["insufficient_evidence"]
+        + counts["contradicted"]
+    )
+
+    # "unknown" means the evaluator could not make a confident
+    # semantic decision, so it is excluded from the score denominator.
+    if decided_count > 0:
+        supported_fraction = counts["supported"] / decided_count
+        score = supported_fraction
+    else:
+        supported_fraction = None
+        score = None
+
     caps = []
-    if counts["contradicted"]:
+
+    # Explicit contradiction remains a hard negative signal.
+    if counts["contradicted"] and score is not None:
         score = min(score, 0.25)
         caps.append("high_confidence_contradiction_cap_0.25")
+
+    # A completed evaluation containing unknown claims is uncertain,
+    # not failed and not automatically contradicted.
+    evaluation_status = "uncertain" if counts["unknown"] else "success"
+
+    total_claims = len(rows)
+    unknown_fraction = (
+        counts["unknown"] / total_claims
+        if total_claims
+        else 0.0
+    )
+
+    # Stage 5: keep semantic failure types separate from claim sensitivity
+    # and citation-provenance failures.
+    sensitive_unsupported_count = sum(
+        1
+        for row in rows
+        if row.get("is_sensitive_unsupported", False)
+    )
+    non_sensitive_unknown_count = sum(
+        1
+        for row in rows
+        if row.get("is_non_sensitive_unknown", False)
+    )
+    provenance_failure_count = sum(
+        1
+        for row in rows
+        if row.get("provenance_valid") is False
+    )
+
     return score, {
-        "algorithm_version": ALGORITHM, "score": score,
-        "supported_fraction": counts["supported"] / max(1, len(rows)),
-        "relation_counts": dict(counts), "claim_details": rows,
+        "algorithm_version": ALGORITHM,
+        "score": score,
+
+        # Groundedness among claims for which a semantic decision exists.
+        "supported_fraction": supported_fraction,
+
+        # Explicit relation diagnostics.
+        "supported_count": counts["supported"],
+        "unknown_count": counts["unknown"],
+        "insufficient_evidence_count": counts["insufficient_evidence"],
+        "contradicted_count": counts["contradicted"],
+        "decided_count": decided_count,
+        "unknown_fraction": unknown_fraction,
+
+        # Stage-5 policy diagnostics.
+        "sensitive_unsupported_count": sensitive_unsupported_count,
+        "non_sensitive_unknown_count": non_sensitive_unknown_count,
+        "provenance_failure_count": provenance_failure_count,
+
+        "relation_counts": dict(counts),
+        "claim_details": rows,
         "extracted_claims": [r["claim_text"] for r in rows],
-        "all_claims_supported": bool(rows) and counts["supported"] == len(rows),
-        "applied_caps": caps, "exception_type": error,
+
+        # Still means literally every claim was supported.
+        "all_claims_supported": (
+            bool(rows)
+            and counts["supported"] == len(rows)
+        ),
+
+        "applied_caps": caps,
+        "exception_type": error,
+        "evaluation_status": evaluation_status,
         "threshold_policy": "all_atomic_claims_supported",
+    }
+
+
+def _failed_result(units: list[str], exc: Exception) -> tuple[None, dict]:
+    return None, {
+        "algorithm_version": ALGORITHM,
+        "score": None,
+        "supported_fraction": None,
+        "relation_counts": {},
+        "claim_details": [
+            {
+                "claim_text": unit,
+                "relation": None,
+                "passed": None,
+                "decision_status": "not_evaluated_evaluator_failed",
+            }
+            for unit in units
+        ],
+        "extracted_claims": units,
+        "all_claims_supported": None,
+        "sensitive_unsupported_count": None,
+        "non_sensitive_unknown_count": None,
+        "provenance_failure_count": None,
+        "applied_caps": [],
+        "exception_type": type(exc).__name__,
+        "evaluation_status": "failed",
+        "threshold_policy": "not_evaluated_evaluator_failed",
     }
 
 
@@ -326,13 +433,47 @@ def evaluate_claim_groundedness(answer: str, docs, query: str = "", *, judge=Non
         rows = []
         for verdict in sorted(judgments.verdicts, key=lambda v: v.claim_id):
             claim = extraction.claims[verdict.claim_id].text
-            relation = verdict.relation
-            valid_quotes = bool(verdict.citations) and all(
+
+            # Preserve the semantic judge's original relation before any
+            # deterministic post-validation can change it.
+            original_relation = verdict.relation
+            relation = original_relation
+
+            demotion_reasons = []
+            citations_present = bool(verdict.citations)
+
+            citation_selection_valid = citations_present and all(
                 c.evidence_id in selected[verdict.claim_id]
-                and quote_has_provenance(c.quote, windows[c.evidence_id]["text"])
                 for c in verdict.citations
             )
+
+            provenance_valid = citation_selection_valid and all(
+                quote_has_provenance(
+                    c.quote,
+                    windows[c.evidence_id]["text"],
+                )
+                for c in verdict.citations
+            )
+
+            # Keep the existing variable because the current guardrail logic uses it.
+            valid_quotes = provenance_valid
+
             checks = verdict.checks.model_dump()
+
+            # Stage 5: identify which sensitive dimensions are actually applicable
+            # to this claim. The existing semantic checks are reused; no new model
+            # call or classifier is introduced.
+            sensitive_dimensions = [
+                name
+                for name, value in checks.items()
+                if value != "not_applicable"
+            ]
+
+            is_sensitive_claim = bool(
+                sensitive_dimensions
+                or critical_facts(claim)
+            )
+
             quotes = "\n".join(c.quote for c in verdict.citations)
             issues = deterministic_checks(claim, quotes) if valid_quotes else ["unverified_citations"]
             if valid_quotes:
@@ -344,23 +485,99 @@ def evaluate_claim_groundedness(answer: str, docs, query: str = "", *, judge=Non
                 ]
                 issues.extend(_structured_mismatches(claim, cited_docs, query))
             if relation in {"supported", "contradicted"}:
-                if not valid_quotes or not verdict.subject_scope_match or verdict.confidence < 0.85:
+                validation_failures = []
+
+                if not valid_quotes:
+                    if not citations_present:
+                        validation_failures.append("missing_citations")
+                    elif not citation_selection_valid:
+                        validation_failures.append("citation_evidence_not_selected")
+                    elif not provenance_valid:
+                        validation_failures.append("citation_provenance_failed")
+
+                if not verdict.subject_scope_match:
+                    validation_failures.append("subject_scope_mismatch")
+
+                if verdict.confidence < 0.85:
+                    validation_failures.append("confidence_below_0.85")
+
+                if validation_failures:
+                    demotion_reasons.extend(validation_failures)
                     relation = "unknown"
             if relation == "supported":
-                if issues or any(v in {"conflict", "unknown"} for v in checks.values()):
+                support_failures = []
+
+                if issues:
+                    support_failures.extend(
+                        f"deterministic_issue:{issue}"
+                        for issue in issues
+                    )
+
+                for check_name, check_value in checks.items():
+                    if check_value in {"conflict", "unknown"}:
+                        support_failures.append(
+                            f"sensitive_check:{check_name}:{check_value}"
+                        )
+
+                if support_failures:
+                    demotion_reasons.extend(support_failures)
                     relation = "insufficient_evidence"
             if relation == "contradicted" and "conflict" not in checks.values():
+                demotion_reasons.append(
+                    "contradiction_without_sensitive_conflict"
+                )
                 relation = "unknown"
             if relation == "contradicted" and "location_not_verified" in issues:
+                demotion_reasons.append(
+                    "contradiction_location_not_verified"
+                )
                 relation = "insufficient_evidence"
+
+            # This must be evaluated for every claim, not only for the
+            # location_not_verified branch above.
+            if relation != original_relation:
+                decision_status = "relation_changed_by_post_validation"
+            else:
+                decision_status = "relation_unchanged"
+
+            # Stage 5: distinguish unsupported sensitive claims from unknown
+            # claims that do not carry sensitive dimensions.
+            is_sensitive_unsupported = (
+                is_sensitive_claim
+                and relation in {"unknown", "insufficient_evidence"}
+            )
+            is_non_sensitive_unknown = (
+                not is_sensitive_claim
+                and relation == "unknown"
+            )
+
             rows.append({
-                "claim_text": claim, "relation": relation, "passed": relation == "supported",
-                "confidence": verdict.confidence, "reason_code": verdict.reason,
+                "claim_text": claim,
+
+                # Diagnostic decision trace
+                "original_relation": original_relation,
+                "final_relation": relation,
+                "demotion_reasons": demotion_reasons,
+                "provenance_valid": provenance_valid,
+                "decision_status": decision_status,
+
+                # Stage-5 claim sensitivity diagnostics.
+                "sensitive_dimensions": sensitive_dimensions,
+                "is_sensitive_claim": is_sensitive_claim,
+                "is_sensitive_unsupported": is_sensitive_unsupported,
+                "is_non_sensitive_unknown": is_non_sensitive_unknown,
+
+                # Keep existing fields for backward compatibility
+                "relation": relation,
+                "passed": relation == "supported",
+                "confidence": verdict.confidence,
+                "reason_code": verdict.reason,
                 "subject_scope_match": verdict.subject_scope_match,
                 "evidence": [c.model_dump() for c in verdict.citations],
-                "sensitive_checks": checks, "deterministic_issues": issues,
+                "sensitive_checks": checks,
+                "deterministic_issues": issues,
             })
         return _result(rows)
     except Exception as exc:
         # Never fall back to lexical acceptance or label transport failure contradiction.
-        return _result(fallback, error=type(exc).__name__)
+        return _failed_result(units, exc)

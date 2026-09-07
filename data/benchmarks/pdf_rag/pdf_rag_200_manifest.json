@@ -1,0 +1,28 @@
+{
+  "dataset": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\data\\benchmarks\\pdf_rag\\pdf_rag_200.jsonl",
+  "version": "pdf_rag_200_v1",
+  "method": "deterministic sentence-sized evidence extraction from active PDF corpus",
+  "human_validated": false,
+  "total_cases": 200,
+  "expected_route": "retrieval_only",
+  "pdf_case_counts": {
+    "assistance-brochure.pdf": 10,
+    "assistance-sti.pdf": 20,
+    "brochure-household-contents-and-private-liability.pdf": 10,
+    "brochure-services.pdf": 8,
+    "buildings-insurance-sti.pdf": 25,
+    "household-contents-private-liability-sti.pdf": 35,
+    "legal-protection-sti.pdf": 15,
+    "motor-vehicle-insurance-product-sheet.pdf": 10,
+    "motor-vehicle-insurance-sti.pdf": 40,
+    "mutual-provisions-pkv.pdf": 20,
+    "rental-guarantee-insurance-sti.pdf": 7
+  },
+  "source_directory": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\data\\raw\\pdfs",
+  "reference_fields": [
+    "reference_answer",
+    "reference_evidence",
+    "source_references",
+    "source_pages"
+  ]
+}

@@ -688,7 +688,7 @@ def _groundedness_score(
     answer: str,
     docs: Sequence[Document],
     query: str = "",
-) -> float:
+) -> float | None:
     score, _ = _groundedness_evaluation(answer, docs, query)
     return score
 
@@ -697,7 +697,7 @@ def _groundedness_evaluation(
     answer: str,
     docs: Sequence[Document],
     query: str = "",
-) -> tuple[float, dict[str, Any]]:
+) -> tuple[float | None, dict[str, Any]]:
     from src.core.claim_groundedness import evaluate_claim_groundedness
     return evaluate_claim_groundedness(answer, docs, query)
 
@@ -1144,12 +1144,91 @@ def _evaluate_output_safety(
         allow = False
         risk = "high"
 
+    # Groundedness evaluation is independent of answer-injection detection.
     groundedness, groundedness_diagnostics = _groundedness_evaluation(
         answer_text,
         docs,
         query,
     )
-    if docs and (groundedness < config.min_groundedness or not groundedness_diagnostics.get("all_claims_supported", False)):
+    evaluation_status = groundedness_diagnostics.get("evaluation_status")
+
+    contradicted_count = int(
+        groundedness_diagnostics.get("contradicted_count", 0) or 0
+    )
+    sensitive_unsupported_count = int(
+        groundedness_diagnostics.get("sensitive_unsupported_count", 0) or 0
+    )
+    non_sensitive_unknown_count = int(
+        groundedness_diagnostics.get("non_sensitive_unknown_count", 0) or 0
+    )
+    provenance_failure_count = int(
+        groundedness_diagnostics.get("provenance_failure_count", 0) or 0
+    )
+
+    if docs and evaluation_status == "failed":
+        # The evaluator itself could not complete the groundedness assessment.
+        reasons.append("groundedness_evaluator_failed")
+        if action == "allow":
+            action = "fallback"
+        allow = False
+        if risk == "low":
+            risk = "medium"
+
+    elif docs and contradicted_count > 0:
+        # Explicit contradiction remains the strongest grounding failure.
+        reasons.append("groundedness_contradicted")
+        if action == "allow":
+            action = "fallback"
+        allow = False
+        if risk == "low":
+            risk = "medium"
+
+    elif docs and sensitive_unsupported_count > 0:
+        # Unsupported sensitive claims must not pass merely because the overall
+        # score is high. Examples include amounts, dates, durations, conditions,
+        # exclusions, coverage types, locations, and polarity-sensitive claims.
+        reasons.append("groundedness_sensitive_unsupported")
+        if action == "allow":
+            action = "fallback"
+        allow = False
+        if risk == "low":
+            risk = "medium"
+
+    elif docs and (
+        non_sensitive_unknown_count > 0
+        or provenance_failure_count > 0
+    ):
+        # Non-sensitive uncertainty and citation-provenance failures are kept
+        # separate from semantic contradiction. The current guardrail remains
+        # fail-closed and surfaces that the answer needs repair/retry.
+        reasons.append("groundedness_repair_needed")
+        if action == "allow":
+            action = "fallback"
+        allow = False
+        if risk == "low":
+            risk = "medium"
+
+    elif (
+        docs
+        and evaluation_status == "uncertain"
+    ):
+        # Defensive fallback for uncertain evaluations that do not expose the
+        # Stage-5 claim classification fields as expected.
+        reasons.append("groundedness_uncertain")
+        if action == "allow":
+            action = "fallback"
+        allow = False
+        if risk == "low":
+            risk = "medium"
+
+    elif (
+        docs
+        and groundedness is not None
+        and groundedness < config.min_groundedness
+    ):
+        # Genuine score-based low groundedness after claim-aware hard gates have
+        # already been evaluated. all_claims_supported is intentionally not used
+        # as a hard gate here.
         reasons.append("low_groundedness")
         if action == "allow":
             action = "fallback"

@@ -1,0 +1,614 @@
+[
+  {
+    "case": "kosovo_original",
+    "expected": "supported",
+    "actual": "supported",
+    "passed": true,
+    "score": 1.0,
+    "seconds": 13.39,
+    "diagnostics": {
+      "algorithm_version": "claim_entailment_v1",
+      "score": 1.0,
+      "supported_fraction": 1.0,
+      "relation_counts": {
+        "supported": 1
+      },
+      "claim_details": [
+        {
+          "claim_text": "In Kosovo, insurance does not apply to liability.",
+          "relation": "supported",
+          "passed": true,
+          "confidence": 1.0,
+          "reason_code": "The evidence directly supports the claim that in Kosovo, insurance does not apply to liability.",
+          "subject_scope_match": true,
+          "evidence": [
+            {
+              "evidence_id": "d0:0",
+              "quote": "In Kosovo, insurance does not apply to liability."
+            }
+          ],
+          "sensitive_checks": {
+            "numbers": "not_applicable",
+            "currencies": "not_applicable",
+            "percentages": "not_applicable",
+            "dates": "not_applicable",
+            "durations": "not_applicable",
+            "waiting_periods": "not_applicable",
+            "locations": "consistent",
+            "product_names": "not_applicable",
+            "coverage_types": "not_applicable",
+            "exclusions": "not_applicable",
+            "conditions": "not_applicable",
+            "polarity": "consistent"
+          },
+          "deterministic_issues": []
+        }
+      ],
+      "extracted_claims": [
+        "In Kosovo, insurance does not apply to liability."
+      ],
+      "all_claims_supported": true,
+      "applied_caps": [],
+      "exception_type": null,
+      "threshold_policy": "all_atomic_claims_supported"
+    }
+  },
+  {
+    "case": "kosovo_paraphrase",
+    "expected": "supported",
+    "actual": "supported",
+    "passed": true,
+    "score": 1.0,
+    "seconds": 4.33,
+    "diagnostics": {
+      "algorithm_version": "claim_entailment_v1",
+      "score": 1.0,
+      "supported_fraction": 1.0,
+      "relation_counts": {
+        "supported": 1
+      },
+      "claim_details": [
+        {
+          "claim_text": "Liability coverage is excluded in Kosovo.",
+          "relation": "supported",
+          "passed": true,
+          "confidence": 1.0,
+          "reason_code": "The evidence states that insurance does not apply to liability in Kosovo, which supports the claim that liability coverage is excluded.",
+          "subject_scope_match": true,
+          "evidence": [
+            {
+              "evidence_id": "d0:0",
+              "quote": "In Kosovo, insurance does not apply to liability."
+            }
+          ],
+          "sensitive_checks": {
+            "numbers": "not_applicable",
+            "currencies": "not_applicable",
+            "percentages": "not_applicable",
+            "dates": "not_applicable",
+            "durations": "not_applicable",
+            "waiting_periods": "not_applicable",
+            "locations": "consistent",
+            "product_names": "not_applicable",
+            "coverage_types": "consistent",
+            "exclusions": "consistent",
+            "conditions": "not_applicable",
+            "polarity": "consistent"
+          },
+          "deterministic_issues": []
+        }
+      ],
+      "extracted_claims": [
+        "Liability coverage is excluded in Kosovo."
+      ],
+      "all_claims_supported": true,
+      "applied_caps": [],
+      "exception_type": null,
+      "threshold_policy": "all_atomic_claims_supported"
+    }
+  },
+  {
+    "case": "kosovo_no_cover",
+    "expected": "supported",
+    "actual": "supported",
+    "passed": true,
+    "score": 1.0,
+    "seconds": 4.22,
+    "diagnostics": {
+      "algorithm_version": "claim_entailment_v1",
+      "score": 1.0,
+      "supported_fraction": 1.0,
+      "relation_counts": {
+        "supported": 1
+      },
+      "claim_details": [
+        {
+          "claim_text": "There is no liability cover in Kosovo.",
+          "relation": "supported",
+          "passed": true,
+          "confidence": 1.0,
+          "reason_code": "The evidence states that insurance does not apply to liability in Kosovo, which supports the claim that there is no liability cover in Kosovo.",
+          "subject_scope_match": true,
+          "evidence": [
+            {
+              "evidence_id": "d0:0",
+              "quote": "In Kosovo, insurance does not apply to liability."
+            }
+          ],
+          "sensitive_checks": {
+            "numbers": "not_applicable",
+            "currencies": "not_applicable",
+            "percentages": "not_applicable",
+            "dates": "not_applicable",
+            "durations": "not_applicable",
+            "waiting_periods": "not_applicable",
+            "locations": "consistent",
+            "product_names": "not_applicable",
+            "coverage_types": "consistent",
+            "exclusions": "not_applicable",
+            "conditions": "not_applicable",
+            "polarity": "consistent"
+          },
+          "deterministic_issues": []
+        }
+      ],
+      "extracted_claims": [
+        "There is no liability cover in Kosovo."
+      ],
+      "all_claims_supported": true,
+      "applied_caps": [],
+      "exception_type": null,
+      "threshold_policy": "all_atomic_claims_supported"
+    }
+  },
+  {
+    "case": "kosovo_contradiction",
+    "expected": "contradicted",
+    "actual": "contradicted",
+    "passed": true,
+    "score": 0.0,
+    "seconds": 4.7,
+    "diagnostics": {
+      "algorithm_version": "claim_entailment_v1",
+      "score": 0.0,
+      "supported_fraction": 0.0,
+      "relation_counts": {
+        "contradicted": 1
+      },
+      "claim_details": [
+        {
+          "claim_text": "Liability insurance is fully covered in Kosovo.",
+          "relation": "contradicted",
+          "passed": false,
+          "confidence": 1.0,
+          "reason_code": "The claim states that liability insurance is fully covered in Kosovo, which is directly contradicted by the evidence stating that insurance does not apply to liability in Kosovo.",
+          "subject_scope_match": true,
+          "evidence": [
+            {
+              "evidence_id": "d0:0",
+              "quote": "In Kosovo, insurance does not apply to liability."
+            }
+          ],
+          "sensitive_checks": {
+            "numbers": "not_applicable",
+            "currencies": "not_applicable",
+            "percentages": "not_applicable",
+            "dates": "not_applicable",
+            "durations": "not_applicable",
+            "waiting_periods": "not_applicable",
+            "locations": "consistent",
+            "product_names": "not_applicable",
+            "coverage_types": "conflict",
+            "exclusions": "not_applicable",
+            "conditions": "not_applicable",
+            "polarity": "conflict"
+          },
+          "deterministic_issues": [
+            "scoped_polarity_conflict"
+          ]
+        }
+      ],
+      "extracted_claims": [
+        "Liability insurance is fully covered in Kosovo."
+      ],
+      "all_claims_supported": false,
+      "applied_caps": [
+        "high_confidence_contradiction_cap_0.25"
+      ],
+      "exception_type": null,
+      "threshold_policy": "all_atomic_claims_supported"
+    }
+  },
+  {
+    "case": "repair_paraphrase",
+    "expected": "supported",
+    "actual": "supported",
+    "passed": true,
+    "score": 1.0,
+    "seconds": 3.93,
+    "diagnostics": {
+      "algorithm_version": "claim_entailment_v1",
+      "score": 1.0,
+      "supported_fraction": 1.0,
+      "relation_counts": {
+        "supported": 1
+      },
+      "claim_details": [
+        {
+          "claim_text": "The insurer meets the cost of fixing accidental damage.",
+          "relation": "supported",
+          "passed": true,
+          "confidence": 1.0,
+          "reason_code": "The evidence directly supports the claim that the insurer covers the cost of fixing accidental damage.",
+          "subject_scope_match": true,
+          "evidence": [
+            {
+              "evidence_id": "d0:0",
+              "quote": "The insurance company reimburses accidental damage repair expenses."
+            }
+          ],
+          "sensitive_checks": {
+            "numbers": "not_applicable",
+            "currencies": "not_applicable",
+            "percentages": "not_applicable",
+            "dates": "not_applicable",
+            "durations": "not_applicable",
+            "waiting_periods": "not_applicable",
+            "locations": "not_applicable",
+            "product_names": "not_applicable",
+            "coverage_types": "not_applicable",
+            "exclusions": "not_applicable",
+            "conditions": "not_applicable",
+            "polarity": "consistent"
+          },
+          "deterministic_issues": []
+        }
+      ],
+      "extracted_claims": [
+        "The insurer meets the cost of fixing accidental damage."
+      ],
+      "all_claims_supported": true,
+      "applied_caps": [],
+      "exception_type": null,
+      "threshold_policy": "all_atomic_claims_supported"
+    }
+  },
+  {
+    "case": "numeric_conflict",
+    "expected": "contradicted",
+    "actual": "contradicted",
+    "passed": true,
+    "score": 0.0,
+    "seconds": 8.48,
+    "diagnostics": {
+      "algorithm_version": "claim_entailment_v1",
+      "score": 0.0,
+      "supported_fraction": 0.0,
+      "relation_counts": {
+        "contradicted": 1
+      },
+      "claim_details": [
+        {
+          "claim_text": "The annual premium is 500 EUR.",
+          "relation": "contradicted",
+          "passed": false,
+          "confidence": 1.0,
+          "reason_code": "The claim states the annual premium is 500 EUR, which directly contradicts the evidence stating it is 300 EUR.",
+          "subject_scope_match": true,
+          "evidence": [
+            {
+              "evidence_id": "d0:0",
+              "quote": "The annual premium is 300 EUR."
+            }
+          ],
+          "sensitive_checks": {
+            "numbers": "conflict",
+            "currencies": "consistent",
+            "percentages": "not_applicable",
+            "dates": "not_applicable",
+            "durations": "not_applicable",
+            "waiting_periods": "not_applicable",
+            "locations": "not_applicable",
+            "product_names": "not_applicable",
+            "coverage_types": "not_applicable",
+            "exclusions": "not_applicable",
+            "conditions": "not_applicable",
+            "polarity": "not_applicable"
+          },
+          "deterministic_issues": [
+            "money:eur:500"
+          ]
+        }
+      ],
+      "extracted_claims": [
+        "The annual premium is 500 EUR."
+      ],
+      "all_claims_supported": false,
+      "applied_caps": [
+        "high_confidence_contradiction_cap_0.25"
+      ],
+      "exception_type": null,
+      "threshold_policy": "all_atomic_claims_supported"
+    }
+  },
+  {
+    "case": "currency_conflict",
+    "expected": "contradicted",
+    "actual": "contradicted",
+    "passed": true,
+    "score": 0.0,
+    "seconds": 3.99,
+    "diagnostics": {
+      "algorithm_version": "claim_entailment_v1",
+      "score": 0.0,
+      "supported_fraction": 0.0,
+      "relation_counts": {
+        "contradicted": 1
+      },
+      "claim_details": [
+        {
+          "claim_text": "The annual premium is 300 USD.",
+          "relation": "contradicted",
+          "passed": false,
+          "confidence": 1.0,
+          "reason_code": "The claim states the premium is in USD, while the evidence states it is in EUR.",
+          "subject_scope_match": true,
+          "evidence": [
+            {
+              "evidence_id": "d0:0",
+              "quote": "The annual premium is 300 EUR."
+            }
+          ],
+          "sensitive_checks": {
+            "numbers": "conflict",
+            "currencies": "conflict",
+            "percentages": "not_applicable",
+            "dates": "not_applicable",
+            "durations": "not_applicable",
+            "waiting_periods": "not_applicable",
+            "locations": "not_applicable",
+            "product_names": "not_applicable",
+            "coverage_types": "not_applicable",
+            "exclusions": "not_applicable",
+            "conditions": "not_applicable",
+            "polarity": "not_applicable"
+          },
+          "deterministic_issues": [
+            "money:usd:300"
+          ]
+        }
+      ],
+      "extracted_claims": [
+        "The annual premium is 300 USD."
+      ],
+      "all_claims_supported": false,
+      "applied_caps": [
+        "high_confidence_contradiction_cap_0.25"
+      ],
+      "exception_type": null,
+      "threshold_policy": "all_atomic_claims_supported"
+    }
+  },
+  {
+    "case": "duration_conflict",
+    "expected": "contradicted",
+    "actual": "contradicted",
+    "passed": true,
+    "score": 0.0,
+    "seconds": 6.42,
+    "diagnostics": {
+      "algorithm_version": "claim_entailment_v1",
+      "score": 0.0,
+      "supported_fraction": 0.0,
+      "relation_counts": {
+        "contradicted": 1
+      },
+      "claim_details": [
+        {
+          "claim_text": "The waiting period is 3 months.",
+          "relation": "contradicted",
+          "passed": false,
+          "confidence": 1.0,
+          "reason_code": "The claim states a waiting period of 3 months, which directly contradicts the evidence stating it is 3 days.",
+          "subject_scope_match": true,
+          "evidence": [
+            {
+              "evidence_id": "d0:0",
+              "quote": "The waiting period is 3 days."
+            }
+          ],
+          "sensitive_checks": {
+            "numbers": "conflict",
+            "currencies": "not_applicable",
+            "percentages": "not_applicable",
+            "dates": "not_applicable",
+            "durations": "not_applicable",
+            "waiting_periods": "conflict",
+            "locations": "not_applicable",
+            "product_names": "not_applicable",
+            "coverage_types": "not_applicable",
+            "exclusions": "not_applicable",
+            "conditions": "not_applicable",
+            "polarity": "not_applicable"
+          },
+          "deterministic_issues": [
+            "duration_unit_not_verified"
+          ]
+        }
+      ],
+      "extracted_claims": [
+        "The waiting period is 3 months."
+      ],
+      "all_claims_supported": false,
+      "applied_caps": [
+        "high_confidence_contradiction_cap_0.25"
+      ],
+      "exception_type": null,
+      "threshold_policy": "all_atomic_claims_supported"
+    }
+  },
+  {
+    "case": "condition_paraphrase",
+    "expected": "supported",
+    "actual": "supported",
+    "passed": true,
+    "score": 1.0,
+    "seconds": 3.75,
+    "diagnostics": {
+      "algorithm_version": "claim_entailment_v1",
+      "score": 1.0,
+      "supported_fraction": 1.0,
+      "relation_counts": {
+        "supported": 1
+      },
+      "claim_details": [
+        {
+          "claim_text": "Reimbursement requires prior authorization.",
+          "relation": "supported",
+          "passed": true,
+          "confidence": 1.0,
+          "reason_code": "The evidence explicitly states that reimbursement is contingent upon prior approval, which directly supports the claim.",
+          "subject_scope_match": true,
+          "evidence": [
+            {
+              "evidence_id": "d0:0",
+              "quote": "Expenses are reimbursed only if approved in advance."
+            }
+          ],
+          "sensitive_checks": {
+            "numbers": "not_applicable",
+            "currencies": "not_applicable",
+            "percentages": "not_applicable",
+            "dates": "not_applicable",
+            "durations": "not_applicable",
+            "waiting_periods": "not_applicable",
+            "locations": "not_applicable",
+            "product_names": "not_applicable",
+            "coverage_types": "not_applicable",
+            "exclusions": "not_applicable",
+            "conditions": "consistent",
+            "polarity": "consistent"
+          },
+          "deterministic_issues": []
+        }
+      ],
+      "extracted_claims": [
+        "Reimbursement requires prior authorization."
+      ],
+      "all_claims_supported": true,
+      "applied_caps": [],
+      "exception_type": null,
+      "threshold_policy": "all_atomic_claims_supported"
+    }
+  },
+  {
+    "case": "condition_dropped",
+    "expected": "reject",
+    "actual": "unknown",
+    "passed": true,
+    "score": 0.0,
+    "seconds": 4.73,
+    "diagnostics": {
+      "algorithm_version": "claim_entailment_v1",
+      "score": 0.0,
+      "supported_fraction": 0.0,
+      "relation_counts": {
+        "unknown": 1
+      },
+      "claim_details": [
+        {
+          "claim_text": "Expenses are always reimbursed.",
+          "relation": "unknown",
+          "passed": false,
+          "confidence": 0.9,
+          "reason_code": "The claim states that expenses are always reimbursed, which contradicts the evidence that states they are reimbursed only if approved in advance.",
+          "subject_scope_match": true,
+          "evidence": [
+            {
+              "evidence_id": "d0:0",
+              "quote": "Expenses are reimbursed only if approved in advance."
+            }
+          ],
+          "sensitive_checks": {
+            "numbers": "not_applicable",
+            "currencies": "not_applicable",
+            "percentages": "not_applicable",
+            "dates": "not_applicable",
+            "durations": "not_applicable",
+            "waiting_periods": "not_applicable",
+            "locations": "not_applicable",
+            "product_names": "not_applicable",
+            "coverage_types": "not_applicable",
+            "exclusions": "not_applicable",
+            "conditions": "consistent",
+            "polarity": "consistent"
+          },
+          "deterministic_issues": []
+        }
+      ],
+      "extracted_claims": [
+        "Expenses are always reimbursed."
+      ],
+      "all_claims_supported": false,
+      "applied_caps": [],
+      "exception_type": null,
+      "threshold_policy": "all_atomic_claims_supported"
+    }
+  },
+  {
+    "case": "unknown_scope",
+    "expected": "reject",
+    "actual": "insufficient_evidence",
+    "passed": true,
+    "score": 0.0,
+    "seconds": 4.37,
+    "diagnostics": {
+      "algorithm_version": "claim_entailment_v1",
+      "score": 0.0,
+      "supported_fraction": 0.0,
+      "relation_counts": {
+        "insufficient_evidence": 1
+      },
+      "claim_details": [
+        {
+          "claim_text": "Liability is covered in Albania.",
+          "relation": "insufficient_evidence",
+          "passed": false,
+          "confidence": 1.0,
+          "reason_code": "The claim states that liability is covered in Albania, while the evidence indicates that in Kosovo, insurance does not apply to liability, creating a contradiction.",
+          "subject_scope_match": true,
+          "evidence": [
+            {
+              "evidence_id": "d0:0",
+              "quote": "In Kosovo, insurance does not apply to liability."
+            }
+          ],
+          "sensitive_checks": {
+            "numbers": "not_applicable",
+            "currencies": "not_applicable",
+            "percentages": "not_applicable",
+            "dates": "not_applicable",
+            "durations": "not_applicable",
+            "waiting_periods": "not_applicable",
+            "locations": "conflict",
+            "product_names": "not_applicable",
+            "coverage_types": "conflict",
+            "exclusions": "not_applicable",
+            "conditions": "not_applicable",
+            "polarity": "not_applicable"
+          },
+          "deterministic_issues": [
+            "location_not_verified"
+          ]
+        }
+      ],
+      "extracted_claims": [
+        "Liability is covered in Albania."
+      ],
+      "all_claims_supported": false,
+      "applied_caps": [],
+      "exception_type": null,
+      "threshold_policy": "all_atomic_claims_supported"
+    }
+  }
+]

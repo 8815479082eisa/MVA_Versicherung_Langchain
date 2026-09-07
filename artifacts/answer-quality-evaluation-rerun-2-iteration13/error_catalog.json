@@ -1,0 +1,12 @@
+[
+  {
+    "id": "route-rag-019",
+    "expected_route": "retrieval_only",
+    "actual_route": "retrieval_only",
+    "errors": [
+      "groundedness_failed"
+    ],
+    "missing_requirements": [],
+    "missing_crm_facts": []
+  }
+]

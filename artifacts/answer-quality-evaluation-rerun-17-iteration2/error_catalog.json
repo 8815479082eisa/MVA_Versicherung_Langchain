@@ -1,0 +1,293 @@
+[
+  {
+    "id": "route-rag-006",
+    "expected_route": "retrieval_only",
+    "actual_route": "retrieval_only",
+    "errors": [
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "household_water_event",
+      "household_contents_damage"
+    ],
+    "missing_crm_facts": []
+  },
+  {
+    "id": "route-rag-013",
+    "expected_route": "retrieval_only",
+    "actual_route": "retrieval_only",
+    "errors": [
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "legal_scope"
+    ],
+    "missing_crm_facts": []
+  },
+  {
+    "id": "route-rag-014",
+    "expected_route": "retrieval_only",
+    "actual_route": "retrieval_only",
+    "errors": [
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "legal_waiting_period"
+    ],
+    "missing_crm_facts": []
+  },
+  {
+    "id": "route-rag-017",
+    "expected_route": "retrieval_only",
+    "actual_route": "retrieval_only",
+    "errors": [
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "services_247",
+      "services_claim_payment"
+    ],
+    "missing_crm_facts": []
+  },
+  {
+    "id": "route-rag-019",
+    "expected_route": "retrieval_only",
+    "actual_route": "retrieval_only",
+    "errors": [
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "mutual_contract_rules",
+      "mutual_claim_rules"
+    ],
+    "missing_crm_facts": []
+  },
+  {
+    "id": "route-rag-020",
+    "expected_route": "retrieval_only",
+    "actual_route": "retrieval_only",
+    "errors": [
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "windscreen_repair_replacement",
+      "windscreen_repair_process"
+    ],
+    "missing_crm_facts": []
+  },
+  {
+    "id": "route-combined-005",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "legal_scope"
+    ],
+    "missing_crm_facts": []
+  },
+  {
+    "id": "route-combined-006",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "crm_fact_incomplete_or_incorrect",
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "private_liability_scope"
+    ],
+    "missing_crm_facts": [
+      {
+        "table": "policies",
+        "field": "endDate",
+        "value": "2025-12-31",
+        "row_key": "TEST-PHV-2025-1301",
+        "present": false
+      },
+      {
+        "table": "policies",
+        "field": "status",
+        "value": "Expired",
+        "row_key": "TEST-PHV-2025-1301",
+        "present": false
+      }
+    ]
+  },
+  {
+    "id": "route-combined-009",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "legal_scope"
+    ],
+    "missing_crm_facts": []
+  },
+  {
+    "id": "route-combined-010",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "crm_fact_incomplete_or_incorrect",
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "private_liability_scope",
+      "private_liability_damage"
+    ],
+    "missing_crm_facts": [
+      {
+        "table": "claims",
+        "field": "status",
+        "value": "Rejected",
+        "row_key": "TEST-PHV-2026-1601",
+        "present": false
+      }
+    ]
+  },
+  {
+    "id": "route-combined-013",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "crm_fact_incomplete_or_incorrect",
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "household_water_event",
+      "household_contents_damage"
+    ],
+    "missing_crm_facts": [
+      {
+        "table": "policies",
+        "field": "status",
+        "value": "Pending",
+        "row_key": "TEST-HH-2026-1801",
+        "present": false
+      }
+    ]
+  },
+  {
+    "id": "route-combined-014",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "crm_fact_incomplete_or_incorrect",
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "motor_collision_event",
+      "motor_collision_comprehensive"
+    ],
+    "missing_crm_facts": [
+      {
+        "table": "policies",
+        "field": "annualPremium",
+        "value": "1290",
+        "row_key": "TEST-KFZ-2026-1901",
+        "present": false
+      },
+      {
+        "table": "policies",
+        "field": "currency",
+        "value": "EUR",
+        "row_key": "TEST-KFZ-2026-1901",
+        "present": false
+      }
+    ]
+  },
+  {
+    "id": "route-combined-016",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "crm_fact_incomplete_or_incorrect",
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "private_liability_scope",
+      "private_liability_damage"
+    ],
+    "missing_crm_facts": [
+      {
+        "table": "policies",
+        "field": "deductible",
+        "value": "0",
+        "row_key": "TEST-PHV-2026-1902",
+        "present": false
+      },
+      {
+        "table": "policies",
+        "field": "currency",
+        "value": "EUR",
+        "row_key": "TEST-PHV-2026-1902",
+        "present": false
+      }
+    ]
+  },
+  {
+    "id": "route-combined-018",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "crm_fact_incomplete_or_incorrect",
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "legal_scope"
+    ],
+    "missing_crm_facts": [
+      {
+        "table": "policies",
+        "field": "annualPremium",
+        "value": "310",
+        "row_key": "TEST-RS-2026-1702",
+        "present": false
+      },
+      {
+        "table": "policies",
+        "field": "currency",
+        "value": "EUR",
+        "row_key": "TEST-RS-2026-1702",
+        "present": false
+      }
+    ]
+  }
+]

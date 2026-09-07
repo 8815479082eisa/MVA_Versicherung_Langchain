@@ -1,0 +1,103 @@
+[
+  {
+    "id": "route-crm-025",
+    "expected_route": "crm_only",
+    "actual_route": "crm_only",
+    "errors": [
+      "crm_fact_incomplete_or_incorrect"
+    ]
+  },
+  {
+    "id": "route-rag-003",
+    "expected_route": "retrieval_only",
+    "actual_route": "retrieval_only",
+    "errors": [
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold"
+    ]
+  },
+  {
+    "id": "route-rag-004",
+    "expected_route": "retrieval_only",
+    "actual_route": "retrieval_only",
+    "errors": [
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold"
+    ]
+  },
+  {
+    "id": "route-rag-010",
+    "expected_route": "retrieval_only",
+    "actual_route": "retrieval_only",
+    "errors": [
+      "expected_document_citation_missing",
+      "expected_document_source_missing"
+    ]
+  },
+  {
+    "id": "route-rag-012",
+    "expected_route": "retrieval_only",
+    "actual_route": "retrieval_only",
+    "errors": [
+      "requirement_recall_below_threshold"
+    ]
+  },
+  {
+    "id": "route-rag-015",
+    "expected_route": "retrieval_only",
+    "actual_route": "retrieval_only",
+    "errors": [
+      "expected_document_citation_missing"
+    ]
+  },
+  {
+    "id": "route-combined-007",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "requirement_recall_below_threshold"
+    ]
+  },
+  {
+    "id": "route-combined-020",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "requirement_recall_below_threshold"
+    ]
+  },
+  {
+    "id": "route-combined-021",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "requirement_recall_below_threshold"
+    ]
+  },
+  {
+    "id": "route-combined-023",
+    "expected_route": "combined",
+    "actual_route": "retrieval_only",
+    "errors": [
+      "crm_fact_incomplete_or_incorrect",
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold",
+      "route_mismatch"
+    ]
+  },
+  {
+    "id": "route-denied-025",
+    "expected_route": "denied",
+    "actual_route": "retrieval_only",
+    "errors": [
+      "route_mismatch",
+      "unsafe_or_missing_denial"
+    ]
+  }
+]

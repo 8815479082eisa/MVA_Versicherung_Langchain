@@ -50,6 +50,7 @@ def test_entailment_not_word_overlap_controls_score(answer):
     score, result = evaluate(answer, "The insurer pays for repairs.")
     assert score == 1
     assert result["all_claims_supported"]
+    assert result["evaluation_status"] == "success"
 
 
 @pytest.mark.parametrize("relation", ["unknown", "insufficient_evidence"])
@@ -58,6 +59,7 @@ def test_uncertain_relations_are_not_contradiction(relation):
     assert score == 0
     assert not result["applied_caps"]
     assert result["relation_counts"] == {relation: 1}
+    assert result["evaluation_status"] == ("uncertain" if relation == "unknown" else "success")
 
 
 def test_low_confidence_contradiction_is_unknown():
@@ -98,8 +100,13 @@ def test_provider_failure_fails_unknown_without_lexical_fallback():
     class Broken:
         def call(self, *args):
             raise TimeoutError()
-    _, result = evaluate_claim_groundedness("Exact source.", [Document(page_content="Exact source.")], judge=Broken())
-    assert result["relation_counts"] == {"unknown": 1}
+    score, result = evaluate_claim_groundedness("Exact source.", [Document(page_content="Exact source.")], judge=Broken())
+    assert score is None
+    assert result["score"] is None
+    assert result["supported_fraction"] is None
+    assert result["all_claims_supported"] is None
+    assert result["evaluation_status"] == "failed"
+    assert result["relation_counts"] == {}
     assert result["exception_type"] == "TimeoutError"
 
 
@@ -111,7 +118,8 @@ def test_extractor_cannot_drop_answer_units():
             return super().call(instruction, payload, schema)
     _, result = evaluate_claim_groundedness("One claim. Another claim.", [Document(page_content="One claim.")], judge=Dropped())
     assert result["exception_type"] == "ValueError"
-    assert not result["all_claims_supported"]
+    assert result["evaluation_status"] == "failed"
+    assert result["all_claims_supported"] is None
 
 
 def test_equivalent_duration_spellings_preserve_sensitive_values():
@@ -171,3 +179,14 @@ def test_audit_rejects_omitted_condition_without_seeing_evidence():
     _, result = evaluate_claim_groundedness("Repairs are paid if authorized.", [Document(page_content="Repairs are paid.")], judge=AuditReject())
     assert not result["all_claims_supported"]
     assert not result["applied_caps"]
+
+
+def test_claim_post_validation_uses_decision_status_field():
+    _, result = evaluate(
+        "Insurance covers repairs.",
+        "No information.",
+        quote="Insurance covers repairs.",
+    )
+    detail = result["claim_details"][0]
+    assert detail["decision_status"] == "relation_changed_by_post_validation"
+    assert "evaluation_status" not in detail

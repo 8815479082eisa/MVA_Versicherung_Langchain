@@ -1,0 +1,46 @@
+[
+  {
+    "id": "route-combined-004",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "crm_fact_incomplete_or_incorrect",
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "household_water_event",
+      "household_contents_damage"
+    ],
+    "missing_crm_facts": [
+      {
+        "table": "policies",
+        "field": "deductible",
+        "value": "250",
+        "row_key": "TEST-HH-2026-1201",
+        "present": false
+      },
+      {
+        "table": "policies",
+        "field": "currency",
+        "value": "EUR",
+        "row_key": "TEST-HH-2026-1201",
+        "present": false
+      }
+    ]
+  },
+  {
+    "id": "route-combined-011",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "motor_theft_condition"
+    ],
+    "missing_crm_facts": []
+  }
+]

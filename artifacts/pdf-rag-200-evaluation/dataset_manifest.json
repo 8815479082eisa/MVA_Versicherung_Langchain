@@ -1,0 +1,10 @@
+{
+  "dataset": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\data\\benchmarks\\pdf_rag\\pdf_rag_200.jsonl",
+  "responses": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\artifacts\\pdf-rag-200-evaluation\\responses_full.jsonl",
+  "cases": 200,
+  "endpoints": [
+    "http://127.0.0.1:8000/api/ask",
+    "http://127.0.0.1:8001/api/ask",
+    "http://127.0.0.1:8004/api/ask"
+  ]
+}

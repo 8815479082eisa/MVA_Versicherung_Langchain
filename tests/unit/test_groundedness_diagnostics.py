@@ -125,6 +125,34 @@ def test_claim_diagnostics_survive_low_groundedness_failure(monkeypatch) -> None
     assert details["claim_details"]
 
 
+def test_groundedness_evaluator_failure_is_not_low_groundedness(monkeypatch) -> None:
+    from src.core import claim_groundedness
+
+    class BrokenJudge:
+        def call(self, *args):
+            raise TimeoutError()
+
+    monkeypatch.setattr(claim_groundedness, "ModelJudge", BrokenJudge)
+    payload, _ = _evaluate_output_safety(
+        "What is covered?",
+        "The moon is insured.",
+        _docs(),
+        _safety_config(),
+    )
+
+    assert payload["allow"] is False
+    assert payload["action"] == "fallback"
+    assert "groundedness_evaluator_failed" in payload["reasons"]
+    assert "low_groundedness" not in payload["reasons"]
+    assert payload["scores"]["groundedness"] is None
+    details = payload["details"]["groundedness"]
+    assert details["evaluation_status"] == "failed"
+    assert details["score"] is None
+    assert details["supported_fraction"] is None
+    assert details["all_claims_supported"] is None
+    assert details["exception_type"] == "TimeoutError"
+
+
 def test_answer_snapshots_redact_secrets_and_unnecessary_pii() -> None:
     diagnostics = RequestDiagnostics(route="combined")
     token = set_current_diagnostics(diagnostics)

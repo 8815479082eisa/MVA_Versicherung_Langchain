@@ -1,0 +1,586 @@
+{
+  "algorithm_version": "claim_entailment_v1",
+  "score": 1.0,
+  "supported_fraction": 1.0,
+  "relation_counts": {
+    "supported": 19
+  },
+  "claim_details": [
+    {
+      "claim_text": "The territorial scope of the Helvetia Motor Vehicle Insurance is valid in Switzerland.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is valid in Switzerland.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is valid in Switzerland, the Principality of Liechtenstein, the countries of Europe and in non-European countries bordering the Mediterranean countries as well as on the Mediterranean islands."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The territorial scope of the Helvetia Motor Vehicle Insurance is valid in the Principality of Liechtenstein.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is valid in the Principality of Liechtenstein.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is valid in Switzerland, the Principality of Liechtenstein, the countries of Europe and in non-European countries bordering the Mediterranean countries as well as on the Mediterranean islands."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The territorial scope of the Helvetia Motor Vehicle Insurance is valid in the countries of Europe.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is valid in the countries of Europe.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is valid in Switzerland, the Principality of Liechtenstein, the countries of Europe and in non-European countries bordering the Mediterranean countries as well as on the Mediterranean islands."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The territorial scope of the Helvetia Motor Vehicle Insurance is valid in non-European countries bordering the Mediterranean.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is valid in non-European countries bordering the Mediterranean.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is valid in Switzerland, the Principality of Liechtenstein, the countries of Europe and in non-European countries bordering the Mediterranean countries as well as on the Mediterranean islands."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The territorial scope of the Helvetia Motor Vehicle Insurance is valid in Mediterranean islands.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is valid on Mediterranean islands.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is valid in Switzerland, the Principality of Liechtenstein, the countries of Europe and in non-European countries bordering the Mediterranean countries as well as on the Mediterranean islands."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The insurance is explicitly not valid in the Russian Federation.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is not valid in the Russian Federation.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is not valid in the Russian Federation, Crimean Peninsula, Belarus, Georgia, Armenia, Azerbaijan, Kazakhstan, Israel, Egypt, Algeria, Lebanon, Libya and Syria."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The insurance is explicitly not valid in the Crimean Peninsula.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is not valid in the Crimean Peninsula.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is not valid in the Russian Federation, Crimean Peninsula, Belarus, Georgia, Armenia, Azerbaijan, Kazakhstan, Israel, Egypt, Algeria, Lebanon, Libya and Syria."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The insurance is explicitly not valid in Belarus.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is not valid in Belarus.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is not valid in the Russian Federation, Crimean Peninsula, Belarus, Georgia, Armenia, Azerbaijan, Kazakhstan, Israel, Egypt, Algeria, Lebanon, Libya and Syria."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The insurance is explicitly not valid in Georgia.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is not valid in Georgia.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is not valid in the Russian Federation, Crimean Peninsula, Belarus, Georgia, Armenia, Azerbaijan, Kazakhstan, Israel, Egypt, Algeria, Lebanon, Libya and Syria."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The insurance is explicitly not valid in Armenia.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is not valid in Armenia.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is not valid in the Russian Federation, Crimean Peninsula, Belarus, Georgia, Armenia, Azerbaijan, Kazakhstan, Israel, Egypt, Algeria, Lebanon, Libya and Syria."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The insurance is explicitly not valid in Azerbaijan.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is not valid in Azerbaijan.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is not valid in the Russian Federation, Crimean Peninsula, Belarus, Georgia, Armenia, Azerbaijan, Kazakhstan, Israel, Egypt, Algeria, Lebanon, Libya and Syria."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The insurance is explicitly not valid in Kazakhstan.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is not valid in Kazakhstan.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is not valid in the Russian Federation, Crimean Peninsula, Belarus, Georgia, Armenia, Azerbaijan, Kazakhstan, Israel, Egypt, Algeria, Lebanon, Libya and Syria."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The insurance is explicitly not valid in Israel.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is not valid in Israel.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is not valid in the Russian Federation, Crimean Peninsula, Belarus, Georgia, Armenia, Azerbaijan, Kazakhstan, Israel, Egypt, Algeria, Lebanon, Libya and Syria."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The insurance is explicitly not valid in Egypt.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is not valid in Egypt.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is not valid in the Russian Federation, Crimean Peninsula, Belarus, Georgia, Armenia, Azerbaijan, Kazakhstan, Israel, Egypt, Algeria, Lebanon, Libya and Syria."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The insurance is explicitly not valid in Algeria.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is not valid in Algeria.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is not valid in the Russian Federation, Crimean Peninsula, Belarus, Georgia, Armenia, Azerbaijan, Kazakhstan, Israel, Egypt, Algeria, Lebanon, Libya and Syria."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The insurance is explicitly not valid in Lebanon.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is not valid in Lebanon.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is not valid in the Russian Federation, Crimean Peninsula, Belarus, Georgia, Armenia, Azerbaijan, Kazakhstan, Israel, Egypt, Algeria, Lebanon, Libya and Syria."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The insurance is explicitly not valid in Libya.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is not valid in Libya.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is not valid in the Russian Federation, Crimean Peninsula, Belarus, Georgia, Armenia, Azerbaijan, Kazakhstan, Israel, Egypt, Algeria, Lebanon, Libya and Syria."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "The insurance is explicitly not valid in Syria.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that the insurance is not valid in Syria.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "Your insurance is not valid in the Russian Federation, Crimean Peninsula, Belarus, Georgia, Armenia, Azerbaijan, Kazakhstan, Israel, Egypt, Algeria, Lebanon, Libya and Syria."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    },
+    {
+      "claim_text": "In Kosovo, the insurance does not apply to liability coverage.",
+      "relation": "supported",
+      "passed": true,
+      "confidence": 1.0,
+      "reason_code": "The evidence explicitly states that in Kosovo, insurance does not apply to liability coverage.",
+      "subject_scope_match": true,
+      "evidence": [
+        {
+          "evidence_id": "d2:0",
+          "quote": "In Kosovo, insurance does not apply to liability."
+        }
+      ],
+      "sensitive_checks": {
+        "numbers": "not_applicable",
+        "currencies": "not_applicable",
+        "percentages": "not_applicable",
+        "dates": "not_applicable",
+        "durations": "not_applicable",
+        "waiting_periods": "not_applicable",
+        "locations": "consistent",
+        "product_names": "not_applicable",
+        "coverage_types": "not_applicable",
+        "exclusions": "not_applicable",
+        "conditions": "not_applicable",
+        "polarity": "consistent"
+      },
+      "deterministic_issues": []
+    }
+  ],
+  "extracted_claims": [
+    "The territorial scope of the Helvetia Motor Vehicle Insurance is valid in Switzerland.",
+    "The territorial scope of the Helvetia Motor Vehicle Insurance is valid in the Principality of Liechtenstein.",
+    "The territorial scope of the Helvetia Motor Vehicle Insurance is valid in the countries of Europe.",
+    "The territorial scope of the Helvetia Motor Vehicle Insurance is valid in non-European countries bordering the Mediterranean.",
+    "The territorial scope of the Helvetia Motor Vehicle Insurance is valid in Mediterranean islands.",
+    "The insurance is explicitly not valid in the Russian Federation.",
+    "The insurance is explicitly not valid in the Crimean Peninsula.",
+    "The insurance is explicitly not valid in Belarus.",
+    "The insurance is explicitly not valid in Georgia.",
+    "The insurance is explicitly not valid in Armenia.",
+    "The insurance is explicitly not valid in Azerbaijan.",
+    "The insurance is explicitly not valid in Kazakhstan.",
+    "The insurance is explicitly not valid in Israel.",
+    "The insurance is explicitly not valid in Egypt.",
+    "The insurance is explicitly not valid in Algeria.",
+    "The insurance is explicitly not valid in Lebanon.",
+    "The insurance is explicitly not valid in Libya.",
+    "The insurance is explicitly not valid in Syria.",
+    "In Kosovo, the insurance does not apply to liability coverage."
+  ],
+  "all_claims_supported": true,
+  "applied_caps": [],
+  "exception_type": null,
+  "threshold_policy": "all_atomic_claims_supported"
+}

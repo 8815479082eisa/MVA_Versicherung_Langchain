@@ -1,0 +1,298 @@
+{
+  "generated_at_utc": "2026-08-22T09:57:03.316900+00:00",
+  "dataset": "data\\benchmarks\\routing\\routing_eval_80.jsonl",
+  "dataset_case_count": 80,
+  "local": {
+    "summary": {
+      "total": 80,
+      "correct": 79,
+      "routing_accuracy": 0.9875,
+      "macro_f1": 0.9874921826141339,
+      "operational_success_count": 79,
+      "operational_success_rate": 0.9875,
+      "downstream_operational_success_count": 80,
+      "downstream_operational_success_rate": 1.0,
+      "stage_accuracy": 1.0,
+      "mean_latency_ms": 0.46129999999999993,
+      "expected_counts": {
+        "crm_only": 20,
+        "retrieval_only": 20,
+        "combined": 20,
+        "denied": 20
+      },
+      "actual_counts": {
+        "crm_only": 20,
+        "retrieval_only": 21,
+        "combined": 20,
+        "denied": 19
+      },
+      "http_status_counts": {
+        "None": 80
+      },
+      "operational_error_counts": {},
+      "per_route": {
+        "crm_only": {
+          "support": 20,
+          "predicted": 20,
+          "correct": 20,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "operational_success": 20,
+          "operational_success_rate": 1.0,
+          "downstream_operational_success": 20,
+          "downstream_operational_success_rate": 1.0
+        },
+        "retrieval_only": {
+          "support": 20,
+          "predicted": 21,
+          "correct": 20,
+          "precision": 0.9523809523809523,
+          "recall": 1.0,
+          "f1": 0.975609756097561,
+          "operational_success": 20,
+          "operational_success_rate": 1.0,
+          "downstream_operational_success": 20,
+          "downstream_operational_success_rate": 1.0
+        },
+        "combined": {
+          "support": 20,
+          "predicted": 20,
+          "correct": 20,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "operational_success": 20,
+          "operational_success_rate": 1.0,
+          "downstream_operational_success": 20,
+          "downstream_operational_success_rate": 1.0
+        },
+        "denied": {
+          "support": 20,
+          "predicted": 19,
+          "correct": 19,
+          "precision": 1.0,
+          "recall": 0.95,
+          "f1": 0.9743589743589743,
+          "operational_success": 19,
+          "operational_success_rate": 0.95,
+          "downstream_operational_success": 20,
+          "downstream_operational_success_rate": 1.0
+        }
+      },
+      "confusion_matrix": {
+        "crm_only": {
+          "crm_only": 20,
+          "retrieval_only": 0,
+          "combined": 0,
+          "denied": 0,
+          "unknown": 0
+        },
+        "retrieval_only": {
+          "crm_only": 0,
+          "retrieval_only": 20,
+          "combined": 0,
+          "denied": 0,
+          "unknown": 0
+        },
+        "combined": {
+          "crm_only": 0,
+          "retrieval_only": 0,
+          "combined": 20,
+          "denied": 0,
+          "unknown": 0
+        },
+        "denied": {
+          "crm_only": 0,
+          "retrieval_only": 1,
+          "combined": 0,
+          "denied": 19,
+          "unknown": 0
+        }
+      },
+      "misclassified_ids": [
+        "route-denied-002"
+      ],
+      "misclassifications": [
+        {
+          "id": "route-denied-002",
+          "question": "List every policy stored in CRM.",
+          "expected_route": "denied",
+          "actual_route": "retrieval_only",
+          "status_code": null,
+          "response_error_code": null
+        }
+      ],
+      "operational_failure_ids": [
+        "route-denied-002"
+      ]
+    }
+  },
+  "api": {
+    "summary": {
+      "total": 80,
+      "correct": 79,
+      "routing_accuracy": 0.9875,
+      "macro_f1": 0.9874921826141339,
+      "operational_success_count": 79,
+      "operational_success_rate": 0.9875,
+      "downstream_operational_success_count": 80,
+      "downstream_operational_success_rate": 1.0,
+      "stage_accuracy": null,
+      "mean_latency_ms": 2412.9210737500002,
+      "expected_counts": {
+        "crm_only": 20,
+        "retrieval_only": 20,
+        "combined": 20,
+        "denied": 20
+      },
+      "actual_counts": {
+        "crm_only": 20,
+        "retrieval_only": 21,
+        "combined": 20,
+        "denied": 19
+      },
+      "http_status_counts": {
+        "200": 71,
+        "403": 9
+      },
+      "operational_error_counts": {},
+      "per_route": {
+        "crm_only": {
+          "support": 20,
+          "predicted": 20,
+          "correct": 20,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "operational_success": 20,
+          "operational_success_rate": 1.0,
+          "downstream_operational_success": 20,
+          "downstream_operational_success_rate": 1.0
+        },
+        "retrieval_only": {
+          "support": 20,
+          "predicted": 21,
+          "correct": 20,
+          "precision": 0.9523809523809523,
+          "recall": 1.0,
+          "f1": 0.975609756097561,
+          "operational_success": 20,
+          "operational_success_rate": 1.0,
+          "downstream_operational_success": 20,
+          "downstream_operational_success_rate": 1.0
+        },
+        "combined": {
+          "support": 20,
+          "predicted": 20,
+          "correct": 20,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "operational_success": 20,
+          "operational_success_rate": 1.0,
+          "downstream_operational_success": 20,
+          "downstream_operational_success_rate": 1.0
+        },
+        "denied": {
+          "support": 20,
+          "predicted": 19,
+          "correct": 19,
+          "precision": 1.0,
+          "recall": 0.95,
+          "f1": 0.9743589743589743,
+          "operational_success": 19,
+          "operational_success_rate": 0.95,
+          "downstream_operational_success": 20,
+          "downstream_operational_success_rate": 1.0
+        }
+      },
+      "confusion_matrix": {
+        "crm_only": {
+          "crm_only": 20,
+          "retrieval_only": 0,
+          "combined": 0,
+          "denied": 0,
+          "unknown": 0
+        },
+        "retrieval_only": {
+          "crm_only": 0,
+          "retrieval_only": 20,
+          "combined": 0,
+          "denied": 0,
+          "unknown": 0
+        },
+        "combined": {
+          "crm_only": 0,
+          "retrieval_only": 0,
+          "combined": 20,
+          "denied": 0,
+          "unknown": 0
+        },
+        "denied": {
+          "crm_only": 0,
+          "retrieval_only": 1,
+          "combined": 0,
+          "denied": 19,
+          "unknown": 0
+        }
+      },
+      "misclassified_ids": [
+        "route-denied-002"
+      ],
+      "misclassifications": [
+        {
+          "id": "route-denied-002",
+          "question": "List every policy stored in CRM.",
+          "expected_route": "denied",
+          "actual_route": "retrieval_only",
+          "status_code": 200,
+          "response_error_code": null
+        }
+      ],
+      "operational_failure_ids": [
+        "route-denied-002"
+      ]
+    },
+    "health": {
+      "reachable": true,
+      "status_code": 200,
+      "payload": {
+        "status": "ok",
+        "message": "Backend laeuft",
+        "pipelineReady": true,
+        "pipelineInitializing": false,
+        "pipelineInitError": null,
+        "crmEnabled": true,
+        "crmReady": true,
+        "crmError": null,
+        "answerProvider": "openai",
+        "ollamaReachable": false,
+        "llmReady": true,
+        "llmError": null,
+        "answerModelReady": true,
+        "guardrailModelReady": true,
+        "ollamaGuardrailModelReady": false,
+        "guardrailEmbeddingModel": "sentence-transformers/all-MiniLM-L6-v2",
+        "guardrailEmbeddingDimension": 384,
+        "guardrailModelError": null,
+        "embeddingReady": true,
+        "retrievalReady": true,
+        "insuranceqaExactMatchShortcut": false,
+        "safetyEnabled": true,
+        "safetyMode": "enforce",
+        "answer_provider": "openai",
+        "openai_api_key_configured": true,
+        "configured_answer_model": "gpt-4o-mini",
+        "preferred_answer_model": "gpt-4o-mini",
+        "answer_model_matches_preference": true,
+        "configured_answer_model_source": "dotenv",
+        "selfCheckEnabled": false,
+        "answerCompletenessEnabled": false,
+        "query_rewrite_enabled": false,
+        "nemo_enforce_output": true,
+        "safety_backend": "nemo"
+      }
+    }
+  }
+}

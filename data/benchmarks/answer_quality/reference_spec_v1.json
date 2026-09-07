@@ -1,0 +1,246 @@
+{
+  "version": "1.1.0",
+  "method_label": "automated_reference_based_technical_validation",
+  "human_validated": false,
+  "description": "Versioned technical requirements for the 80-case final-system routing/API benchmark. CRM values are resolved from the synthetic CSV ground truth at evaluation time.",
+  "thresholds": {
+    "concept_match": 0.75,
+    "minimum_requirement_recall": 0.75,
+    "claim_lexical_support": 0.2
+  },
+  "concepts": {
+    "motor_glass_event": {
+      "description": "Glass insurance covers involuntary breakage or accident damage requiring repair or replacement.",
+      "alternatives": ["involuntary glass breakage", "glass damage caused by an accident", "repair or replacement of damaged glass", "glass breakage is covered"]
+    },
+    "motor_glass_parts": {
+      "description": "The relevant glass parts include windscreens, side windows, rear windscreen or sunroof.",
+      "alternatives": ["front and rear windscreens side windows and sunroof", "windscreen and vehicle windows", "front windscreen rear windscreen side windows sunroof", "windscreen side windows sunroof"]
+    },
+    "motor_theft_cover": {
+      "description": "Theft, robbery or misappropriation of the insured vehicle is generally covered under the applicable comprehensive cover.",
+      "alternatives": ["theft misappropriation or robbery is covered", "vehicle theft is covered", "loss or damage caused by theft"]
+    },
+    "motor_theft_condition": {
+      "description": "The answer should present theft cover as conditional on the policy and exclusions rather than a final claim decision.",
+      "alternatives": ["subject to the policy conditions", "depending on the policy and exclusions", "generally covered under the terms", "coverage depends on the contract"]
+    },
+    "motor_collision_event": {
+      "description": "Collision cover concerns sudden and violent external effects such as impact, collision, overturning or crashing.",
+      "alternatives": ["sudden and violent external effects", "impact collision overturning or crashing", "collision damage to the insured vehicle"]
+    },
+    "motor_collision_comprehensive": {
+      "description": "Collision damage belongs to fully comprehensive rather than partially comprehensive cover.",
+      "alternatives": ["fully comprehensive cover", "comprehensive insurance covers collision", "collision cover requires fully comprehensive"]
+    },
+    "motor_wear_exclusion": {
+      "description": "Pure wear, gradual deterioration or operational/mechanical damage is not insured as an independent collision loss.",
+      "alternatives": ["wear and tear is not covered", "gradual damage is excluded", "operational breakage or wear is excluded", "normal wear is not insured"]
+    },
+    "motor_product_liability": {
+      "description": "The product sheet describes liability protection for third-party property damage and personal injury.",
+      "alternatives": ["third party property damage and personal injury", "liability insurance protects against claims from an accident", "damage to third party property and injury"]
+    },
+    "motor_product_comprehensive": {
+      "description": "The product sheet distinguishes partial and full comprehensive cover, including theft and collision benefits.",
+      "alternatives": ["partially comprehensive and fully comprehensive", "theft and collision cover", "full comprehensive includes partial comprehensive and collision"]
+    },
+    "motor_product_assistance": {
+      "description": "The product sheet also presents assistance or accident-related optional benefits.",
+      "alternatives": ["breakdown assistance and towing", "replacement vehicle and travel expenses", "passenger accident insurance", "assistance benefits"]
+    },
+    "household_water_event": {
+      "description": "Household water cover includes leakage of liquids or gas from pipelines, connected installations or appliances.",
+      "alternatives": ["leakage from pipelines or connected installations", "escape of water from pipes or appliances", "liquids and gas leakage"]
+    },
+    "household_contents_damage": {
+      "description": "The cover concerns destruction, damage or loss of insured household contents, subject to policy terms.",
+      "alternatives": ["damage to insured household contents", "destruction damage or loss of household contents", "household contents are covered subject to the policy"]
+    },
+    "household_fire_event": {
+      "description": "Fire cover applies to insured household contents damaged or destroyed by an insured fire event.",
+      "alternatives": ["household contents are covered against fire", "fire damage to insured contents", "destruction or damage caused by fire"]
+    },
+    "private_liability_scope": {
+      "description": "Private liability covers statutory third-party liability claims and defence against unjustified claims.",
+      "alternatives": ["statutory liability claims from third parties", "defence against unjustified claims", "private liability covers third party claims"]
+    },
+    "private_liability_damage": {
+      "description": "The scope can include bodily injury, property damage and, where applicable, purely financial loss.",
+      "alternatives": ["bodily injury property damage and financial loss", "personal injury and property damage", "damage to third party property"]
+    },
+    "private_liability_exclusions": {
+      "description": "The answer identifies that exclusions and separately insured risks limit private liability cover.",
+      "alternatives": ["claims covered by other insurance are excluded", "motor vehicle liability requiring separate insurance", "intentional or excluded activities", "specific exclusions apply", "contractual liability expected damage wear and tear"]
+    },
+    "household_brochure_scope": {
+      "description": "The brochure summarizes household contents and private liability protection.",
+      "alternatives": ["household contents and private liability", "protection for belongings and liability claims", "contents insurance and personal liability"]
+    },
+    "building_natural_hazards": {
+      "description": "Building natural-forces cover includes hazards such as flooding, storm and hail.",
+      "alternatives": ["flooding storms and hail", "natural forces including flood storm or hail", "flooding inundation storm and hail"]
+    },
+    "building_policy_condition": {
+      "description": "Building coverage and sums depend on the policy and applicable conditions.",
+      "alternatives": ["coverage and sums are listed in the policy", "subject to the policy conditions", "depending on the selected building cover"]
+    },
+    "building_exclusions": {
+      "description": "Building exclusions depend on the peril and can include surface damage, work on glazing, equipment, ordinary weather or other separately insured events.",
+      "alternatives": ["gradual damage or deficient maintenance", "subsidence or bad subsoil", "artificial earth movement is excluded", "items insured separately are excluded", "scratches welding spatter work on glazing and electrical equipment", "fire natural forces and normal weather conditions are excluded"]
+    },
+    "legal_scope": {
+      "description": "Legal protection safeguards specified legal interests and can pay legal representation or advice costs.",
+      "alternatives": ["protection of legal interests", "legal representation and advice costs", "lawyer or legal assistance costs", "personal and traffic legal protection"]
+    },
+    "legal_waiting_period": {
+      "description": "Cases arising before contract conclusion or during an applicable waiting period are excluded.",
+      "alternatives": ["before conclusion of the contract or during the waiting period", "cases arising during the waiting period are not covered", "pre existing legal disputes are excluded"]
+    },
+    "legal_specific_exclusions": {
+      "description": "Only the disputes listed in the terms are covered and further subject-specific exclusions apply.",
+      "alternatives": ["claims not specifically named are excluded", "specific exclusions apply", "not every legal dispute is covered"]
+    },
+    "vehicle_assistance_core": {
+      "description": "Vehicle assistance includes roadside breakdown assistance and towing when the vehicle cannot be restored on site.",
+      "alternatives": ["breakdown assistance and towing", "roadside assistance and towing services", "towing if the vehicle cannot be restored"]
+    },
+    "vehicle_assistance_additional": {
+      "description": "Additional benefits may include recovery, replacement vehicle, storage or return travel within policy limits.",
+      "alternatives": ["vehicle recovery and replacement vehicle", "storage and return travel costs", "hire car and recovery costs", "replacement vehicle and travel expenses"]
+    },
+    "travel_assistance_predeparture": {
+      "description": "Cancellation cover addresses unforeseen insured events before departure.",
+      "alternatives": ["cancellation costs before departure", "unforeseen events before departure", "pre departure cancellation benefits"]
+    },
+    "travel_assistance_during": {
+      "description": "Personal assistance provides transport, lodging, advances or unused-service benefits while travelling.",
+      "alternatives": ["transport costs and additional board and lodging", "assistance while travelling", "unused travel services and return transport", "call back and transport costs"]
+    },
+    "services_247": {
+      "description": "The services brochure promises round-the-clock emergency assistance.",
+      "alternatives": ["24 7 assistance", "24 hours a day 365 days a year", "round the clock emergency assistance"]
+    },
+    "services_claim_payment": {
+      "description": "The brochure mentions 48-hour claims payment after successful review.",
+      "alternatives": ["48 hour claims payment", "claims payment within 48 hours", "48h claims payment"]
+    },
+    "rental_guarantee_scope": {
+      "description": "Rental guarantee insurance acts as a guarantee for the tenant toward the landlord or property manager.",
+      "alternatives": ["guarantee for the tenant toward the landlord", "joint and several guarantor", "rental guarantee certificate"]
+    },
+    "rental_guarantee_claims": {
+      "description": "The guarantee covers eligible tenancy claims, interest and costs for which the landlord may have recourse to the tenant.",
+      "alternatives": ["tenancy claims interest and costs", "claims of the landlord arising from the tenancy", "landlord may have recourse to the tenant"]
+    },
+    "mutual_contract_rules": {
+      "description": "The mutual provisions regulate contract formation, duration, termination and premiums.",
+      "alternatives": ["contract formation duration and termination", "start and end of insurance cover", "premium and termination rules"]
+    },
+    "mutual_claim_rules": {
+      "description": "They also regulate duties and benefits in a claim, reductions, sanctions and recourse.",
+      "alternatives": ["benefits in the event of a claim", "reductions in compensation and sanctions", "obligations in a claim and recourse"]
+    },
+    "windscreen_repair_replacement": {
+      "description": "Glass cover applies when safety reasons make repair or replacement necessary.",
+      "alternatives": ["repair or replacement for safety reasons", "glass can be repaired or replaced", "repair rather than replacement"]
+    },
+    "windscreen_repair_process": {
+      "description": "The terms distinguish repair handling, including repair organized by Helvetia or designated partners, from replacement compensation.",
+      "alternatives": ["repair organised by Helvetia and partner companies", "damaged windscreen is repaired and not replaced", "repair through a designated partner"]
+    },
+    "motor_liability_scope": {
+      "description": "Motor third-party liability covers statutory liability for injury or third-party property damage and defence against unjustified claims.",
+      "alternatives": ["third party property damage and personal injury", "motor liability covers damage caused to others", "defence against unjustified liability claims"]
+    },
+    "motor_hail_cover": {
+      "description": "Hail is an insured natural-force event under the applicable partial comprehensive cover.",
+      "alternatives": ["hail damage is covered", "natural forces include hail", "partially comprehensive covers hail"]
+    }
+  },
+  "cases": {
+    "route-crm-001": {"crm_checks": [{"id": "premium", "table": "policies", "where": {"policyNumber": "TEST-KFZ-2026-1001"}, "fields": ["annualPremium", "currency"]}]},
+    "route-crm-002": {"crm_checks": [{"id": "deductible", "table": "policies", "where": {"policyNumber": "TEST-KFZ-2026-1101"}, "fields": ["deductible", "currency"]}]},
+    "route-crm-003": {"crm_checks": [{"id": "status", "table": "policies", "where": {"policyNumber": "TEST-RS-2026-1202"}, "fields": ["status"]}]},
+    "route-crm-004": {"crm_checks": [{"id": "coverage", "table": "policies", "where": {"policyNumber": "TEST-KFZ-2026-1401"}, "fields": ["coverageType"]}]},
+    "route-crm-005": {"crm_checks": [{"id": "active_policies", "table": "policies", "where": {"customerName": "Lara Neumann", "status": "Active"}, "fields": ["policyNumber", "status"], "minimum_rows": 3}]},
+    "route-crm-006": {"crm_checks": [{"id": "email", "table": "contacts", "where": {"customerName": "Oliver Brandt"}, "fields": ["emailAddress"]}]},
+    "route-crm-007": {"crm_checks": [{"id": "claim_status", "table": "claims", "where": {"claimNumber": "TEST-CLM-2026-2001"}, "fields": ["status"]}]},
+    "route-crm-008": {"crm_checks": [{"id": "damage_type", "table": "claims", "where": {"claimNumber": "TEST-CLM-2026-2101"}, "fields": ["damageType"]}]},
+    "route-crm-009": {"crm_checks": [{"id": "claim_amount", "table": "claims", "where": {"claimNumber": "TEST-CLM-2026-2201"}, "fields": ["claimedAmount", "currency"]}]},
+    "route-crm-010": {"crm_checks": [{"id": "claim_policy", "table": "claims", "where": {"claimNumber": "TEST-CLM-2026-2301"}, "fields": ["policyNumber"]}]},
+    "route-crm-011": {"crm_checks": [{"id": "product", "table": "policies", "where": {"policyNumber": "TEST-PHV-2026-1601"}, "fields": ["productType"]}]},
+    "route-crm-012": {"crm_checks": [{"id": "end_date", "table": "policies", "where": {"policyNumber": "TEST-PHV-2025-1301"}, "fields": ["endDate"]}]},
+    "route-crm-013": {"crm_checks": [{"id": "current_policies", "table": "policies", "where": {"customerName": "Noah Weber", "status": "Active"}, "fields": ["policyNumber", "status"], "minimum_rows": 2}]},
+    "route-crm-014": {"crm_checks": [{"id": "legal_status", "table": "policies", "where": {"customerName": "Jonas Richter", "productType": "Helvetia Legal Protection Insurance"}, "fields": ["status"]}]},
+    "route-crm-015": {"crm_checks": [{"id": "customer_claims", "table": "claims", "where": {"customerName": "Leon Becker"}, "fields": ["claimNumber", "status"], "minimum_rows": 2}]},
+    "route-crm-016": {"crm_checks": [{"id": "claim_date", "table": "claims", "where": {"claimNumber": "TEST-CLM-2026-2501"}, "fields": ["claimDate"]}]},
+    "route-crm-017": {"crm_checks": [{"id": "currency", "table": "policies", "where": {"policyNumber": "TEST-HH-2026-1801"}, "fields": ["currency"]}]},
+    "route-crm-018": {"crm_checks": [{"id": "policy_summary", "table": "policies", "where": {"customerName": "Sophie Keller"}, "fields": ["policyNumber", "status"], "minimum_rows": 2}]},
+    "route-crm-019": {"crm_checks": [{"id": "policy_customer", "table": "policies", "where": {"policyNumber": "TEST-KFZ-2026-1901"}, "fields": ["customerEmail"]}]},
+    "route-crm-020": {"crm_checks": [{"id": "named_claim", "table": "claims", "where": {"customerName": "Amira Hoffmann"}, "fields": ["claimNumber", "status"]}]},
+
+    "route-rag-001": {"concepts": ["motor_glass_event", "motor_glass_parts"]},
+    "route-rag-002": {"concepts": ["motor_theft_cover", "motor_theft_condition"]},
+    "route-rag-003": {"concepts": ["motor_collision_event", "motor_collision_comprehensive"]},
+    "route-rag-004": {"concepts": ["motor_wear_exclusion"]},
+    "route-rag-005": {"concepts": ["motor_product_liability", "motor_product_comprehensive", "motor_product_assistance"]},
+    "route-rag-006": {"concepts": ["household_water_event", "household_contents_damage"]},
+    "route-rag-007": {"concepts": ["household_fire_event", "household_contents_damage"]},
+    "route-rag-008": {"concepts": ["private_liability_scope", "private_liability_damage"]},
+    "route-rag-009": {"concepts": ["private_liability_exclusions"]},
+    "route-rag-010": {"concepts": ["household_brochure_scope"]},
+    "route-rag-011": {"concepts": ["building_natural_hazards", "building_policy_condition"]},
+    "route-rag-012": {"concepts": ["building_exclusions"]},
+    "route-rag-013": {"concepts": ["legal_scope"]},
+    "route-rag-014": {"concepts": ["legal_waiting_period", "legal_specific_exclusions"]},
+    "route-rag-015": {"concepts": ["vehicle_assistance_core", "vehicle_assistance_additional"]},
+    "route-rag-016": {"concepts": ["travel_assistance_predeparture", "travel_assistance_during"]},
+    "route-rag-017": {"concepts": ["services_247", "services_claim_payment"]},
+    "route-rag-018": {"concepts": ["rental_guarantee_scope", "rental_guarantee_claims"]},
+    "route-rag-019": {"concepts": ["mutual_contract_rules", "mutual_claim_rules"]},
+    "route-rag-020": {"concepts": ["windscreen_repair_replacement", "windscreen_repair_process"]},
+
+    "route-combined-001": {"concepts": ["motor_glass_event", "motor_glass_parts"], "crm_checks": [{"id": "deductible", "table": "policies", "where": {"policyNumber": "TEST-KFZ-2026-1001"}, "fields": ["deductible", "currency"]}]},
+    "route-combined-002": {"concepts": ["motor_glass_event"], "crm_checks": [{"id": "claim_status", "table": "claims", "where": {"claimNumber": "TEST-CLM-2026-2001"}, "fields": ["status"]}, {"id": "policy_type", "table": "policies", "where": {"policyNumber": "TEST-KFZ-2026-1001"}, "fields": ["coverageType"]}]},
+    "route-combined-003": {"concepts": ["motor_collision_event", "motor_collision_comprehensive"], "crm_checks": [{"id": "premium", "table": "policies", "where": {"policyNumber": "TEST-KFZ-2026-1101"}, "fields": ["annualPremium", "currency"]}]},
+    "route-combined-004": {"concepts": ["household_water_event", "household_contents_damage"], "crm_checks": [{"id": "deductible", "table": "policies", "where": {"policyNumber": "TEST-HH-2026-1201"}, "fields": ["deductible", "currency"]}]},
+    "route-combined-005": {"concepts": ["legal_scope"], "crm_checks": [{"id": "status", "table": "policies", "where": {"policyNumber": "TEST-RS-2026-1202"}, "fields": ["status"]}]},
+    "route-combined-006": {"concepts": ["private_liability_scope"], "crm_checks": [{"id": "end_date", "table": "policies", "where": {"policyNumber": "TEST-PHV-2025-1301"}, "fields": ["endDate", "status"]}]},
+    "route-combined-007": {"concepts": ["motor_liability_scope"], "crm_checks": [{"id": "coverage_type", "table": "policies", "where": {"policyNumber": "TEST-KFZ-2026-1401"}, "fields": ["coverageType"]}]},
+    "route-combined-008": {"concepts": ["household_fire_event"], "crm_checks": [{"id": "premium", "table": "policies", "where": {"policyNumber": "TEST-HH-2026-1402"}, "fields": ["annualPremium", "currency"]}]},
+    "route-combined-009": {"concepts": ["legal_scope"], "crm_checks": [{"id": "status", "table": "policies", "where": {"policyNumber": "TEST-RS-2026-1501"}, "fields": ["status"]}]},
+    "route-combined-010": {"concepts": ["private_liability_scope", "private_liability_damage"], "crm_checks": [{"id": "claim_status", "table": "claims", "where": {"claimNumber": "TEST-CLM-2026-2401"}, "fields": ["status"]}]},
+    "route-combined-011": {"concepts": ["motor_theft_cover", "motor_theft_condition"], "crm_checks": [{"id": "deductible", "table": "policies", "where": {"policyNumber": "TEST-KFZ-2026-1701"}, "fields": ["deductible", "currency"]}]},
+    "route-combined-012": {"concepts": ["motor_theft_cover"], "crm_checks": [{"id": "claim_status", "table": "claims", "where": {"claimNumber": "TEST-CLM-2026-2501"}, "fields": ["status"]}]},
+    "route-combined-013": {"concepts": ["household_water_event", "household_contents_damage"], "crm_checks": [{"id": "status", "table": "policies", "where": {"policyNumber": "TEST-HH-2026-1801"}, "fields": ["status"]}]},
+    "route-combined-014": {"concepts": ["motor_collision_event", "motor_collision_comprehensive"], "crm_checks": [{"id": "premium", "table": "policies", "where": {"policyNumber": "TEST-KFZ-2026-1901"}, "fields": ["annualPremium", "currency"]}]},
+    "route-combined-015": {"concepts": ["motor_collision_event", "motor_collision_comprehensive"], "crm_checks": [{"id": "claim_amount", "table": "claims", "where": {"claimNumber": "TEST-CLM-2026-2601"}, "fields": ["claimedAmount", "currency"]}]},
+    "route-combined-016": {"concepts": ["private_liability_scope", "private_liability_damage"], "crm_checks": [{"id": "deductible", "table": "policies", "where": {"policyNumber": "TEST-PHV-2026-1902"}, "fields": ["deductible", "currency"]}]},
+    "route-combined-017": {"concepts": ["motor_hail_cover"], "crm_checks": [{"id": "coverage_type", "table": "policies", "where": {"policyNumber": "TEST-KFZ-2026-1003"}, "fields": ["coverageType"]}]},
+    "route-combined-018": {"concepts": ["legal_scope"], "crm_checks": [{"id": "premium", "table": "policies", "where": {"policyNumber": "TEST-RS-2026-1702"}, "fields": ["annualPremium", "currency"]}]},
+    "route-combined-019": {"concepts": ["private_liability_exclusions"], "crm_checks": [{"id": "policy_number", "table": "policies", "where": {"policyNumber": "TEST-PHV-2026-1002"}, "fields": ["policyNumber"]}]},
+    "route-combined-020": {"concepts": ["windscreen_repair_replacement"], "crm_checks": [{"id": "deductible", "table": "policies", "where": {"policyNumber": "TEST-KFZ-2026-1901"}, "fields": ["deductible", "currency"]}]},
+
+    "route-denied-001": {},
+    "route-denied-002": {},
+    "route-denied-003": {},
+    "route-denied-004": {},
+    "route-denied-005": {},
+    "route-denied-006": {},
+    "route-denied-007": {},
+    "route-denied-008": {},
+    "route-denied-009": {},
+    "route-denied-010": {},
+    "route-denied-011": {},
+    "route-denied-012": {},
+    "route-denied-013": {},
+    "route-denied-014": {},
+    "route-denied-015": {},
+    "route-denied-016": {},
+    "route-denied-017": {},
+    "route-denied-018": {},
+    "route-denied-019": {},
+    "route-denied-020": {}
+  }
+}

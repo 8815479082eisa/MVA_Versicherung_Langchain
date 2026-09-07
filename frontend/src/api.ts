@@ -5,7 +5,7 @@
  */
 
 // Basis-URL für die API (kann über Umgebungsvariable überschrieben werden)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
 // Typen für die API-Responses (müssen mit Backend-Modellen übereinstimmen)
 export interface Source {
@@ -162,3 +162,4 @@ export async function sendFeedback(
     // Feedback-Fehler sind nicht kritisch, daher kein Throw
   }
 }
+

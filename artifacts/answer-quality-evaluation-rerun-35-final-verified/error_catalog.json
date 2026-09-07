@@ -1,0 +1,56 @@
+[
+  {
+    "id": "route-rag-011",
+    "expected_route": "retrieval_only",
+    "actual_route": "retrieval_only",
+    "errors": [
+      "expected_document_citation_missing",
+      "expected_document_source_missing",
+      "groundedness_failed",
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "building_natural_hazards",
+      "building_policy_condition"
+    ],
+    "missing_crm_facts": []
+  },
+  {
+    "id": "route-combined-003",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "motor_collision_event",
+      "motor_collision_comprehensive"
+    ],
+    "missing_crm_facts": []
+  },
+  {
+    "id": "route-combined-004",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "household_water_event"
+    ],
+    "missing_crm_facts": []
+  },
+  {
+    "id": "route-combined-011",
+    "expected_route": "combined",
+    "actual_route": "combined",
+    "errors": [
+      "requirement_recall_below_threshold"
+    ],
+    "missing_requirements": [
+      "motor_theft_cover",
+      "motor_theft_condition"
+    ],
+    "missing_crm_facts": []
+  }
+]
