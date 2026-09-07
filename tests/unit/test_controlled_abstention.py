@@ -46,5 +46,5 @@ def test_factual_text_appended_to_abstention_does_not_bypass_groundedness() -> N
 
     assert score is None
     assert details["evaluation_status"] == "failed"
-    assert details["controlled_abstention"] if "controlled_abstention" in details else True
+    assert "controlled_abstention" not in details
     assert details["exception_type"] == "AssertionError"
