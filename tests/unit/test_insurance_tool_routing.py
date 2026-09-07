@@ -87,6 +87,10 @@ class InsuranceToolRoutingTest(unittest.TestCase):
             extract_requested_pdf_filename(question),
             "240_1184_e.pdf",
         )
+        self.assertEqual(
+            infer_document_source_filename(question),
+            "240_1184_e.pdf",
+        )
 
     def test_negative_claim_decision_instruction_does_not_fetch_claims(self):
         question = (
@@ -244,14 +248,28 @@ class InsuranceToolRoutingTest(unittest.TestCase):
                 "mutual-provisions-pkv.pdf",
             "Which waiting periods apply under the legal protection conditions?":
                 "legal-protection-sti.pdf",
-            "Does this fully comprehensive motor policy generally cover collision damage?":
-                "motor-vehicle-insurance-sti.pdf",
-            "Is property damage generally covered by private liability insurance?":
-                "household-contents-private-liability-sti.pdf",
         }
         for question, expected in expectations.items():
             with self.subTest(question=question):
                 self.assertEqual(infer_document_source_filename(question), expected)
+
+    def test_broad_product_coverage_does_not_hard_scope_one_pdf(self):
+        questions = (
+            "For how long does Helvetia household contents insurance provide worldwide cover during trips and excursions?",
+            "Does this fully comprehensive motor policy generally cover collision damage?",
+            "Is property damage generally covered by private liability insurance?",
+        )
+        for question in questions:
+            with self.subTest(question=question):
+                self.assertIsNone(infer_document_source_filename(question))
+
+    def test_explicit_conditions_request_can_still_scope_the_sti(self):
+        self.assertEqual(
+            infer_document_source_filename(
+                "Which exclusions apply under the household contents insurance conditions?"
+            ),
+            "household-contents-private-liability-sti.pdf",
+        )
 
     def test_coverage_type_field_does_not_force_document_retrieval(self):
         plan = plan_insurance_query(
