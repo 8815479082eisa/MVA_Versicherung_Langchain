@@ -136,6 +136,25 @@ def test_real_phone_is_redacted_without_swallowing_adjacent_list_text() -> None:
     )
 
 
+def test_legal_reference_is_not_detected_as_postal_address() -> None:
+    text = "Art. 90 para. 4 of the Road Traffic Act applies in this case."
+
+    items = detect_pii(text, _config())
+
+    assert not [item for item in items if item.pii_type == "address"]
+    assert sanitize_pii(text, items, _config()) == text
+
+
+def test_real_road_address_remains_detected_after_legal_reference_fix() -> None:
+    text = "The correspondence address is 4 Old Mill Road."
+
+    items = detect_pii(text, _config())
+
+    addresses = [item for item in items if item.pii_type == "address"]
+    assert addresses
+    assert any("4 Old Mill Road" in item.value for item in addresses)
+
+
 def test_internal_caseworker_query_allows_customer_contact_data_request() -> None:
     result = _evaluate_query_safety(
         "What is Lara Neumann's address, telephone number and email address?",
