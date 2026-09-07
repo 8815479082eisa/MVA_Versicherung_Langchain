@@ -116,7 +116,9 @@ ADDRESS_LABEL_RE = re.compile(
 ADDRESS_FORMAT_RE = re.compile(
     r"""(?ix)
     (?:
-        \d{1,4}\s+[A-ZÄÖÜa-zäöüß][\wÄÖÜäöüß.-]+(?:\s+[A-ZÄÖÜa-zäöüß][\wÄÖÜäöüß.-]+){0,3}\s+
+        \d{1,4}\s+
+        (?!(?:of|the|on|in|under|para(?:graph)?|section|sec\.?|article|art\.?)\b)
+        [A-ZÄÖÜa-zäöüß][\wÄÖÜäöüß.-]+(?:\s+[A-ZÄÖÜa-zäöüß][\wÄÖÜäöüß.-]+){0,3}\s+
         (?:str\.?|straße|strasse|street|st\.|road|rd\.|avenue|ave\.|lane|ln\.|weg|gasse|platz|allee|boulevard|blvd\.|ring)
         (?:\s+\d+[A-Za-z]?)?
         (?:,\s*\d{4,5}\s+[A-ZÄÖÜa-zäöüß][\wÄÖÜäöüß.-]+)?
@@ -674,7 +676,6 @@ def _detect_phone_items(text: str, config: Optional[SafetyConfig]) -> List[PIIIt
         value = match.group(0).strip()
         if any(match.start() < end and match.end() > start for start, end in date_spans):
             continue
-        # Avoid classifying SSN-formatted identifiers as phone numbers.
         if SSN_RE.fullmatch(value):
             continue
         if not _is_valid_phone_match(value):
