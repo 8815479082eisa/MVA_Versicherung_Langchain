@@ -246,8 +246,11 @@ def infer_document_source_filename(question: str) -> str | None:
     if explicit:
         return explicit
 
-    normalized = " ".join((question or "").casefold().split())
+    source_hint = re.sub(r'["\u201c][^"\u201d]*["\u201d]', " ", question or "")
+    normalized = " ".join(source_hint.casefold().split())
     exact_genres = (
+        (("brochure", "household contents", "private liability"), "brochure-household-contents-and-private-liability.pdf"),
+        (("brochure services",), "brochure-services.pdf"),
         (
             ("motor vehicle insurance", "product sheet"),
             "motor-vehicle-insurance-product-sheet.pdf",
@@ -262,6 +265,7 @@ def infer_document_source_filename(question: str) -> str | None:
             return filename
 
     condition_sources = (
+        (("assistance",), "assistance-sti.pdf"),
         (
             ("legal protection",),
             "legal-protection-sti.pdf",
@@ -283,7 +287,7 @@ def infer_document_source_filename(question: str) -> str | None:
             "motor-vehicle-insurance-sti.pdf",
         ),
     )
-    if re.search(r"\b(?:conditions|terms|exclusions?|waiting periods?)\b", normalized):
+    if re.search(r"\b(?:sti|conditions|terms|exclusions?|waiting periods?)\b", normalized):
         for required_terms, filename in condition_sources:
             if all(term in normalized for term in required_terms):
                 return filename

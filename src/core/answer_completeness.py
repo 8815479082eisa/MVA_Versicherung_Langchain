@@ -759,6 +759,10 @@ def _domain_requirements(query: str, docs: Sequence[Document]) -> list[AnswerReq
 
 
 def build_answer_requirements(query: str, docs: Sequence[Document]) -> tuple[AnswerRequirement, ...]:
+    # A request about a quoted clause is not a request for the entire product's
+    # coverage. Product names outside the quote must not inject generic benefits.
+    if re.search(r'["\u201c][^"\u201d]{12,}["\u201d]', query):
+        return tuple(_crm_requirements(query, docs))
     requirements: list[AnswerRequirement] = []
     event = _event_from_query(query)
     if event == "theft":

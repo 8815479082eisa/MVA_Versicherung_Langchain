@@ -1,0 +1,23 @@
+{
+  "planned_query_count": 100,
+  "complete": false,
+  "query_count": 25,
+  "before_http_status": {
+    "503": 100
+  },
+  "after_http_status": {
+    "200": 19,
+    "504": 6
+  },
+  "after_runtime_outcomes": {
+    "runtime_error": 6,
+    "answered": 7,
+    "fallback": 12
+  },
+  "evaluator_failures": {
+    "unfaithful_claim_extraction": 9,
+    "incomplete_claim_extraction": 1
+  },
+  "hallucination_rate": null,
+  "limitations": "No independent factual adjudication: answered is not a correctness label. Evaluator failures and fallback are not confirmed hallucinations. Baseline and rerun use different concurrency; latency is not directly comparable."
+}

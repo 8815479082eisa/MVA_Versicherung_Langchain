@@ -1,0 +1,25 @@
+{
+  "review_type": "model_assisted_secondary_source_inspection",
+  "human_validated": false,
+  "purpose": "Review automatic insufficient_evidence flags; this is not independent expert annotation.",
+  "cases": [
+    {
+      "id": "pdf-rag-084",
+      "automatic_flagged_claims": 1,
+      "source": "household-contents-private-liability-sti.pdf",
+      "page": 10,
+      "decision": "source_supported_false_positive",
+      "evidence_basis": "The stored page describes statutory third-party liability for personal and property damage and the costs of defending unjustified claims; the answer also preserves the A36 exclusion for contractual liability beyond statutory liability."
+    },
+    {
+      "id": "pdf-rag-154",
+      "automatic_flagged_claims": 3,
+      "source": "motor-vehicle-insurance-sti.pdf",
+      "page": 29,
+      "decision": "source_supported_false_positive",
+      "evidence_basis": "The stored page explicitly states psychological support after an insured event, three calls up to CHF 1,000 per insured person and event, Carelink as provider, and the exclusion of medical services and Swiss social-insurance excesses and deductibles."
+    }
+  ],
+  "confirmed_hallucinations_after_secondary_inspection": 0,
+  "recommendation": "Use independent dual domain-expert annotation before claiming a human-validated hallucination rate."
+}

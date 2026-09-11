@@ -1236,6 +1236,13 @@ def _evaluate_output_safety(
         if risk == "low":
             risk = "medium"
 
+    # Redaction cannot make an unsupported factual claim safe to release.
+    if action == "redact" and any(
+        reason.startswith("groundedness_") or reason == "low_groundedness"
+        for reason in reasons
+    ):
+        action = "fallback"
+
     return (
         {
             "allow": allow,

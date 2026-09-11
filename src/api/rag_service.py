@@ -2867,6 +2867,12 @@ def build_generation_chain(answer_llm):
                 + "{context}"
                 + "\n\nAnswering rules:\n"
                 + answer_instruction
+                + "\nAnswer the specific question or quoted clause only. Omit unrelated "
+                "product summaries. Keep each table value with its own row, benefit "
+                "and column heading; never attach an adjacent limit or exclusion "
+                "to the requested benefit. Cite each factual sentence with the "
+                "source that supports that sentence. If a clause answers the question, "
+                "give its supported meaning even when the wording differs."
                 + "\nChunks beginning with 'CRM FACT' are customer-specific "
                 "structured CRM facts. Other chunks are retrieved document evidence. "
                 "When both are present, use both in one answer, clearly distinguish "
@@ -3621,10 +3627,15 @@ def _looks_like_insufficient_answer(answer: str) -> bool:
 
 
 def _low_groundedness_is_only_blocker(result: SafetyResult) -> bool:
-    if result.allow or "low_groundedness" not in result.reasons:
+    grounding_reasons = {
+        "low_groundedness", "groundedness_evaluator_failed",
+        "groundedness_sensitive_unsupported", "groundedness_repair_needed",
+        "groundedness_uncertain", "groundedness_contradicted",
+    }
+    if result.allow or not (grounding_reasons & set(result.reasons)):
         return False
     informational_reasons = {
-        "low_groundedness",
+        *grounding_reasons,
         "AUTHORIZED_INTERNAL_CUSTOMER_DATA",
         "READ_ONLY_ACCESS_ALLOWED",
         "pii_allowed_business_contact",
@@ -3696,6 +3707,12 @@ def _groundedness_recovery_action(result: SafetyResult) -> str:
     # expose evaluation_status=failed. Both mean the evaluator failed, not that
     # the answer was proven ungrounded.
     if evaluation_status == "failed" or groundedness.get("exception_type"):
+        return "retry_evaluation"
+
+    if evaluation_status == "uncertain" and not any(
+        isinstance(row, dict) and _groundedness_claim_is_repairable(row)
+        for row in groundedness.get("claim_details", [])
+    ):
         return "retry_evaluation"
 
     if groundedness.get("repair_recommended") is True:

@@ -162,12 +162,17 @@ def quote_has_provenance(quote: str, evidence: str) -> bool:
     """Verify that a model citation actually points into the selected evidence."""
     normalized_quote = _normal(quote)
     normalized_evidence = _normal(evidence)
-    if normalized_quote in normalized_evidence:
+    if not normalized_quote:
+        return False
+    suffix = r"(?!\w)" if normalized_quote[-1].isalnum() else ""
+    if re.search(r"(?<!\w)" + re.escape(normalized_quote) + suffix, normalized_evidence):
         return True
     quote_tokens = _quote_tokens(quote)
     evidence_tokens = _quote_tokens(evidence)
     if len(quote_tokens) < 4 or not evidence_tokens:
         return False
+    if re.search(r"(?<!\w)" + re.escape(" ".join(quote_tokens)) + r"(?!\w)", " ".join(evidence_tokens)):
+        return True
     if not critical_facts(quote) <= critical_facts(evidence):
         return False
     quote_set = set(quote_tokens)
@@ -176,19 +181,20 @@ def quote_has_provenance(quote: str, evidence: str) -> bool:
         return False
     low = max(4, int(len(quote_tokens) * 0.75))
     high = min(len(evidence_tokens), int(len(quote_tokens) * 1.35) + 2)
-    best = 0.0
+    operators = {"not", "no", "unless", "except", "without", "only", "if"}
+    quote_operators = Counter(t for t in quote_tokens if t in operators)
     for size in range(low, high + 1):
         for start in range(0, len(evidence_tokens) - size + 1):
-            best = max(
-                best,
-                SequenceMatcher(
+            candidate = evidence_tokens[start:start + size]
+            if Counter(t for t in candidate if t in operators) != quote_operators:
+                continue
+            similarity = SequenceMatcher(
                     None,
                     quote_tokens,
-                    evidence_tokens[start:start + size],
+                    candidate,
                     autojunk=False,
-                ).ratio(),
-            )
-            if best >= 0.78:
+                ).ratio()
+            if similarity >= 0.78 and critical_facts(quote) <= critical_facts(" ".join(candidate)):
                 return True
     return False
 
@@ -308,6 +314,38 @@ def rank_evidence(claim: str, windows: dict[str, dict], limit: int = 6) -> list[
         return specificity, overlap, -window["document_rank"]
 
     return sorted(windows, key=rank, reverse=True)[:limit]
+
+
+def _answer_citations_match(answer, units, claim, citations, docs):
+    pattern = r"\[([^\[\],]+\.pdf),\s*page\s+(\d+)\]"
+    all_labels = set(re.findall(pattern, answer, re.I))
+    if not all_labels:
+        return True
+    local_labels = set()
+    for line in answer.splitlines():
+        cleaned = re.sub(pattern, "", line, flags=re.I)
+        if any(units[i] in cleaned for i in claim.unit_ids):
+            local_labels.update(re.findall(pattern, line, re.I))
+    labels = local_labels or all_labels
+
+    def doc_label(doc):
+        metadata = doc.metadata
+        source = str(metadata.get("source_file") or metadata.get("source") or "")
+        source = source.replace("\\", "/").rsplit("/", 1)[-1].casefold()
+        page = metadata.get("source_page")
+        if page is None and metadata.get("page") is not None:
+            page = int(metadata["page"]) + 1
+        return source, str(page)
+
+    labels = {(name.strip().casefold(), page) for name, page in labels}
+    available = {doc_label(doc) for doc in docs}
+    if not labels <= available:
+        return False
+    # Every clause used to establish entailment must belong to a cited source.
+    return bool(citations) and all(
+        doc_label(docs[int(c.evidence_id.split(":")[0][1:])]) in labels
+        for c in citations
+    )
 
 
 class ModelJudge:
@@ -537,9 +575,21 @@ def _payload_chars(payload: dict) -> int:
     return len(json.dumps(payload, ensure_ascii=False))
 
 
-def _build_judgment_payload(query: str, docs, extraction: Extraction, windows: dict[str, dict]):
+def _build_judgment_payload(query: str, docs, extraction: Extraction, windows: dict[str, dict], answer="", units=None):
     """Build a bounded payload without turning a known input-size condition into failure."""
-    selected_full = {i: rank_evidence(c.text, windows) for i, c in enumerate(extraction.claims)}
+    selected_full = {}
+    for i, claim in enumerate(extraction.claims):
+        candidates = windows
+        if answer and units is not None:
+            # Ask the judge to verify the sources the answer actually cites.
+            allowed_docs = {
+                index for index in range(len(docs))
+                if _answer_citations_match(answer, units, claim,
+                    [Citation(evidence_id=f"d{index}:0", quote="candidate")], docs)
+            }
+            candidates = {key: window for key, window in windows.items()
+                          if window["document_rank"] in allowed_docs}
+        selected_full[i] = rank_evidence(claim.text, candidates)
 
     for per_claim_limit in (6, 4, 3):
         selected = {i: ids[:per_claim_limit] for i, ids in selected_full.items()}
@@ -752,8 +802,30 @@ def evaluate_claim_groundedness(answer: str, docs, query: str = "", *, judge=Non
         )
 
         windows = evidence_windows(docs)
-        payload, selected = _build_judgment_payload(query, docs, extraction, windows)
+        payload, selected = _build_judgment_payload(query, docs, extraction, windows, answer, units)
         judgments, judgment_attempts = _judge_with_recovery(judge, payload, extraction)
+
+        invalid_quotes = {
+            v.claim_id for v in judgments.verdicts
+            if v.relation in {"supported", "contradicted"} and (
+                not v.citations or any(
+                    c.evidence_id not in selected[v.claim_id]
+                    or not quote_has_provenance(c.quote, windows[c.evidence_id]["text"])
+                    for c in v.citations
+                )
+            )
+        }
+        if invalid_quotes:
+            # Repair the judge's citations, not the user's factual answer.
+            retry = judge.call(JUDGE_REPAIR, {
+                **payload,
+                "claims": [c for c in payload["claims"] if c["claim_id"] in invalid_quotes],
+                "repair_feedback": "Quotes failed provenance validation. Copy exact substrings from the selected evidence IDs, never paraphrase quotes. Reassess the relation using those quotes; use unknown if no valid supporting quote exists.",
+            }, Judgments)
+            ids = [v.claim_id for v in retry.verdicts]
+            if set(ids) == invalid_quotes and len(ids) == len(set(ids)):
+                judgments = Judgments(verdicts=[v for v in judgments.verdicts if v.claim_id not in invalid_quotes] + retry.verdicts)
+            judgment_attempts += 1
 
         rows = []
         for verdict in sorted(judgments.verdicts, key=lambda v: v.claim_id):
@@ -791,6 +863,10 @@ def evaluate_claim_groundedness(answer: str, docs, query: str = "", *, judge=Non
 
             if relation in {"supported", "contradicted"}:
                 validation_failures = []
+                if valid_quotes and not _answer_citations_match(
+                    answer, units, extraction.claims[verdict.claim_id], verdict.citations, docs
+                ):
+                    validation_failures.append("answer_citation_mismatch")
                 if not valid_quotes:
                     if not citations_present:
                         validation_failures.append("missing_citations")
@@ -837,6 +913,7 @@ def evaluate_claim_groundedness(answer: str, docs, query: str = "", *, judge=Non
                 "original_relation": original_relation,
                 "final_relation": relation,
                 "demotion_reasons": demotion_reasons,
+                "repairable": True if "answer_citation_mismatch" in demotion_reasons else None,
                 "provenance_valid": provenance_valid,
                 "decision_status": decision_status,
                 "sensitive_dimensions": sensitive_dimensions,

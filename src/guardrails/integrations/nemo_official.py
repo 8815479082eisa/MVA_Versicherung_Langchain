@@ -358,7 +358,7 @@ class OfficialNemoGuardrailsRuntime:
             return StageResult(stage="post_generation", allow=True, action="allow", query=query, answer=answer)
 
         logger.debug("NEMO post_generation start docs_count=%s", len(docs))
-        response = self._generate(
+        response = {} if getattr(self, "_output_action_recovery", False) else self._generate(
             self._output_rails,
             messages=[
                 {
@@ -376,7 +376,20 @@ class OfficialNemoGuardrailsRuntime:
         output_data = _extract_output_data(response)
         action = str(output_data.get("guardrails_output_action", ""))
         if action not in {"allow", "block", "fallback", "redact"}:
-            raise GuardrailInvalidOutputError("guardrail")
+            # NeMo's dialog/embedding path can fail before the system action runs.
+            # Execute the same safety action, never accept an unverified answer.
+            from .nemo_actions import _deserialize_docs, _evaluate_output_safety, _result_context
+
+            self._output_action_recovery = True
+            decision, sanitized = _evaluate_output_safety(
+                query, answer, _deserialize_docs(_serialize_docs(docs)), self.config
+            )
+            output_data = _result_context(
+                "guardrails_output", decision["action"], decision,
+                guardrails_output_sanitized_answer=sanitized,
+            )
+            output_data["runtime_recovery"] = "missing_output_action"
+            action = decision["action"]
         reasons = _coerce_str_list(output_data.get("guardrails_output_reasons", []))
         scores = _coerce_score_dict(output_data.get("guardrails_output_scores", {}))
         content = _extract_message_content(response)

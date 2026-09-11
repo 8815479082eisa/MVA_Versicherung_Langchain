@@ -1,0 +1,131 @@
+{
+  "method_label": "automated_claim_entailment_hallucination_audit",
+  "algorithm": "claim_entailment_v1",
+  "human_validated": false,
+  "total_queries_in_original_run": 200,
+  "user_exposed_factual_answers_selected": 30,
+  "successfully_evaluated_answers": 30,
+  "primary_atomic_evaluations": 28,
+  "presegmented_fallback_evaluations": 2,
+  "response_level_evaluation_coverage": 1.0,
+  "evaluator_failures": 0,
+  "relation_counts": {
+    "supported": 44,
+    "unknown": 9,
+    "insufficient_evidence": 4
+  },
+  "total_atomic_claims": 57,
+  "strict_confirmed_contradiction_claim_rate": {
+    "numerator": 0,
+    "denominator": 57,
+    "rate": 0.0,
+    "wilson_95_ci": [
+      0.0,
+      0.06313883485297894
+    ]
+  },
+  "evidence_unsupported_claim_rate": {
+    "numerator": 4,
+    "denominator": 48,
+    "rate": 0.08333333333333333,
+    "wilson_95_ci": [
+      0.032883756818091775,
+      0.1955330179036728
+    ]
+  },
+  "unsupported_or_uncertain_claim_rate": {
+    "numerator": 13,
+    "denominator": 57,
+    "rate": 0.22807017543859648,
+    "wilson_95_ci": [
+      0.13841890498962192,
+      0.3520601104567349
+    ]
+  },
+  "strict_response_level_hallucination_rate": {
+    "numerator": 0,
+    "denominator": 30,
+    "rate": 0.0,
+    "wilson_95_ci": [
+      0.0,
+      0.11351339317396876
+    ]
+  },
+  "evidence_unsupported_response_rate": {
+    "numerator": 2,
+    "denominator": 30,
+    "rate": 0.06666666666666667,
+    "wilson_95_ci": [
+      0.018477023791270378,
+      0.2132345836261692
+    ]
+  },
+  "uncertain_response_rate": {
+    "numerator": 7,
+    "denominator": 30,
+    "rate": 0.23333333333333334,
+    "wilson_95_ci": [
+      0.11792388144489496,
+      0.40928326158122164
+    ]
+  },
+  "system_level_confirmed_hallucination_exposure_rate": {
+    "numerator": 0,
+    "denominator": 200,
+    "rate": 0.0,
+    "wilson_95_ci": [
+      1.734723475976807e-18,
+      0.018845326377266575
+    ]
+  },
+  "system_level_evidence_unsupported_exposure_rate": {
+    "numerator": 2,
+    "denominator": 200,
+    "rate": 0.01,
+    "wilson_95_ci": [
+      0.0027466581335444384,
+      0.0357217617161768
+    ]
+  },
+  "interpretation": {
+    "strict": "Only claims explicitly contradicted by authoritative PDF evidence are counted as confirmed hallucinations.",
+    "broad": "Contradicted and insufficient-evidence claims are counted as evidence-unsupported generation; this is a hallucination proxy, not proof of factual falsehood.",
+    "denominator": "Fallbacks, blocks, and operational failures are excluded from claim-level rates and remain in the denominator of system-level exposure rates.",
+    "mixed_granularity": "Claim-level rates use only validated atomic extractions. Response-level rates also include the presegmented fallback when atomic extraction failed."
+  },
+  "generated_at_utc": "2026-09-10T21:23:43.704540+00:00",
+  "source_run": "artifacts\\pdf-rag-200-current-2026-09-10",
+  "source_dataset": "C:\\Users\\mirae\\MVA_Versicherung_Langchain_main\\data\\benchmarks\\pdf_rag\\pdf_rag_200.jsonl",
+  "runtime_outcomes": {
+    "counts": {
+      "user_exposed_factual_answer": 30,
+      "operational_failure": 15,
+      "post_generation_fallback": 116,
+      "controlled_abstention": 38,
+      "pii_fallback": 1
+    },
+    "rates": {
+      "user_exposed_factual_answer": 0.15,
+      "operational_failure": 0.075,
+      "post_generation_fallback": 0.58,
+      "controlled_abstention": 0.19,
+      "pii_fallback": 0.005
+    },
+    "grounding_reason_counts": {
+      "groundedness_evaluator_failed": 54,
+      "groundedness_sensitive_unsupported": 59,
+      "groundedness_repair_needed": 4,
+      "groundedness_contradicted": 1
+    },
+    "pre_output_confirmed_contradictions": {
+      "numerator": 1,
+      "denominator": 200,
+      "rate": 0.005,
+      "wilson_95_ci": [
+        0.0008831687156009814,
+        0.02777370439789293
+      ]
+    },
+    "blocked_confirmed_contradictions": 1
+  }
+}

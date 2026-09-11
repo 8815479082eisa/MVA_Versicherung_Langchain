@@ -96,6 +96,15 @@ def test_fabricated_quote_cannot_support():
     assert result["relation_counts"] == {"unknown": 1}
 
 
+@pytest.mark.parametrize("quote,evidence", [
+    ("The limit is 10", "The limit is 100"),
+    ("The limit is 10.", "The limit is 100."),
+    ("The waiting period is 3 months", "The waiting period is 13 months"),
+])
+def test_quote_cannot_match_part_of_a_different_number(quote, evidence):
+    assert not quote_has_provenance(quote, evidence)
+
+
 def test_conditions_require_explicit_judgment():
     _, result = evaluate("Repairs are reimbursed.", "Repairs are reimbursed if preapproved.", checks={"conditions": "unknown"})
     assert not result["all_claims_supported"]
@@ -156,7 +165,7 @@ def test_quote_provenance_tolerates_pdf_spacing_and_narrow_paraphrase():
         "Helvetia charges 4% (excl. stamp duty) of the surety sum as premium.",
         "Helvetia\tcharges\t4\t%\t(excl.\tstamp\tduty)\tof\tthe\tsurety\tsum\tas premium.",
     )
-    assert quote_has_provenance(
+    assert not quote_has_provenance(
         "if cancellation is in the first insurance year. In this instance, the entire premium for the first insurance year is owed.",
         "unless cancellation is in the first insurance year. In this instance, the entire premium for the first insurance year is owed.",
     )
@@ -227,7 +236,7 @@ Source: [motor-vehicle-insurance-sti.pdf, page 6]"""
 
     score, result = evaluate_claim_groundedness(
         answer,
-        [Document(page_content=answer)],
+        [Document(page_content=answer, metadata={"source": "motor-vehicle-insurance-sti.pdf", "page": 5})],
         judge=HeadingOmittingJudge(),
     )
     assert score == 1

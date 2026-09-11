@@ -1,0 +1,18 @@
+{
+  "total_queries": 100,
+  "factual_drafts": 76,
+  "confirmed_hallucinations_in_drafts": 3,
+  "unknown": 38,
+  "fallback": 24,
+  "correct": 35,
+  "hallucination_rate_on_factual_drafts": 0.039473684210526314,
+  "hallucination_incidence_over_100_queries": 0.03,
+  "hallucination_exposure_over_all_queries": 0.03,
+  "user_exposed_factual_answers": 0,
+  "user_exposed_hallucinations": 0,
+  "user_facing_hallucination_exposure": 0.0,
+  "http_503_guardrail_invalid_output": 100,
+  "method": "reference_answer_plus_reference_evidence_plus_retrieved_evidence_conservative_adjudication",
+  "claim_entailment_v1_used_as_sole_judge": false,
+  "human_expert_validated": false
+}

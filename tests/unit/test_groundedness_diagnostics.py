@@ -117,7 +117,7 @@ def test_claim_diagnostics_survive_low_groundedness_failure(monkeypatch) -> None
 
     assert payload["allow"] is False
     assert payload["action"] == "fallback"
-    assert "low_groundedness" in payload["reasons"]
+    assert "groundedness_sensitive_unsupported" in payload["reasons"]
     details = payload["details"]["groundedness"]
     assert details["supported_fraction"] == details["score"]
     assert details["relation_counts"] == {"insufficient_evidence": 1}
