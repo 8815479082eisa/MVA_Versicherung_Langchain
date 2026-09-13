@@ -884,5 +884,52 @@ class RetrievalServiceTest(unittest.TestCase):
 
         self.assertEqual(answer, original)
 
+    def test_windscreen_waiver_not_added_to_marten_question(self):
+        docs = [
+            Document(
+                page_content=(
+                    "G10.2 You will not have to bear a deductible: g) if the "
+                    "damaged front windscreen is repaired and not replaced in the "
+                    "case of glass damage."
+                ),
+                metadata={"source": "motor-terms.pdf", "page": 8},
+            )
+        ]
+        original = "Marten bites are covered under partially comprehensive cover."
+
+        answer = rag_service._ensure_evidence_backed_windscreen_waiver(
+            original,
+            docs,
+            "Are marten bites covered under partially comprehensive coverage?",
+        )
+
+        self.assertEqual(answer, original)
+
+    def test_partial_insufficient_caveat_is_removed_when_cited_facts_exist(self):
+        answer = (
+            "Marten bites are covered because the document covers gnawing by "
+            "martens [motor-vehicle-insurance-sti.pdf, page 14]. "
+            "The available sources do not contain enough information to answer "
+            "this question."
+        )
+
+        cleaned = rag_service._remove_partial_insufficient_caveats(answer)
+
+        self.assertIn("Marten bites are covered", cleaned)
+        self.assertNotIn("do not contain enough information", cleaned)
+
+    def test_internal_requirement_markers_are_removed_but_sources_remain(self):
+        answer = (
+            "- [crm_policy_number] Policy number: TEST-KFZ-2026-1003 "
+            "[CRM: TEST-KFZ-2026-1003].\n"
+            "Covered [motor-vehicle-insurance-sti.pdf, page 14]."
+        )
+
+        cleaned = rag_service._remove_internal_requirement_markers(answer)
+
+        self.assertNotIn("[crm_policy_number]", cleaned)
+        self.assertIn("[CRM: TEST-KFZ-2026-1003]", cleaned)
+        self.assertIn("[motor-vehicle-insurance-sti.pdf, page 14]", cleaned)
+
 if __name__ == "__main__":
     unittest.main()

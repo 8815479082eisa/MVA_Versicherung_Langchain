@@ -80,6 +80,29 @@ class InsuranceToolRoutingTest(unittest.TestCase):
         self.assertNotIn("CRM", knowledge_query)
         self.assertNotIn("deductible", knowledge_query)
 
+    def test_combined_retrieval_query_handles_possessive_crm_policy_data(self):
+        question = (
+            "For Lara Neumann, she has policy TEST-KFZ-2026-1003 in CRM. "
+            "Based on her CRM policy data and the motor vehicle policy documents, "
+            "are marten bites covered under her partially comprehensive motor "
+            "vehicle coverage? State the policy number, coverage type, and deductible."
+        )
+        plan = plan_insurance_query(question)
+        knowledge_query = build_knowledge_query(question, plan)
+        expanded = enrich_knowledge_query(
+            knowledge_query,
+            product_hints=("Helvetia Motor Vehicle Insurance Partially comprehensive cover",),
+        )
+
+        self.assertEqual(plan.mode, QueryMode.COMBINED)
+        self.assertIn("marten bites", knowledge_query)
+        self.assertIn("partially comprehensive", knowledge_query)
+        self.assertNotEqual(knowledge_query, "deductible.")
+        self.assertNotIn("Lara Neumann", knowledge_query)
+        self.assertNotIn("CRM", knowledge_query)
+        self.assertNotIn("TEST-KFZ-2026-1003", knowledge_query)
+        self.assertIn("gnawing by martens or rodents", expanded)
+
     def test_explicit_pdf_filename_is_extracted_without_loading_pdf(self):
         question = "Use only 240_1184_e.pdf for the document evidence."
 
@@ -142,6 +165,7 @@ class InsuranceToolRoutingTest(unittest.TestCase):
 
         self.assertEqual(
             expanded,
+            "Is theft of the customer's car generally covered? "
             "motor vehicle insurance Partially comprehensive cover "
             "vehicle theft loss disappearance destruction insured vehicle "
             "police without delay",

@@ -398,11 +398,17 @@ def _contains_complete_windscreen_waiver(text: str) -> bool:
 def _ensure_evidence_backed_windscreen_waiver(
     answer: str,
     docs: List[Document],
+    query: str | None = None,
 ) -> str:
     """Complete the repair waiver only when its governing rule is selected."""
 
     answer = (answer or "").strip()
     if not answer:
+        return answer
+    if query is not None and not (
+        re.search(r"\b(?:windscreen|windshield|front glass|glass damage)\b", query or "", re.IGNORECASE)
+        and re.search(r"\b(?:repair|repaired|replace|replaced|deductible|excess)\b", query or "", re.IGNORECASE)
+    ):
         return answer
     docs_by_source: dict[str, list[Document]] = {}
     for doc in docs:
@@ -510,6 +516,57 @@ def _ensure_evidence_backed_windscreen_waiver(
         f"{_doc_reference_label(supporting_doc)}."
     )
     return f"{answer}\n\n{waiver}" if answer else waiver
+
+
+def _remove_partial_insufficient_caveats(answer: str) -> str:
+    """Drop generic abstention sentences when the draft also contains cited facts."""
+
+    answer = (answer or "").strip()
+    if not answer or "[" not in answer:
+        return answer
+    fragments = (
+        "available sources do not contain enough information",
+        "available documents do not contain enough information",
+        "not enough information to answer",
+        "do not contain enough information to answer",
+    )
+    normalized = " ".join(answer.casefold().split())
+    if not any(fragment in normalized for fragment in fragments):
+        return answer
+
+    parts = re.split(r"(?<=[.!?])(\s+)", answer)
+    kept: list[str] = []
+    removed_any = False
+    for index in range(0, len(parts), 2):
+        sentence = parts[index]
+        separator = parts[index + 1] if index + 1 < len(parts) else ""
+        sentence_normalized = " ".join(sentence.casefold().split())
+        if any(fragment in sentence_normalized for fragment in fragments):
+            removed_any = True
+            continue
+        if (
+            sentence_normalized.startswith("however,")
+            and re.search(r"\b(?:not explicitly stated|specific details|conditions|exclusions)\b", sentence_normalized)
+        ):
+            removed_any = True
+            continue
+        kept.append(sentence + separator)
+    rebuilt = "".join(kept).strip()
+    if not removed_any or not re.search(r"\[[^\]]+\]", rebuilt):
+        return answer
+    return rebuilt
+
+
+def _remove_internal_requirement_markers(answer: str) -> str:
+    """Remove prompt-only requirement IDs without touching real source labels."""
+
+    answer = (answer or "").strip()
+    if not answer:
+        return answer
+    cleaned = re.sub(r"\s*\[(?!CRM:)[a-z][a-z0-9_]{2,}\]\s*", " ", answer)
+    cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
+    cleaned = re.sub(r"(?m)^-\s+", "- ", cleaned)
+    return cleaned.strip()
 
 
 def _remove_unrequested_abroad_theft_conditions(answer: str, query: str) -> str:
@@ -3412,8 +3469,10 @@ def generate_answer(
         enforce_all=completeness_enabled,
     )
     first_answer = _ensure_no_final_claim_decision_sentence(first_answer, query)
-    first_answer = _ensure_evidence_backed_windscreen_waiver(first_answer, context_docs)
+    first_answer = _ensure_evidence_backed_windscreen_waiver(first_answer, context_docs, query)
     first_answer = _ensure_inline_citations(first_answer, context_docs)
+    first_answer = _remove_partial_insufficient_caveats(first_answer)
+    first_answer = _remove_internal_requirement_markers(first_answer)
     answer_versions = {
         "rawOpenAIAnswer": sanitize_diagnostic_text(raw_answer),
         "firstAnswerAfterCitationPostprocessing": sanitize_diagnostic_text(first_answer),
@@ -3487,8 +3546,11 @@ def generate_answer(
             first_answer = _ensure_evidence_backed_windscreen_waiver(
                 first_answer,
                 context_docs,
+                query,
             )
             first_answer = _ensure_inline_citations(first_answer, context_docs)
+            first_answer = _remove_partial_insufficient_caveats(first_answer)
+            first_answer = _remove_internal_requirement_markers(first_answer)
             answer_versions["insufficientAnswerRegeneration"] = sanitize_diagnostic_text(
                 first_answer
             )
@@ -3583,8 +3645,11 @@ def generate_answer(
     regenerated_answer = _ensure_evidence_backed_windscreen_waiver(
         regenerated_answer,
         context_docs,
+        query,
     )
     regenerated_answer = _ensure_inline_citations(regenerated_answer, context_docs)
+    regenerated_answer = _remove_partial_insufficient_caveats(regenerated_answer)
+    regenerated_answer = _remove_internal_requirement_markers(regenerated_answer)
     final_answer = regenerated_answer or first_answer or RELIABLE_ANSWER_FAILURE_MESSAGE
     final_evaluation = evaluate_answer_completeness(final_answer, requirements)
     missing_after = list(final_evaluation.missing_ids)
@@ -3835,8 +3900,9 @@ def regenerate_answer_for_groundedness(
         enforce_all=False,
     )
     repaired = _ensure_no_final_claim_decision_sentence(repaired, query)
-    repaired = _ensure_evidence_backed_windscreen_waiver(repaired, context_docs)
+    repaired = _ensure_evidence_backed_windscreen_waiver(repaired, context_docs, query)
     repaired = _ensure_inline_citations(repaired, context_docs)
+    repaired = _remove_internal_requirement_markers(repaired)
 
     if diagnostics is not None:
         completeness = dict(diagnostics.evidence.get("completeness", {}))
@@ -3879,8 +3945,9 @@ def build_minimal_requirement_answer(
         enforce_all=True,
     )
     answer = _ensure_no_final_claim_decision_sentence(answer, query)
-    answer = _ensure_evidence_backed_windscreen_waiver(answer, context_docs)
+    answer = _ensure_evidence_backed_windscreen_waiver(answer, context_docs, query)
     answer = _ensure_inline_citations(answer, context_docs)
+    answer = _remove_internal_requirement_markers(answer)
     return answer
 
 

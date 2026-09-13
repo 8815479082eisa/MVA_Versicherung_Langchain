@@ -235,7 +235,7 @@ def _theft_requirements(query: str, docs: Sequence[Document]) -> list[AnswerRequ
                 "Present theft cover as general information that remains subject to the individual policy conditions and exclusions.",
                 theft_doc,
                 (r"\btheft\b",),
-                (r"\bsubject to (?:the )?policy conditions\b", r"\bpolicy and exclusions\b", r"\bgenerally covered under (?:the )?terms\b", r"\bcoverage depends on (?:the )?contract\b"),
+                (r"\bsubject to (?:(?:the|individual) )*(?:policy|contract) conditions\b", r"\bpolicy and exclusions\b", r"\bgenerally covered under (?:the )?(?:applicable )?terms\b", r"\bcoverage depends on (?:the )?contract\b"),
             )
         )
         if all(term in theft_text for term in ("loss", "disappearance", "destruction", "damage")):

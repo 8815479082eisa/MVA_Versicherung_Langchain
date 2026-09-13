@@ -63,6 +63,20 @@ class FakeRuntime:
 
 
 class CRMApiRoutingTest(unittest.TestCase):
+    def test_missing_customer_requests_clarification_without_personal_coverage_inference(self):
+        runtime = FakeRuntime()
+        runtime.invoke = AsyncMock(return_value={"ok": True, "available": True, "found": False})
+        with patch.object(main, "_crm_runtime_ready", True), patch.object(
+            main, "get_mcp_runtime", return_value=runtime
+        ), patch.object(main.rag_service, "run_rag") as rag:
+            response = TestClient(main.app).post('/api/ask', json={
+                'question': 'For Noah Keller, does his current motor vehicle policy cover theft?'
+            })
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('No matching customer', response.json()['answer'])
+        self.assertEqual(response.json()['route'], 'combined')
+        rag.assert_not_called()
+
     def setUp(self):
         self.client = TestClient(main.app)
 

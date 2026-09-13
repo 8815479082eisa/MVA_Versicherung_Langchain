@@ -344,8 +344,9 @@ def build_knowledge_query(question: str, plan: QueryPlan) -> str:
             continue
 
         clause = re.sub(
-            r"\b(?:based on|using|from)\s+(?:the\s+)?crm"
-            r"(?:\s+policy\s+data)?\s*(?:and\s+)?",
+            r"\b(?:based on|using|from)\s+"
+            r"(?:(?:the|his|her|their|this|that)\s+)?crm"
+            r"(?:\s+(?:policy|customer|claim))?\s+data\s*(?:and\s+)?",
             "",
             clause,
             flags=re.IGNORECASE,
@@ -421,6 +422,7 @@ def enrich_knowledge_query(
         return " ".join(
             part
             for part in (
+                knowledge_query,
                 "motor vehicle insurance",
                 concise_coverage_hint,
                 "vehicle theft loss disappearance destruction insured vehicle",
@@ -449,6 +451,22 @@ def enrich_knowledge_query(
                 "motor vehicle insurance",
                 concise_coverage_hint,
                 "natural forces hail damage repair organised by Helvetia partner company",
+            )
+            if part
+        )
+
+    if motor_context and re.search(
+        r"\b(?:marten|martens|rodent|rodents|gnaw|gnawing|bite|bites)\b",
+        lowered,
+    ):
+        return " ".join(
+            part
+            for part in (
+                knowledge_query,
+                "motor vehicle insurance",
+                concise_coverage_hint,
+                "part comprehensive animals damage consequential losses",
+                "gnawing by martens or rodents marten bites",
             )
             if part
         )
@@ -617,7 +635,7 @@ def _extract_customer_name(question: str) -> str | None:
         flags=re.IGNORECASE,
     )
     candidates = re.findall(
-        r"\b([A-ZÄÖÜ][a-zäöüß]{2,30})\s+([A-ZÄÖÜ][a-zäöüß-]{2,40})\b",
+        r"(?=\b([A-ZÄÖÜ][a-zäöüß]{2,30})\s+([A-ZÄÖÜ][a-zäöüß-]{2,40})\b)",
         question,
     )
     excluded_first_words = {

@@ -58,7 +58,7 @@ class _LowGroundednessThenAllowChecker(_TrackingSafetyChecker):
                 details={
                     "groundedness": {
                         "claim_details": [
-                            {"claim_text": "Generic unsupported conclusion.", "v5_claim_score": 0.2}
+                            {"claim_text": "Generic unsupported conclusion.", "relation": "insufficient_evidence"}
                         ]
                     }
                 },

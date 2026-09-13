@@ -561,6 +561,21 @@ def _extract_and_audit(
 
         last_reason = f"Extraction audit rejected: {audit.reason}"
         if attempt >= _MAX_REPAIR_ATTEMPTS:
+            # Exact answer units cannot lose qualifiers through paraphrasing.
+            # They still undergo the full entailment and citation checks below.
+            if not dependencies:
+                verbatim = Extraction(claims=[
+                    Claim(text=unit, unit_ids=[index])
+                    for index, unit in enumerate(units)
+                ])
+                if _extraction_validation_error(verbatim, units, required_ids, dependencies) is None:
+                    verbatim_audit = judge.call(
+                        AUDIT + "\nThese are verbatim answer units used for recovery. Compound assertions are permitted here: the entailment judge must support EVERY part. Check completeness and preservation of meaning, not atomicity.",
+                        {"answer_units": units, "claims": verbatim.model_dump(), "verbatim_recovery": True},
+                        ExtractionAudit,
+                    )
+                    if verbatim_audit.faithful_and_complete:
+                        return verbatim, attempt + 1, "verbatim_units_after_extraction_audit_failure"
             raise _StageValueError(
                 "Unfaithful claim extraction",
                 stage="claim_extraction_audit",
@@ -701,6 +716,47 @@ def _judge_with_recovery(judge, payload: dict, extraction: Extraction) -> tuple[
     return combined, 2
 
 
+def _repair_citation_ids_from_quotes(
+    judgments: Judgments,
+    selected: dict[int, list[str]],
+    windows: dict[str, dict],
+) -> Judgments:
+    """Map judge-invented evidence IDs to real windows when the quote is exact."""
+
+    repaired_verdicts = []
+    for verdict in judgments.verdicts:
+        repaired_citations = []
+        changed = False
+        for citation in verdict.citations:
+            if citation.evidence_id in windows:
+                repaired_citations.append(citation)
+                continue
+            match_id = next(
+                (
+                    key
+                    for key, window in windows.items()
+                    if quote_has_provenance(citation.quote, window["text"])
+                ),
+                None,
+            )
+            if match_id is None:
+                repaired_citations.append(citation)
+                continue
+            selected.setdefault(verdict.claim_id, [])
+            if match_id not in selected[verdict.claim_id]:
+                selected[verdict.claim_id].append(match_id)
+            repaired_citations.append(
+                Citation(evidence_id=match_id, quote=citation.quote)
+            )
+            changed = True
+        repaired_verdicts.append(
+            verdict.model_copy(update={"citations": repaired_citations})
+            if changed
+            else verdict
+        )
+    return Judgments(verdicts=repaired_verdicts)
+
+
 def _result(rows: list[dict], *, error: str | None = None) -> tuple[float | None, dict]:
     counts = Counter(row["relation"] for row in rows)
     decided_count = counts["supported"] + counts["insufficient_evidence"] + counts["contradicted"]
@@ -826,6 +882,7 @@ def evaluate_claim_groundedness(answer: str, docs, query: str = "", *, judge=Non
             if set(ids) == invalid_quotes and len(ids) == len(set(ids)):
                 judgments = Judgments(verdicts=[v for v in judgments.verdicts if v.claim_id not in invalid_quotes] + retry.verdicts)
             judgment_attempts += 1
+        judgments = _repair_citation_ids_from_quotes(judgments, selected, windows)
 
         rows = []
         for verdict in sorted(judgments.verdicts, key=lambda v: v.claim_id):

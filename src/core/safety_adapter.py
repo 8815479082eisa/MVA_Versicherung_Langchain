@@ -65,7 +65,10 @@ def classify_safety_result(result: Optional[SafetyResult]) -> Optional[str]:
     stage = str(details.get("nemo_stage") or details.get("stage") or "").strip().lower()
     reasons = [str(reason) for reason in (result.reasons or [])]
 
-    if any(reason == "low_groundedness" for reason in reasons):
+    if any(reason == "low_groundedness" or reason.startswith("groundedness_") for reason in reasons) and not any(
+        reason in {"prompt_injection_signal_in_answer", "SYSTEM_SECRET_REQUEST", "ENTITY_MISMATCH"}
+        for reason in reasons
+    ):
         return "grounding"
 
     if stage == "context" and result.action in {"block", "fallback"}:

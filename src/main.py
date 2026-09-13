@@ -547,7 +547,7 @@ async def ask(request: AskQuestionRequest):
                     selected_crm_answer = _crm_context_answer(
                         selected_crm_sources
                     )
-                    if crm_result.reason_code == "AMBIGUOUS_CUSTOMER":
+                    if crm_result.reason_code in {"AMBIGUOUS_CUSTOMER", "CUSTOMER_NOT_FOUND"}:
                         selected_crm_answer = crm_result.answer
                     diagnostics.record_evidence(
                         "crmSelection",
@@ -615,6 +615,15 @@ async def ask(request: AskQuestionRequest):
                     return response
 
                 crm_result = await _execute_crm_with_diagnostics(query_plan)
+                if crm_result.reason_code in {"AMBIGUOUS_CUSTOMER", "CUSTOMER_NOT_FOUND"}:
+                    diagnostics.record_evidence("safetyDecision", {
+                        "decision": "CLARIFY", "reasonCode": crm_result.reason_code,
+                    })
+                    diagnostics.complete(status="complete")
+                    return AnswerResponse(
+                        answer=crm_result.answer, sources=[], status="complete",
+                        route="combined", diagnostics=diagnostics.as_dict(),
+                    )
                 crm_selection = select_crm_context(
                     crm_result,
                     question,

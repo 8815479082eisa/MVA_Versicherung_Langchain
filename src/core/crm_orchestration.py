@@ -88,6 +88,13 @@ async def execute_crm_query(
                 tool_results=(customer_result,),
                 reason_code="AMBIGUOUS_CUSTOMER",
             )
+        if customer_result.get("found") is False:
+            return CRMQueryResult(
+                answer="No matching customer was found in CRM. Please check the customer name or provide the customer or policy number. I cannot confirm this customer's coverage without a matching record.",
+                sources=(),
+                tool_results=(customer_result,),
+                reason_code="CUSTOMER_NOT_FOUND",
+            )
         if customer_result.get("found") is True:
             customer = customer_result.get("customer") or {}
             customer_id = customer.get("id")
