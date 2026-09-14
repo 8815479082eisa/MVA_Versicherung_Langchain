@@ -227,6 +227,126 @@ C8 (`retrieval_only` control) plus the abstention suite must be re-run to prove 
 
 ---
 
+### 4.2 F7 — CRM citation blocks make claim extraction unsatisfiable (C1, C5)
+
+Diagnosed 2026-09-14 on the N=5 `raw-after/` evidence, no code changed, triage not re-run.
+**This corrects F6's attribution.** F6 recorded these as "the extractor did not reference every
+required answer unit" — that is the wrong validation rule, and C1 and C5 are not even the same
+failure:
+
+| case | runs | stage | code | message |
+|---|---|---|---|---|
+| C1 | **5 of 5** | `claim_extraction_validation` | `incomplete_claim_extraction` | `List heading context missing for fragment items` |
+| C5 | 4 of 5 | `claim_extraction_audit` | `unfaithful_claim_extraction` | audit rejected the extraction |
+| C5 | 1 of 5 | `claim_extraction_validation` | `incomplete_claim_extraction` | `List heading context missing for fragment items` |
+
+Every C1 run records `attempts: 2` — the repair ran and failed identically every time.
+
+#### Mechanism
+
+| # | Location | What happens |
+|---|---|---|
+| 1 | `claim_groundedness.py:207` | `_clean_answer_lines` strips citations with `r"\[[^\]\n]+,\s*(?:physical\s+)?page\s+[^\]]+\]"` — the pattern **requires a `, page N` component**. `[CRM: TEST-KFZ-2026-1001]` has none, so it survives into the answer text. |
+| 2 | `claim_groundedness.py:211` | Only lines matching `re.fullmatch(r"(?:sources?|citations?|quellen?)\s*:?")` are dropped. The generator emits **`Source citations:`** — two words, no match — so the heading survives. |
+| 3 | `claim_groundedness.py:272-275` | `_answer_structure` sees a lone colon line and files it as a context heading: `active_heading_id` is set and the unit is deliberately **excluded from `required`**. |
+| 4 | `claim_groundedness.py:241-248` | The bare `[CRM: ...]` bullet reaches `_looks_like_fragment`: 5 word-tokens, no predicate verb → **`True`**. |
+| 5 | `claim_groundedness.py:281-282` | So `dependencies[citation_unit] = heading_unit` is recorded. |
+| 6 | `claim_groundedness.py:523-528` | `_extraction_validation_error` now demands a **single claim whose `unit_ids` contains both the heading and the bare identifier**. There is no faithful atomic factual claim to be made out of `Source citations:` + `[CRM: TEST-KFZ-2026-1001]` — it is citation metadata, not an assertion. The constraint is unsatisfiable. |
+| 7 | `claim_groundedness.py:23, 552-573` | `_MAX_REPAIR_ATTEMPTS = 1`. The repair call gets the same feedback and fails the same way. |
+| 8 | `claim_groundedness.py:592` | The verbatim-recovery escape hatch is gated **`if not dependencies:`** — non-empty precisely because of this artifact. **The one salvage path is disabled by the same thing that caused the failure.** |
+| 9 | `claim_groundedness.py:804+` | `_failed_result` → `score = None`, `evaluation_status = "failed"`. |
+| 10 | `nemo_actions.py:1168-1175` | `evaluation_status == "failed"` → `allow = False`, `action = "fallback"`. |
+| 11 | `rag_service.py:5233-5240` | Answer replaced by `grounding_fallback_text`, `sources = []`, decision `post_fallback`. |
+
+**Proof without the LLM** — `_answer_structure` on the two citation shapes:
+
+| answer shape | units | dependencies |
+|---|---|---|
+| `…\nSource citations:\n- [motor-vehicle-insurance-sti.pdf, page 14]` | 2 (citation stripped) | `{}` |
+| `…\nSource citations:\n- [CRM: TEST-KFZ-2026-1001]` | 3 (citation survives) | **`{2: 1}`** |
+
+#### Is this CRM-specific, or would any answer of this shape fail?
+
+**The trigger is CRM-specific; the rule that fires is general.** PDF citations never reach the unit
+stream because step 1 strips them, so `retrieval_only` cannot produce this shape — C8 has no bare
+citation unit in any run. Only CRM labels survive to become units.
+
+But the decisive comparison is C2 and C4, which **did** score:
+
+| case | bare `[CRM: …]` unit present | preceded by a colon heading | dependencies | outcome |
+|---|---|---|---|---|
+| C1 | yes | **yes** (`Source citations:`) | `{4: 3}` | extraction fails, 5/5 |
+| C5 | yes | **yes** (`Source citations:`) | `{14: 13}` + 7 list deps | extraction fails, 5/5 |
+| C2 | yes | no | `{}` | `success`, score 1.00 |
+| C4 | yes | no | `{}` | `uncertain`, score 0.50 |
+| C8 | no (stripped) | n/a | `{}` | `success`, score 1.00 |
+
+C2 and C4 carry the same bare `[CRM: …]` unit and evaluate fine. **The only structural difference is
+whether the generator happened to precede it with a `Source citations:` heading.** The evaluation
+outcome therefore depends on a formatting coincidence in the answer, not on whether the answer is
+grounded. C7 is not comparable — `crm_only` scores through `_crm_groundedness_score` in `main.py`
+and never enters this evaluator (`units = 0`, no groundedness evidence block).
+
+#### Is one repair attempt the right design? No — but that is not the defect either
+
+Raising `_MAX_REPAIR_ATTEMPTS` would be the wrong fix. The constraint at step 6 is **unsatisfiable**,
+not merely hard: no number of retries lets a model invent a faithful factual claim out of citation
+metadata. More attempts would buy nothing and cost two extra LLM round-trips per query.
+
+**The real defect is the F3/H3 class: an operational failure is reported through the safety
+channel.** `nemo_actions.py:1168` does attach its own reason code (`groundedness_evaluator_failed`),
+so the cause is recoverable from diagnostics — better than nothing. But the user-visible outcome is
+byte-identical to a genuine groundedness rejection: the same `grounding_fallback_text`, the same
+cleared sources. The system tells the user *"I could not generate an answer that is sufficiently
+supported by the available documents"* when the truth is *"the evaluator could not run."* Those are
+different statements about the world, and only one of them is honest here. The answer C1 produced
+was never assessed at all.
+
+#### Minimal change
+
+Strip CRM citation labels in `_clean_answer_lines` (`claim_groundedness.py:207`) the same way PDF
+citations are already stripped, and drop any line left empty afterwards. The `Source citations:`
+heading then has no following fragment, no dependency is recorded, and the answer is evaluated on
+its factual sentences alone.
+
+This is **restoring an existing invariant, not adding a special case**: the function already holds
+that citation metadata is not answer content. It simply learned only one of the two citation
+vocabularies this pipeline emits — the same root asymmetry as F1, one layer earlier in the pipeline.
+
+Explicitly *not* the fix: raising `_MAX_REPAIR_ATTEMPTS`, relaxing the dependency rule at 523-528,
+or removing the `if not dependencies:` guard at 592. The dependency rule exists to stop a fragment
+bullet being scored without the heading that supplies its predicate — that is correct behaviour and
+must keep working for genuine content lists (C5's units 2-8 are exactly such a list).
+
+The error-channel separation is a **second, independent change** (F3 family) and should not be
+bundled with this one.
+
+#### The unit test (fail before, pass after)
+
+Pure, deterministic, no judge and no LLM — `tests/unit/test_claim_groundedness.py`:
+
+> `_answer_structure("Glass damage is covered.\nSource citations:\n- [CRM: TEST-KFZ-2026-1001]")`
+> must return no fragment→heading dependencies, and no unit may be a bare `[CRM: …]` label.
+
+Today this returns `deps == {2: 1}` with the citation as unit 2, so it fails. Pair it with two
+guards that must keep passing: the PDF-citation equivalent must stay at `deps == {}` (the invariant
+being restored), and a genuine content list under a colon heading must **still** produce
+dependencies, so the rule is not weakened. A judge-level case asserting
+`evaluation_status == "success"` for an answer carrying a CRM citation block is worth adding on top.
+
+#### Risk to `retrieval_only`
+
+The change deletes text from the answer before claim extraction, and anything deleted is never
+turned into a claim and therefore never checked. If the pattern is broader than the literal
+`[CRM: …]` form, it could silently swallow real answer content that happens to be bracketed — a
+statutory reference such as `[Art. 31 para. 2 RTA]`, or a quoted document passage containing
+brackets. An unsupported assertion inside such a span would then pass unexamined, which is strictly
+worse than the fallback it replaces. The pattern must be anchored to the literal `CRM:` prefix, the
+existing PDF pattern must not be loosened, and C8 plus the abstention suite must be re-run before
+this is called done.
+
+---
+
 ## 5. Phase 3 — Hardening and optimization (only once Phase 2 is green)
 
 - `src/api/rag_service.py` is ~5,500 lines. Split along the pipeline boundaries that already
@@ -267,6 +387,7 @@ The repo is large; context is the scarce resource. Rules:
 | 2026-09-14 | 2 (measure) | Restarted `mva-backend` (bind-mount + `--reload` had **not** picked the change up; no WatchFiles event since the edit — verified in container before measuring). Re-ran `triage_combined.py --repeat 2`. | **Counts are not comparable to the pre-fix run — the triage classifier itself changed between the two runs** (route normalisation + post-stage separation), so H5 4→0 is the classifier, not the fix. Before: H2 10, H4 2, H5 4. After: H2 5, H3 4, OK 3, H4 2, H1 1, UNKNOWN 1. Real signal is per-case: C2 produced a full combined answer (6/6 claims supported, 0 provenance failures, 2 CRM sources in final sources) — no combined case did that before. C1's score moved from a fake 1.0 (3 CRM claims hidden as `unknown`) to an honest 0.75. **C7 green both runs. C8 fell back on run 1, passed on run 2** — C8 carries no CRM documents (`crm_ctx=0`), so the `crm_in_docs` guard makes the fix a byte-identical no-op there; pre-fix C8 raw was overwritten, so its prior stability cannot be confirmed from surviving evidence. | Flakiness is now the dominant signal (4 of 8 ids unstable across 2 runs). Establish whether it is generation non-determinism before reading any hypothesis count as real. |
 | 2026-09-14 | 2 (diagnosis only) | Traced F6, the non-determinism, through the generation and groundedness paths and compared the C2/C6 raw evidence run-to-run. **No code changed, triage not re-run.** | Confirmed: answer generation is pinned to `ANSWER_TEMPERATURE=0`; the evaluator is second-order (`temperature=0` but **no seed anywhere in `src/`**). F6 does **not** subsume F3 — the `None` scores have three separate causes. Written up in the F6 block below. | Re-run with `--repeat 5`, and re-establish the counts as a distribution before touching any remaining hypothesis. |
 | 2026-09-14 | 2 (measure, N=5) | Pinned `ANSWER_TEMPERATURE=0` (default, `src/config/models.py`), restarted the backend, then ran `triage_combined.py --repeat 5` twice: once with the F1 fix live (branch `fix/f1-crm-citation-provenance`), once with only `src/core/claim_groundedness.py` reverted to `Abschluss-Arbeit` (verified 0 fix-markers in the container before the run) and restored afterward. Triage script and fixture were byte-identical in both conditions — the only variable was that one file. Results: `artifacts/test-results/combined-triage/{BEFORE,AFTER}-temp0.csv`, raw JSON under `raw-before/` and `raw-after/`. | See the N=5 before/after table below. Combined-mode real answers: **0/30 → 5/30**. Controls unchanged: C7 and C8 both 5/5 real in both conditions with identical score distributions. **This measurement supersedes the two temperature-0.4 runs above — those were single draws with a confound (the triage classifier also changed between them) and are kept only for narrative continuity.** | Investigate why C1, C3, C5 never scored across 10 runs, and why C6 falls back at score 1.00 every time. |
+| 2026-09-14 | 2 (diagnosis only) | Diagnosed why C1 and C5 never score, from the N=5 `raw-after/` evidence. **No code changed, triage not re-run** (the evidence was collected at temperature 0 and is valid as-is). Written up as F7 in section 4.2. | Root cause: `_clean_answer_lines` strips PDF citations but not `[CRM: …]` labels, so a trailing `Source citations:` block survives into the unit stream, the bare label is classified as a fragment, and the fragment→heading rule then demands a factual claim made out of citation metadata — unsatisfiable, and it also disables the verbatim-recovery escape hatch (`if not dependencies:`). **Corrects F6's attribution** (wrong validation rule; C1 fails at `claim_extraction_validation` 5/5, C5 at `claim_extraction_audit` 4/5). C2/C4 carry the same bare CRM label but no preceding colon heading, so they score — the outcome hinges on a formatting coincidence. | Implement 4.2 in a fresh session, pure `_answer_structure` test first. Keep the error-channel separation (F3 family) as a separate change. |
 
 ### N=5 before/after at `ANSWER_TEMPERATURE=0` (the attributable measurement)
 
@@ -371,7 +492,7 @@ consensus of the two — so the pipeline samples twice and keeps the later sampl
 | cause | where | evidence | F6? |
 |---|---|---|---|
 | All claims `unknown` → `decided_count == 0` → `supported_fraction = None`. A *successful* evaluation with no score. | `claim_groundedness.py:763` | C6-run2: `counts={'unknown':3}`, `exc=None`, `status=uncertain` | **Yes — subsumed** |
-| Claim extraction failed validation: the extractor did not reference every required answer unit, and `_MAX_REPAIR_ATTEMPTS = 1` allows only one repair before raising `_StageValueError(stage="claim_extraction_validation", code="incomplete_claim_extraction")`. | `claim_groundedness.py:507-521, 560-571` | C1, C5, C5-run2: `status=failed`, `exc=ValueError` | **No — distinct defect**, aggravated by F6 |
+| Claim extraction failed. ~~The extractor did not reference every required answer unit~~ — **superseded by F7 (section 4.2): the actual rule that fails is the fragment→heading dependency check (`claim_groundedness.py:523-528`), triggered by a `Source citations:` heading followed by a bare `[CRM: …]` label, and C1 and C5 are not even the same failure stage.** | `claim_groundedness.py:523-528, 552-573, 592` | C1 5/5 `claim_extraction_validation`; C5 4/5 `claim_extraction_audit` | **No — distinct defect**, see 4.2 |
 | Groundedness never ran; the context/PII rail terminated first. | — | C3: `stageStatus` stops after `guardrail`; answer is the PII refusal text | **No — unrelated** |
 
 F3 must be split along these three lines before it is worked on; only the first is F6.
