@@ -388,6 +388,8 @@ The repo is large; context is the scarce resource. Rules:
 | 2026-09-14 | 2 (diagnosis only) | Traced F6, the non-determinism, through the generation and groundedness paths and compared the C2/C6 raw evidence run-to-run. **No code changed, triage not re-run.** | Confirmed: answer generation is pinned to `ANSWER_TEMPERATURE=0`; the evaluator is second-order (`temperature=0` but **no seed anywhere in `src/`**). F6 does **not** subsume F3 — the `None` scores have three separate causes. Written up in the F6 block below. | Re-run with `--repeat 5`, and re-establish the counts as a distribution before touching any remaining hypothesis. |
 | 2026-09-14 | 2 (measure, N=5) | Pinned `ANSWER_TEMPERATURE=0` (default, `src/config/models.py`), restarted the backend, then ran `triage_combined.py --repeat 5` twice: once with the F1 fix live (branch `fix/f1-crm-citation-provenance`), once with only `src/core/claim_groundedness.py` reverted to `Abschluss-Arbeit` (verified 0 fix-markers in the container before the run) and restored afterward. Triage script and fixture were byte-identical in both conditions — the only variable was that one file. Results: `artifacts/test-results/combined-triage/{BEFORE,AFTER}-temp0.csv`, raw JSON under `raw-before/` and `raw-after/`. | See the N=5 before/after table below. Combined-mode real answers: **0/30 → 5/30**. Controls unchanged: C7 and C8 both 5/5 real in both conditions with identical score distributions. **This measurement supersedes the two temperature-0.4 runs above — those were single draws with a confound (the triage classifier also changed between them) and are kept only for narrative continuity.** | Investigate why C1, C3, C5 never scored across 10 runs, and why C6 falls back at score 1.00 every time. |
 | 2026-09-14 | 2 (diagnosis only) | Diagnosed why C1 and C5 never score, from the N=5 `raw-after/` evidence. **No code changed, triage not re-run** (the evidence was collected at temperature 0 and is valid as-is). Written up as F7 in section 4.2. | Root cause: `_clean_answer_lines` strips PDF citations but not `[CRM: …]` labels, so a trailing `Source citations:` block survives into the unit stream, the bare label is classified as a fragment, and the fragment→heading rule then demands a factual claim made out of citation metadata — unsatisfiable, and it also disables the verbatim-recovery escape hatch (`if not dependencies:`). **Corrects F6's attribution** (wrong validation rule; C1 fails at `claim_extraction_validation` 5/5, C5 at `claim_extraction_audit` 4/5). C2/C4 carry the same bare CRM label but no preceding colon heading, so they score — the outcome hinges on a formatting coincidence. | Implement 4.2 in a fresh session, pure `_answer_structure` test first. Keep the error-channel separation (F3 family) as a separate change. |
+| 2026-09-14 | 2 (fix) | Implemented 4.2 on branch `fix/f7-crm-citation-stripping` (commit `5d76e74`), failing test first (`_answer_structure` on a PDF-citation vs. CRM-citation `Source citations:` block, pure/deterministic, no LLM). `pytest tests/unit -q`: 384 passed, 4 failed — the same 4 pre-existing failures as every prior run, verified by stashing the fix and re-running. | Bare CRM labels and multi-word citation headings are now stripped before claim extraction, restoring the invariant already applied to PDF citations. | Restart backend, re-run the ruler. |
+| 2026-09-14 | 2 (measure, N=5) | Restarted `mva-backend`, confirmed the F7 fix present in the container and health fully green, then ran `triage_combined.py --repeat 5` on branch `fix/f7-crm-citation-stripping` (F1 + F7 both live). Compared against `AFTER-temp0.csv` (F1 only, N=5, **reused unchanged** — same `ANSWER_TEMPERATURE=0` condition, not re-run). Results: `artifacts/test-results/combined-triage/AFTER-F7.csv`, raw JSON under `raw-after-f7/`. | See the F7 before/after table below. Combined-mode real answers: **5/30 → 8/30**. Controls unchanged: C7 and C8 both 5/5 real with identical score distributions. | Merge, then investigate the two things F7 exposed: C1's residual `post_fallback` at score 1.00, and C5's second extraction failure. |
 
 ### N=5 before/after at `ANSWER_TEMPERATURE=0` (the attributable measurement)
 
@@ -420,9 +422,51 @@ the triage classifier also changed between the pre- and post-fix measurements.
 under known sampling variance (F6); read them as narrative history of how the investigation
 proceeded, not as a quantitative baseline.
 
-**C1, C3 and C5 produced no score in any of the 10 runs across both conditions** (5 before + 5
-after each). The F1 fix could not have affected them either way — whatever blocks these three
-happens before or instead of groundedness scoring, and is unrelated to F1.
+### N=5 before/after F7 at `ANSWER_TEMPERATURE=0` (F1-only vs. F1+F7)
+
+Baseline column reuses `AFTER-temp0.csv` from the F1 measurement above unchanged — same
+`ANSWER_TEMPERATURE=0` condition, F1 merged, F7 absent. Not re-run, per instruction: the only
+variable is F7.
+
+| id | route | F1-only real/5 | F1-only score (min/med/max) | F1-only none | +F7 real/5 | +F7 score (min/med/max) | +F7 none |
+|---|---|---|---|---|---|---|---|
+| C1 | combined | 0/5 | — | 5 | **2/5** | 1.00 / 1.00 / 1.00 | 1 |
+| C2 | combined | 4/5 | 1.00 / 1.00 / 1.00 | 1 | **5/5** | 1.00 / 1.00 / 1.00 | 0 |
+| C3 | combined | 0/5 | — | 5 | 0/5 | — | 5 |
+| C4 | combined | 1/5 | 0.50 / 0.50 / 1.00 | 0 | 1/5 | 0.50 / 0.67 / 1.00 | 0 |
+| C5 | combined | 0/5 | — | 5 | 0/5 | — | 5 |
+| C6 | combined | 0/5 | 1.00 / 1.00 / 1.00 | 2 | 0/5 | 1.00 / 1.00 / 1.00 | 1 |
+| C7 | crm_only (control) | 5/5 | 0.99 / 0.99 / 0.99 | 0 | 5/5 | 0.99 / 0.99 / 0.99 | 0 |
+| C8 | retrieval_only (control) | 5/5 | 1.00 / 1.00 / 1.00 | 0 | 5/5 | 1.00 / 1.00 / 1.00 | 0 |
+
+**Headline:** combined-mode real answers went **5/30 → 8/30** with F7, on top of F1's 0/30 → 5/30.
+Both controls are unchanged — C7 and C8 stayed 5/5 real with identical score distributions across
+conditions.
+
+**Finding 1 — C5's failure signature moved, it did not disappear: F7 worked, and exposed a second,
+pre-existing extraction problem.** Before F7, all 5 C5 runs failed at `claim_extraction_validation`
+with `incomplete_claim_extraction` — the fragment→heading defect F7 targets. After F7, that specific
+code is **gone from every C5 run**; it is replaced by `unfaithful_claim_extraction` (audit rejection,
+4/5) and `extraction_sensitive_fact_mismatch` (1/5). C5's answer is long — 15 units, an 8-item
+fragment list under one heading — and evidently strains claim extraction independently of the CRM
+citation artifact. F7 removed the mechanism it was built for; C5 still shows 0/5 real answers because
+a different, previously-masked defect sits directly behind it.
+
+**Finding 2 — C1's remaining blocker is score-1.00-yet-fallback, the same signature already seen on
+C6, and it is now the largest one left.** Of C1's 4 scored runs (up from 0), 2 returned
+`groundedness=1.00` and were still replaced by `grounding_fallback_text` (`post_fallback`). This is
+not an extraction failure — the evaluator completed and passed the answer — so it sits downstream of
+everything F1 and F7 fix. C6 has shown this exact pattern throughout the investigation
+(`score=1.00`, `post_fallback`, every run, all measurements). With F1 and F7 both landed, this
+signature — an evaluator that says pass, overruled by something else — is the largest remaining
+blocker in the combined path and the natural next target.
+
+**C1, C3 and C5 produced no score in any of the 10 F1 before/after runs** (5 before + 5 after each,
+in the F1-only measurement immediately above). The F1 fix could not have affected them either way —
+whatever blocks these three happens before or instead of groundedness scoring, and is unrelated to
+F1. **This has since moved for C1: see the F7 measurement above, which supersedes this sentence for
+C1** — F7 gets it to 4/5 scored. It still holds for C3 (PII rail, unrelated to either fix) and C5
+(a second extraction defect now confirmed in Finding 1 above).
 
 ### Triage counts (Phase 1 complete — 8 cases × 2 runs = 16 rows)
 
