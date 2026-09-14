@@ -412,7 +412,7 @@ Die deterministische Auswahl der aktuell wirksamen Police wurde vor dem semantis
 | API | Responses API |
 | Modellalias | `gpt-4o-mini` |
 | Fester Snapshot | nicht verwendet beziehungsweise nicht persistiert |
-| Temperature | 0,4 |
+| Temperature | 0 |
 | Maximale Ausgabe | 384 Tokens |
 | Timeout | 120 Sekunden |
 | Wiederholungen | höchstens eine Wiederholung |
@@ -522,7 +522,7 @@ Die folgende Tabelle beschränkt sich auf reproduktionsrelevante und nicht gehei
 | `LLM_TIMEOUT_RERANKER_SECONDS` | 60 Sekunden | Reranker-Timeout |
 | `RETRIEVAL_TIMEOUT_SECONDS` | 60 Sekunden | Retrieval-Timeout |
 | `LLM_MAX_TOKENS_ANSWER` | 384 | maximales Ausgabelimit |
-| `ANSWER_TEMPERATURE` | 0,4 | Sampling-Temperatur |
+| `ANSWER_TEMPERATURE` | 0 | Sampling-Temperatur |
 | `LLM_MAX_RETRIES` | 1 | maximale LLM-Wiederholung |
 | `RETRIEVAL_MAX_RETRIES` | 1 | maximale Retrieval-Wiederholung |
 

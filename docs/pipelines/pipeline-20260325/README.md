@@ -30,7 +30,7 @@ Config values not explicitly set in `.env` but active via code defaults:
 - `MAX_SELF_CHECK_RETRIES=2`
 - `ENABLE_CONTEXT_COMPRESSION=false`
 - `CHUNK_SIZE=1000`, `CHUNK_OVERLAP=200`
-- `ANSWER_TEMPERATURE=0.1`, `AUX_TEMPERATURE=0.0`
+- `ANSWER_TEMPERATURE=0.0`, `AUX_TEMPERATURE=0.0`
 - `LLM_MAX_TOKENS=None` and `LLM_TIMEOUT_SECONDS=None` unless set
 
 ## Pipeline Components

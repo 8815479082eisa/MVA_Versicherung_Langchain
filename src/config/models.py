@@ -586,7 +586,7 @@ def load_model_settings() -> ModelSettings:
     timeout_seconds = _env_float("LLM_TIMEOUT_SECONDS", 0.0)
 
     generation = GenerationConfig(
-        temperature_answer=_env_float("ANSWER_TEMPERATURE", 0.4),
+        temperature_answer=_env_float("ANSWER_TEMPERATURE", 0.0),
         temperature_aux=_env_float("AUX_TEMPERATURE", 0.0),
         max_tokens=max_tokens if max_tokens > 0 else None,
         timeout_seconds=timeout_seconds if timeout_seconds > 0 else None,

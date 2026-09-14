@@ -404,7 +404,7 @@ Eine Batch-Größe und eine maximale Tokenlänge werden in der Laufzeitpipeline 
 |---|---|
 | Anbieter | OpenAI |
 | Modellalias | gpt-4o-mini |
-| Temperature | 0,4 |
+| Temperature | 0 |
 | maximales Ausgabelimit | 384 Tokens |
 | Timeout | 120 s |
 | maximale Wiederholungen | 1 |
@@ -465,7 +465,7 @@ Die lokale .env setzt NEMO_RUNTIME_TIMEOUT_SECONDS=20. Diese Variable wird vom a
 
 | Rolle | Konfiguriertes Modell | Temperature | Ausgabelimit | Status |
 |---|---|---:|---:|---|
-| finale Antwort | gpt-4o-mini | 0,4 | 384 | aktiv |
+| finale Antwort | gpt-4o-mini | 0 | 384 | aktiv |
 | NeMo-Guardrail-Hilfsmodell | qwen2.5:7b-instruct über Ollama | 0,0 | 8 | aktiv, sofern NeMo-Modellaufruf benötigt wird |
 | interner RAG-Router | phi3:mini | 0,0 | 8 | nicht aktiv, da Retrieval erzwungen wird |
 | Self-Check | gpt-4o-mini | 0,0 | 8 | deaktiviert |

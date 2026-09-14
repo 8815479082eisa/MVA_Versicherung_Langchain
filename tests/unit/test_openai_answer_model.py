@@ -49,7 +49,7 @@ def test_responses_adapter_maps_langchain_messages_without_storing_response(
 
     model = OpenAIResponsesAnswerModel(
         model="gpt-4o-mini",
-        temperature=0.2,
+        temperature=0.0,
         max_output_tokens=384,
         timeout_seconds=30.0,
         max_retries=1,
@@ -69,7 +69,7 @@ def test_responses_adapter_maps_langchain_messages_without_storing_response(
         "model": "gpt-4o-mini",
         "input": [{"role": "user", "content": "What is covered?"}],
         "max_output_tokens": 384,
-        "temperature": 0.2,
+        "temperature": 0.0,
         "store": False,
         "instructions": "Use only the supplied evidence.",
     }
