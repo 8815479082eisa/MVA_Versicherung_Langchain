@@ -2,7 +2,8 @@ import pytest
 from langchain_core.documents import Document
 
 from src.core.claim_groundedness import (
-    CATEGORIES, Extraction, ExtractionAudit, Judgments, answer_units, deterministic_checks,
+    CATEGORIES, Extraction, ExtractionAudit, Judgments, _answer_structure, answer_units,
+    deterministic_checks,
     evaluate_claim_groundedness,
     quote_has_provenance,
 )
@@ -428,3 +429,32 @@ def test_crm_citation_without_matching_record_stays_unknown():
 
     row = next(r for r in result["claim_details"] if "9999" in r["claim_text"])
     assert row["relation"] == "unknown"
+
+
+# --- F7: CRM citation blocks must not reach claim extraction -----------------
+
+def test_pdf_citation_block_leaves_no_dependency():
+    units, required, dependencies = _answer_structure(
+        "Glass damage is covered.\nSource citations:\n- [motor-vehicle-insurance-sti.pdf, page 14]"
+    )
+    assert dependencies == {}
+    assert units == ["Glass damage is covered."]
+    assert required == {0}
+
+
+def test_crm_citation_block_leaves_no_dependency():
+    units, required, dependencies = _answer_structure(
+        "Glass damage is covered.\nSource citations:\n- [CRM: TEST-KFZ-2026-1001]"
+    )
+    assert dependencies == {}
+    assert not any(u.strip().startswith("[CRM:") for u in units), \
+        "a bare CRM citation label must never become an answer unit"
+
+
+def test_content_list_under_heading_still_requires_its_heading():
+    # The dependency rule itself must keep working for genuine content lists -
+    # only citation metadata should be exempted, not every fragment bullet.
+    units, required, dependencies = _answer_structure(
+        "The policy covers:\n- Fire damage.\n- Theft."
+    )
+    assert dependencies, "a real fragment list must still depend on its heading"

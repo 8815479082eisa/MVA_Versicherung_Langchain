@@ -205,10 +205,15 @@ def quote_has_provenance(quote: str, evidence: str) -> bool:
 def _clean_answer_lines(answer: str) -> list[tuple[bool, str]]:
     """Return (is_bullet, text) lines while stripping source-only material."""
     answer = re.sub(r"\[[^\]\n]+,\s*(?:physical\s+)?page\s+[^\]]+\]", "", answer)
+    # CRM citations carry no page component, so the pattern above cannot see them -
+    # strip the same way, or a bare label is left behind to become a spurious unit.
+    answer = re.sub(_CRM_CITATION_PATTERN, "", answer, flags=re.I)
     cleaned: list[tuple[bool, str]] = []
     for raw in answer.splitlines():
         stripped = raw.strip()
-        if not stripped or re.fullmatch(r"(?:sources?|citations?|quellen?)\s*:?", stripped, re.I):
+        if not stripped or re.fullmatch(
+            r"(?:(?:sources?|citations?)\s+)*(?:sources?|citations?|quellen?)\s*:?", stripped, re.I
+        ):
             continue
         is_bullet = bool(re.match(r"^\s*(?:[-*]+|\d+[.)])\s+", raw))
         text = re.sub(r"^\s*(?:[-*#]+|\d+[.)])\s*", "", raw).strip()
