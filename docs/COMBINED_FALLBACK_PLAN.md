@@ -265,6 +265,7 @@ The repo is large; context is the scarce resource. Rules:
 | 2026-09-14 | 2 (diagnosis only) | Diagnosed F1 (post stage falls back on score 1.0, C1/C6). Traced the full chain and verified it against the raw C1/C6 evidence. Proposal written to section 4.1. **No code changed.** | Root cause found: PDF-only citation regex evicts CRM evidence inside the evaluator. Threshold is irrelevant to these cases. | Implement 4.1 in a fresh session, failing test first. |
 | 2026-09-14 | 2 (fix) | Implemented 4.1 on branch `fix/f1-crm-citation-provenance` (commit `200b64b`), failing test first. `pytest tests/unit -q`: 381 passed, 4 failed — all 4 pre-existing, verified by re-running them with the fix stashed. | CRM claims are now adjudicated instead of evicted. | Restart backend, re-run the ruler. |
 | 2026-09-14 | 2 (measure) | Restarted `mva-backend` (bind-mount + `--reload` had **not** picked the change up; no WatchFiles event since the edit — verified in container before measuring). Re-ran `triage_combined.py --repeat 2`. | **Counts are not comparable to the pre-fix run — the triage classifier itself changed between the two runs** (route normalisation + post-stage separation), so H5 4→0 is the classifier, not the fix. Before: H2 10, H4 2, H5 4. After: H2 5, H3 4, OK 3, H4 2, H1 1, UNKNOWN 1. Real signal is per-case: C2 produced a full combined answer (6/6 claims supported, 0 provenance failures, 2 CRM sources in final sources) — no combined case did that before. C1's score moved from a fake 1.0 (3 CRM claims hidden as `unknown`) to an honest 0.75. **C7 green both runs. C8 fell back on run 1, passed on run 2** — C8 carries no CRM documents (`crm_ctx=0`), so the `crm_in_docs` guard makes the fix a byte-identical no-op there; pre-fix C8 raw was overwritten, so its prior stability cannot be confirmed from surviving evidence. | Flakiness is now the dominant signal (4 of 8 ids unstable across 2 runs). Establish whether it is generation non-determinism before reading any hypothesis count as real. |
+| 2026-09-14 | 2 (diagnosis only) | Traced F6, the non-determinism, through the generation and groundedness paths and compared the C2/C6 raw evidence run-to-run. **No code changed, triage not re-run.** | Confirmed: answer generation runs at `ANSWER_TEMPERATURE` default **0.4** (unset in the container), so the answers themselves differ run to run; the claim set extracted from them differs, so the score's denominator differs. The evaluator is second-order (`temperature=0` but **no seed anywhere in `src/`**). F6 does **not** subsume F3 — the `None` scores have three separate causes. Written up in the F6 block below. | Pin `ANSWER_TEMPERATURE=0`, re-run with `--repeat 5`, and re-establish the counts as a distribution before touching any remaining hypothesis. |
 
 ### Triage counts (Phase 1 complete — 8 cases × 2 runs = 16 rows)
 
@@ -280,3 +281,84 @@ The repo is large; context is the scarce resource. Rules:
 **Reading of the table:** only one real defect is in evidence. H2's 10 rows and H4's 2 rows are the
 same root cause seen from two angles; H5 is a label mismatch; H1 and H6 have no rows and are
 dropped per the section 3 exit criterion. Fix 4.1, then re-run the ruler before re-ranking anything.
+
+---
+
+### F6 — the evaluation path is non-deterministic (top priority)
+
+Diagnosed 2026-09-14, no code changed. **Until this is contained, no hypothesis count in the
+table above is trustworthy**, because a count is a sum over verdicts that are re-sampled on every
+run. 4 of 8 ids changed verdict between two consecutive runs of identical code and queries.
+
+#### Mechanism — three layers, in order of contribution
+
+**1. Answer generation is sampled (first-order, the dominant term).**
+`temperature_answer = _env_float("ANSWER_TEMPERATURE", 0.4)` (`src/config/models.py:589`), applied
+by `initialize_llm()` (`src/api/rag_service.py:3075`). `ANSWER_TEMPERATURE` is **unset in the
+container**, so 0.4 is live. The answers genuinely differ run to run — not paraphrases, different
+content:
+
+| case | run 1 answer | run 2 answer |
+|---|---|---|
+| C2 | 760 chars, leads with "claimed amount of 780 EUR" | 649 chars, leads with "synthetic windshield stone-chip" |
+| C6 | 689 chars | 511 chars |
+
+**2. A different answer yields a different claim set, hence a different denominator (second-order).**
+The evaluator extracts claims *from the answer*, so the unit of measurement changes with the thing
+being measured. Score is `supported / decided_count`, and `decided_count` excludes `unknown`
+(`src/core/claim_groundedness.py:762-764`):
+
+| case | run 1 | run 2 |
+|---|---|---|
+| C2 | 6 claims, 6 supported → **1.00** | 4 claims, 3 supported + 1 insufficient → **0.75** |
+| C6 | 5 claims, 4 supported + 1 unknown → **1.00** | 3 claims, 3 unknown → **None** |
+
+So C2's 1.00 → 0.75 is not the evaluator becoming stricter; it is a shorter answer making fewer,
+differently-worded claims. The evaluator is a **second-order effect**, not the source.
+
+**3. The evaluator has no seed (third-order, irreducible).**
+`ModelJudge.call` sets `temperature=0` (`src/core/claim_groundedness.py:393`) — no `top_p`, and
+critically **no `seed`**. The Responses API request is built at
+`src/integrations/openai_answer_model.py:110-118` from `model`, `input`, `max_output_tokens`,
+`temperature`, `store` only. `grep -rn "seed=" src/` returns nothing: no seed is passed anywhere in
+the codebase. Extraction and judging share the same model (`GROUNDEDNESS_MODEL` → `roles.answer` →
+`gpt-4o-mini`, env unset). temperature=0 is near-greedy decoding, not a determinism guarantee.
+
+**Compounding: the recovery path re-samples and silently overwrites.**
+On `retry_evaluation`, `check_answer_safety` is called a second time and its result *replaces* the
+first (`src/api/rag_service.py:5054-5063`). Every case in this run recorded
+`retries={'groundedness_evaluation': 1}`. The verdict you see is the second independent draw, not a
+consensus of the two — so the pipeline samples twice and keeps the later sample.
+
+#### Does F6 subsume F3 (the `None` scores)? No — F3 is three different things
+
+| cause | where | evidence | F6? |
+|---|---|---|---|
+| All claims `unknown` → `decided_count == 0` → `supported_fraction = None`. A *successful* evaluation with no score. | `claim_groundedness.py:763` | C6-run2: `counts={'unknown':3}`, `exc=None`, `status=uncertain` | **Yes — subsumed** |
+| Claim extraction failed validation: the extractor did not reference every required answer unit, and `_MAX_REPAIR_ATTEMPTS = 1` allows only one repair before raising `_StageValueError(stage="claim_extraction_validation", code="incomplete_claim_extraction")`. | `claim_groundedness.py:507-521, 560-571` | C1, C5, C5-run2: `status=failed`, `exc=ValueError` | **No — distinct defect**, aggravated by F6 |
+| Groundedness never ran; the context/PII rail terminated first. | — | C3: `stageStatus` stops after `guardrail`; answer is the PII refusal text | **No — unrelated** |
+
+F3 must be split along these three lines before it is worked on; only the first is F6.
+
+#### Minimal determinism fix
+
+1. Set `ANSWER_TEMPERATURE=0` for evaluation runs. **Env only, no code change**, and it removes the
+   dominant term. This is the single highest-value knob.
+2. Stop the retry from silently replacing the first verdict — record both and make the policy
+   explicit — so a re-sample is visible rather than absorbed.
+3. Raise repeats: treat `--repeat 5` as the minimum for any claim about counts.
+
+#### Can reproducibility be achieved with the current guardrail backend? No.
+
+Being direct, because the thesis will need this stated honestly: **bit-for-bit reproducibility is
+not attainable on this stack.** temperature=0 without a seed against a hosted model is not
+deterministic, and the Responses API path used here passes no seed at all — the `seed` /
+`system_fingerprint` reproducibility pair exists on Chat Completions, not on the path this code
+takes, and OpenAI documents it as best-effort even there. Genuine determinism would require one of:
+migrating the judge to Chat Completions with `seed` and recording `system_fingerprint`; caching
+evaluator verdicts keyed by a hash of (answer, evidence); or a local judge model under our own
+decoding control.
+
+The achievable target is therefore **statistical stability, not reproducibility**: pin
+`ANSWER_TEMPERATURE=0`, run N ≥ 5, and report a distribution with a variance figure. Any single-run
+number in this document — including every count in the table above — should be read as one draw.
