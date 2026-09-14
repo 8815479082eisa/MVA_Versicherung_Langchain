@@ -563,3 +563,86 @@ decoding control.
 The achievable target is therefore **statistical stability, not reproducibility**: pin
 `ANSWER_TEMPERATURE=0`, run N ≥ 5, and report a distribution with a variance figure. Any single-run
 number in this document — including every count in the table above — should be read as one draw.
+
+---
+
+## 8. Design decision: authorized CRM personal data (governs F2 / C3)
+
+Recorded 2026-09-14. This is a design decision by the author, not a defect
+correction, and the F2 fix must implement exactly this rule.
+
+**Deployment assumption.** The system is deployed for internal caseworkers who
+already hold access to the underlying EspoCRM records and policy documents
+through the systems they use today. It is an *efficiency layer* over data the
+requester is already entitled to read — it is not an access-granting layer, and
+it is not customer-facing.
+
+**Consequence for the guardrail.** Access control is enforced by EspoCRM's own
+permissions, not by the output rail. Applying a content filter to personal data
+the requester is already authorized to read is a category error: the rail is
+suppressing a *relay* of authorized data, not preventing a *leak*. On that
+basis, personal data originating from an authorized CRM record retrieved for
+the current request is permitted in the answer.
+
+**Scope — the exemption is narrow, and must stay narrow.** The rule is NOT
+"disable the PII rail". Only personal data carried by a CRM document retrieved
+for *this* request is exempt. Everything else keeps the current treatment:
+
+- personal data appearing in a PDF chunk rather than a CRM record
+- personal data in the user's own question
+- any identifier or personal detail the model produced that is not traceable to
+  a retrieved CRM record — a fabricated policy number must not ride through on
+  the exemption
+
+The provenance markers this needs already exist and are set in `main.py`
+`_crm_context_documents`: `metadata["source_type"] == "crm"`,
+`metadata["authorized_source"]`, and `metadata["entity_binding_valid"]`. The fix
+consults them; it does not invent a new mechanism. The negative test pattern
+from F1 applies here too: an unmatched or fabricated CRM reference must not be
+treated as authorized.
+
+**Limitation to state in the thesis.** The whole guardrail design rests on the
+deployment assumption above. If the system were ever exposed to customers or to
+staff without record-level access, the exemption would have to be withdrawn and
+the rail restored to its current behaviour. The assumption belongs in the thesis
+explicitly, alongside the distinction between leaking personal data and relaying
+personal data the requester is entitled to — that distinction is the
+contribution, not the exemption itself.
+
+### 8.1 What the exemption does NOT relax
+
+The exemption in section 8 concerns one thing only: relaying, to an authorized
+requester, personal data that came from a CRM record retrieved for their
+request. Every other job the guardrails do is unchanged, and the F2 fix must
+not touch any of them.
+
+The deployment is an insurance agency office. The user has a large body of PDFs
+and structured and unstructured records that are slow to search by hand, and is
+entitled to read them. The system exists to make that search faster. It does not
+exist to answer questions that route around its structure.
+
+Still blocked, exactly as today:
+
+- **Instruction override and prompt injection.** The input rail keeps its
+  current behaviour. Text in a question, a document or a CRM field that tries
+  to redirect the system is data, not instruction.
+- **Structural bypass.** The router's `QueryMode.DENIED` / `unauthorized_scope`
+  path stays. A request that tries to make the system act outside its remit is
+  refused whether or not the requester could reach that data another way.
+- **Bulk extraction.** The system is a per-request lookup assistant, not an
+  export tool. "List every customer", "dump all policies", "show me the whole
+  claims table" stay denied. Being entitled to read records one at a time in
+  EspoCRM is not entitlement to have this system enumerate them.
+- **Write and destructive operations.** Creating, modifying or deleting CRM
+  records is out of remit and stays out.
+
+**The narrow scoping is what enforces this, by construction.** Because the
+exemption covers only records retrieved for the current request — and CRM
+retrieval is bound to an identifier the requester supplied (customer name,
+email, policy number, claim number) via `entity_binding_valid` — there is no
+path from "answer this question about this customer" to "enumerate the
+database". The rule is self-limiting: no separate anti-enumeration control is
+needed, and none should be added as part of F2.
+
+If a future change ever makes CRM retrieval possible without a resolved entity
+binding, this property is lost and the exemption must be re-examined.
