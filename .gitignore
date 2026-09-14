@@ -76,4 +76,7 @@ docker/espocrm-extension/dist/
 # docs/*.pdf
 # !docs/example.pdf
 
+# Triage run output - raw diagnostics stay on disk, never in git
+artifacts/test-results/combined-triage/
+
 tmp/

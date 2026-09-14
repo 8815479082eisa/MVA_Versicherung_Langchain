@@ -1,0 +1,58 @@
+[
+  {
+    "id": "C1",
+    "query": "For policy TEST-KFZ-2026-1001, is windscreen glass damage generally covered under the insurance conditions, and what deductible is recorded?",
+    "expected_route": "combined",
+    "expected_facts": ["TEST-KFZ-2026-1001", "150"],
+    "note": "customer identified by policy number; needs CRM (deductible=150 EUR on TEST-KFZ-2026-1001) + document (glass/windscreen coverage clause in motor-vehicle-insurance-sti.pdf)"
+  },
+  {
+    "id": "C2",
+    "query": "Lara Neumann reported glass damage. Is the damage covered by her current policy, and what is the claim status?",
+    "expected_route": "combined",
+    "expected_facts": ["TEST-KFZ-2026-1001", "Under Review"],
+    "note": "customer identified by name; needs CRM (claim TEST-CLM-2026-2001 -> policy TEST-KFZ-2026-1001, status Under Review) + document (glass damage coverage clause)"
+  },
+  {
+    "id": "C3",
+    "query": "Does the household policy of sophie.keller@example.test cover water damage according to the general conditions, and what is the current status of her related claim?",
+    "expected_route": "combined",
+    "expected_facts": ["TEST-HH-2026-1201", "Paid"],
+    "note": "customer identified by email; needs CRM (claim TEST-CLM-2026-2201 on policy TEST-HH-2026-1201, status Paid) + document (water damage / liquids clause in household-contents-private-liability-sti.pdf)"
+  },
+  {
+    "id": "C4",
+    "query": "For claim TEST-CLM-2026-2501, is vehicle theft covered under the motor insurance conditions and what is the current claim status?",
+    "expected_route": "combined",
+    "expected_facts": ["TEST-KFZ-2026-1701", "Under Review"],
+    "note": "customer identified by claim number; needs CRM (claim TEST-CLM-2026-2501 -> policy TEST-KFZ-2026-1701, status Under Review) + document (K2.1.4 Theft clause in motor-vehicle-insurance-sti.pdf)"
+  },
+  {
+    "id": "C5",
+    "query": "For policy TEST-RS-2026-1501, which legal disputes are covered according to the terms and what CRM status does the contract have?",
+    "expected_route": "combined",
+    "expected_facts": ["TEST-RS-2026-1501", "Cancelled"],
+    "note": "customer identified by policy number; needs CRM (policy TEST-RS-2026-1501 status Cancelled) + document (legal protection disputes clause in legal-protection-sti.pdf)"
+  },
+  {
+    "id": "C6",
+    "query": "Amira Hoffmann has a private liability claim. Is this kind of damage generally covered, and what is her current claim status?",
+    "expected_route": "combined",
+    "expected_facts": ["TEST-PHV-2026-1601", "Rejected"],
+    "note": "customer identified by name; needs CRM (claim TEST-CLM-2026-2401 on policy TEST-PHV-2026-1601, status Rejected) + document (private liability coverage clause in household-contents-private-liability-sti.pdf)"
+  },
+  {
+    "id": "C7",
+    "query": "Which active policies does Lara Neumann have?",
+    "expected_route": "crm_only",
+    "expected_facts": ["TEST-KFZ-2026-1001", "TEST-PHV-2026-1002", "TEST-KFZ-2026-1003"],
+    "note": "CONTROL CASE - crm_only. If this also falls back, the problem is not combined-specific."
+  },
+  {
+    "id": "C8",
+    "query": "Is theft of an insured vehicle generally covered under motor vehicle insurance?",
+    "expected_route": "retrieval_only",
+    "expected_facts": ["theft"],
+    "note": "CONTROL CASE - retrieval_only. Must stay green; it is your regression guard."
+  }
+]
