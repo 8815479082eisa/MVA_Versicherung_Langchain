@@ -21,6 +21,9 @@ CATEGORIES = (
 )
 _MAX_PAYLOAD_CHARS = 150000
 _MAX_REPAIR_ATTEMPTS = 1
+_CRM_CITATION_PATTERN = r"\[CRM:\s*([^\[\]]+)\]"
+# A PDF label's first element always ends in ".pdf", so this can never collide with one.
+_CRM_LABEL_KIND = "crm"
 _CONTROLLED_ABSTENTION_MESSAGES = {
     "The available sources do not contain enough information to answer this question.":
         "insufficient_information",
@@ -316,20 +319,43 @@ def rank_evidence(claim: str, windows: dict[str, dict], limit: int = 6) -> list[
     return sorted(windows, key=rank, reverse=True)[:limit]
 
 
+def _is_crm_doc(doc) -> bool:
+    return doc.metadata.get("source_type") == "crm"
+
+
+def _crm_citation_labels(text: str) -> set[tuple[str, str]]:
+    return {
+        (_CRM_LABEL_KIND, identifier.strip().casefold())
+        for identifier in re.findall(_CRM_CITATION_PATTERN, text, re.I)
+    }
+
+
 def _answer_citations_match(answer, units, claim, citations, docs):
     pattern = r"\[([^\[\],]+\.pdf),\s*page\s+(\d+)\]"
+    # CRM records are cited as [CRM: <identifier>], a format the PDF pattern cannot see.
+    # Without this the CRM documents are filtered out of the judge's candidate evidence
+    # and every CRM claim is adjudicated against PDF chunks alone.
+    crm_in_docs = any(_is_crm_doc(doc) for doc in docs)
     all_labels = set(re.findall(pattern, answer, re.I))
+    if crm_in_docs:
+        all_labels |= _crm_citation_labels(answer)
     if not all_labels:
         return True
     local_labels = set()
     for line in answer.splitlines():
         cleaned = re.sub(pattern, "", line, flags=re.I)
+        if crm_in_docs:
+            cleaned = re.sub(_CRM_CITATION_PATTERN, "", cleaned, flags=re.I)
         if any(units[i] in cleaned for i in claim.unit_ids):
             local_labels.update(re.findall(pattern, line, re.I))
+            if crm_in_docs:
+                local_labels |= _crm_citation_labels(line)
     labels = local_labels or all_labels
 
     def doc_label(doc):
         metadata = doc.metadata
+        if crm_in_docs and _is_crm_doc(doc):
+            return _CRM_LABEL_KIND, str(metadata.get("section") or "record").strip().casefold()
         source = str(metadata.get("source_file") or metadata.get("source") or "")
         source = source.replace("\\", "/").rsplit("/", 1)[-1].casefold()
         page = metadata.get("source_page")

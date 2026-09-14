@@ -333,3 +333,98 @@ def test_large_document_context_is_trimmed_instead_of_failing_budget():
     assert score == 1
     assert result["evaluation_status"] == "success"
     assert result["payload_chars"] <= 150000
+
+
+# --- F1: CRM evidence must reach the judge in combined mode -------------------
+
+PDF_DOC = Document(
+    page_content=(
+        "The glass insurance covers involuntary breakage as well as glass damage "
+        "caused by accidents to the front and rear windscreens."
+    ),
+    metadata={"source": "data/raw/pdfs/motor-vehicle-insurance-sti.pdf", "page": 13},
+)
+CRM_DOC = Document(
+    page_content=(
+        "CRM FACT\nPolicy TEST-KFZ-2026-1001 (Lara Neumann): "
+        "the deductible recorded is 150 EUR; status Active."
+    ),
+    metadata={
+        "source": "espocrm:policy:TEST-KFZ-2026-1001",
+        "source_type": "crm",
+        "section": "TEST-KFZ-2026-1001",
+        "authorized_source": True,
+    },
+)
+
+
+def _combined_answer(policy: str) -> str:
+    return (
+        "Glass damage caused by accidents to the front and rear windscreens is covered "
+        "[motor-vehicle-insurance-sti.pdf, page 14].\n"
+        f"The deductible recorded for policy {policy} is 150 EUR [CRM: {policy}]."
+    )
+
+
+class CrmRecordingJudge(FakeJudge):
+    """Records the evidence each claim was offered; cites nothing when offered nothing."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.evidence_ids_by_claim: dict[str, list[str]] = {}
+
+    def call(self, instruction, payload, schema):
+        if schema is not Judgments:
+            return super().call(instruction, payload, schema)
+        self.evidence_ids_by_claim = {
+            claim["text"]: list(claim["evidence_ids"]) for claim in payload["claims"]
+        }
+        verdicts = []
+        for claim in payload["claims"]:
+            evidence_ids = claim["evidence_ids"]
+            checks = {name: "not_applicable" for name in CATEGORIES}
+            checks["polarity"] = "consistent"
+            verdicts.append({
+                "claim_id": claim["claim_id"], "relation": "supported",
+                "confidence": 0.99, "subject_scope_match": True,
+                "citations": [{
+                    "evidence_id": evidence_ids[0],
+                    "quote": payload["evidence"][evidence_ids[0]]["text"],
+                }] if evidence_ids else [],
+                "checks": checks, "reason": "test semantic judgment",
+            })
+        return Judgments(verdicts=verdicts)
+
+
+def _claim_evidence(judge, needle):
+    text = next(t for t in judge.evidence_ids_by_claim if needle in t)
+    return judge.evidence_ids_by_claim[text]
+
+
+def test_crm_cited_claim_is_adjudicated_against_crm_evidence():
+    judge = CrmRecordingJudge()
+    _, result = evaluate_claim_groundedness(
+        _combined_answer("TEST-KFZ-2026-1001"), [PDF_DOC, CRM_DOC], judge=judge
+    )
+
+    # The CRM document is docs[1], so its evidence windows are keyed "d1:<offset>".
+    assert any(eid.startswith("d1:") for eid in _claim_evidence(judge, "150 EUR")), \
+        "CRM evidence was never offered to the judge"
+
+    row = next(r for r in result["claim_details"] if "150 EUR" in r["claim_text"])
+    assert row["relation"] == "supported"
+    assert "answer_citation_mismatch" not in row["demotion_reasons"]
+    assert result["sensitive_unsupported_count"] == 0
+
+
+def test_crm_citation_without_matching_record_stays_unknown():
+    judge = CrmRecordingJudge()
+    _, result = evaluate_claim_groundedness(
+        _combined_answer("TEST-KFZ-9999-9999"), [PDF_DOC, CRM_DOC], judge=judge
+    )
+
+    assert not any(eid.startswith("d1:") for eid in _claim_evidence(judge, "9999")), \
+        "a fabricated CRM citation must not be handed the real CRM record"
+
+    row = next(r for r in result["claim_details"] if "9999" in r["claim_text"])
+    assert row["relation"] == "unknown"
