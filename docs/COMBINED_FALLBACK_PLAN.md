@@ -265,7 +265,43 @@ The repo is large; context is the scarce resource. Rules:
 | 2026-09-14 | 2 (diagnosis only) | Diagnosed F1 (post stage falls back on score 1.0, C1/C6). Traced the full chain and verified it against the raw C1/C6 evidence. Proposal written to section 4.1. **No code changed.** | Root cause found: PDF-only citation regex evicts CRM evidence inside the evaluator. Threshold is irrelevant to these cases. | Implement 4.1 in a fresh session, failing test first. |
 | 2026-09-14 | 2 (fix) | Implemented 4.1 on branch `fix/f1-crm-citation-provenance` (commit `200b64b`), failing test first. `pytest tests/unit -q`: 381 passed, 4 failed — all 4 pre-existing, verified by re-running them with the fix stashed. | CRM claims are now adjudicated instead of evicted. | Restart backend, re-run the ruler. |
 | 2026-09-14 | 2 (measure) | Restarted `mva-backend` (bind-mount + `--reload` had **not** picked the change up; no WatchFiles event since the edit — verified in container before measuring). Re-ran `triage_combined.py --repeat 2`. | **Counts are not comparable to the pre-fix run — the triage classifier itself changed between the two runs** (route normalisation + post-stage separation), so H5 4→0 is the classifier, not the fix. Before: H2 10, H4 2, H5 4. After: H2 5, H3 4, OK 3, H4 2, H1 1, UNKNOWN 1. Real signal is per-case: C2 produced a full combined answer (6/6 claims supported, 0 provenance failures, 2 CRM sources in final sources) — no combined case did that before. C1's score moved from a fake 1.0 (3 CRM claims hidden as `unknown`) to an honest 0.75. **C7 green both runs. C8 fell back on run 1, passed on run 2** — C8 carries no CRM documents (`crm_ctx=0`), so the `crm_in_docs` guard makes the fix a byte-identical no-op there; pre-fix C8 raw was overwritten, so its prior stability cannot be confirmed from surviving evidence. | Flakiness is now the dominant signal (4 of 8 ids unstable across 2 runs). Establish whether it is generation non-determinism before reading any hypothesis count as real. |
-| 2026-09-14 | 2 (diagnosis only) | Traced F6, the non-determinism, through the generation and groundedness paths and compared the C2/C6 raw evidence run-to-run. **No code changed, triage not re-run.** | Confirmed: answer generation runs at `ANSWER_TEMPERATURE` default **0.4** (unset in the container), so the answers themselves differ run to run; the claim set extracted from them differs, so the score's denominator differs. The evaluator is second-order (`temperature=0` but **no seed anywhere in `src/`**). F6 does **not** subsume F3 — the `None` scores have three separate causes. Written up in the F6 block below. | Pin `ANSWER_TEMPERATURE=0`, re-run with `--repeat 5`, and re-establish the counts as a distribution before touching any remaining hypothesis. |
+| 2026-09-14 | 2 (diagnosis only) | Traced F6, the non-determinism, through the generation and groundedness paths and compared the C2/C6 raw evidence run-to-run. **No code changed, triage not re-run.** | Confirmed: answer generation is pinned to `ANSWER_TEMPERATURE=0`; the evaluator is second-order (`temperature=0` but **no seed anywhere in `src/`**). F6 does **not** subsume F3 — the `None` scores have three separate causes. Written up in the F6 block below. | Re-run with `--repeat 5`, and re-establish the counts as a distribution before touching any remaining hypothesis. |
+| 2026-09-14 | 2 (measure, N=5) | Pinned `ANSWER_TEMPERATURE=0` (default, `src/config/models.py`), restarted the backend, then ran `triage_combined.py --repeat 5` twice: once with the F1 fix live (branch `fix/f1-crm-citation-provenance`), once with only `src/core/claim_groundedness.py` reverted to `Abschluss-Arbeit` (verified 0 fix-markers in the container before the run) and restored afterward. Triage script and fixture were byte-identical in both conditions — the only variable was that one file. Results: `artifacts/test-results/combined-triage/{BEFORE,AFTER}-temp0.csv`, raw JSON under `raw-before/` and `raw-after/`. | See the N=5 before/after table below. Combined-mode real answers: **0/30 → 5/30**. Controls unchanged: C7 and C8 both 5/5 real in both conditions with identical score distributions. **This measurement supersedes the two temperature-0.4 runs above — those were single draws with a confound (the triage classifier also changed between them) and are kept only for narrative continuity.** | Investigate why C1, C3, C5 never scored across 10 runs, and why C6 falls back at score 1.00 every time. |
+
+### N=5 before/after at `ANSWER_TEMPERATURE=0` (the attributable measurement)
+
+Real/fallback out of 5 runs, groundedness min/median/max, and count of runs with no score at all.
+"Real" = `safety_decision == allow` and a non-trivial answer (`answer_chars > 100`); the 89/77-char
+rows are the fixed fallback texts.
+
+| id | route | BEFORE real/fb | BEFORE score (min/med/max) | BEFORE none | AFTER real/fb | AFTER score (min/med/max) | AFTER none |
+|---|---|---|---|---|---|---|---|
+| C1 | combined | 0/5 | — | 5 | 0/5 | — | 5 |
+| C2 | combined | 0/5 | 0.67 / 0.75 / 1.00 | 0 | **4/5** | 1.00 / 1.00 / 1.00 | 1 |
+| C3 | combined | 0/5 | — | 5 | 0/5 | — | 5 |
+| C4 | combined | 0/5 | 0.00 / 0.33 / 0.50 | 0 | **1/5** | 0.50 / 0.50 / 1.00 | 0 |
+| C5 | combined | 0/5 | — | 5 | 0/5 | — | 5 |
+| C6 | combined | 0/5 | 1.00 / 1.00 / 1.00 | 2 | 0/5 | 1.00 / 1.00 / 1.00 | 2 |
+| C7 | crm_only (control) | 5/5 | 0.99 / 0.99 / 0.99 | 0 | 5/5 | 0.99 / 0.99 / 0.99 | 0 |
+| C8 | retrieval_only (control) | 5/5 | 1.00 / 1.00 / 1.00 | 0 | 5/5 | 1.00 / 1.00 / 1.00 | 0 |
+
+**Headline:** combined-mode real answers went **0/30 → 5/30** with the fix. Both controls are
+unchanged — C7 and C8 stayed 5/5 real with byte-identical score distributions across conditions,
+so the fix did not regress either.
+
+**Methodology:** both conditions ran at `ANSWER_TEMPERATURE=0`; `scripts/tools/triage_combined.py`
+and `tests/fixtures/combined_failing_queries.json` were byte-identical between conditions; the only
+difference was `src/core/claim_groundedness.py` (the F1 fix present vs. the `Abschluss-Arbeit`
+version). This isolates the fix as the sole variable, unlike the temperature-0.4 runs above, where
+the triage classifier also changed between the pre- and post-fix measurements.
+
+**Caveat — this supersedes the earlier temperature-0.4 numbers.** Those were each a single draw
+under known sampling variance (F6); read them as narrative history of how the investigation
+proceeded, not as a quantitative baseline.
+
+**C1, C3 and C5 produced no score in any of the 10 runs across both conditions** (5 before + 5
+after each). The F1 fix could not have affected them either way — whatever blocks these three
+happens before or instead of groundedness scoring, and is unrelated to F1.
 
 ### Triage counts (Phase 1 complete — 8 cases × 2 runs = 16 rows)
 
@@ -293,9 +329,9 @@ run. 4 of 8 ids changed verdict between two consecutive runs of identical code a
 #### Mechanism — three layers, in order of contribution
 
 **1. Answer generation is sampled (first-order, the dominant term).**
-`temperature_answer = _env_float("ANSWER_TEMPERATURE", 0.4)` (`src/config/models.py:589`), applied
+`temperature_answer = _env_float("ANSWER_TEMPERATURE", 0.0)` (`src/config/models.py:589`), applied
 by `initialize_llm()` (`src/api/rag_service.py:3075`). `ANSWER_TEMPERATURE` is **unset in the
-container**, so 0.4 is live. The answers genuinely differ run to run — not paraphrases, different
+container**, so 0 is live. Before this was pinned, the answers genuinely differed run to run — not paraphrases, different
 content:
 
 | case | run 1 answer | run 2 answer |
